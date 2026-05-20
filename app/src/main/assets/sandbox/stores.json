@@ -1,0 +1,353 @@
+[
+  {
+    "id": 1,
+    "name": "DIA - Palermo",
+    "categoryCode": "SUPERMERCADO",
+    "address": "Av. Santa Fe 3050, Palermo",
+    "latitude": -34.5891,
+    "longitude": -58.4098,
+    "logo": "dia_logo"
+  },
+  {
+    "id": 2,
+    "name": "Carrefour Express - Belgrano",
+    "categoryCode": "SUPERMERCADO",
+    "address": "Av. Cabildo 2100, Belgrano",
+    "latitude": -34.5601,
+    "longitude": -58.4512,
+    "logo": "carrefour_logo"
+  },
+  {
+    "id": 3,
+    "name": "Coto - Caballito",
+    "categoryCode": "SUPERMERCADO",
+    "address": "Av. Rivadavia 5200, Caballito",
+    "latitude": -34.6183,
+    "longitude": -58.4471,
+    "logo": "coto_logo"
+  },
+  {
+    "id": 4,
+    "name": "Jumbo - Núñez",
+    "categoryCode": "SUPERMERCADO",
+    "address": "Av. del Libertador 6600, Núñez",
+    "latitude": -34.5445,
+    "longitude": -58.4601,
+    "logo": "jumbo_logo"
+  },
+  {
+    "id": 5,
+    "name": "Disco - Recoleta",
+    "categoryCode": "SUPERMERCADO",
+    "address": "Av. Las Heras 2180, Recoleta",
+    "latitude": -34.5872,
+    "longitude": -58.3941,
+    "logo": "disco_logo"
+  },
+  {
+    "id": 6,
+    "name": "Walmart - Flores",
+    "categoryCode": "SUPERMERCADO",
+    "address": "Av. Nazca 1200, Flores",
+    "latitude": -34.6284,
+    "longitude": -58.4722,
+    "logo": "walmart_logo"
+  },
+  {
+    "id": 7,
+    "name": "Farmacity - Palermo",
+    "categoryCode": "FARMACIA",
+    "address": "Av. Santa Fe 2990, Palermo",
+    "latitude": -34.5894,
+    "longitude": -58.4105,
+    "logo": "farmacity_logo"
+  },
+  {
+    "id": 8,
+    "name": "Farmacity - Microcentro",
+    "categoryCode": "FARMACIA",
+    "address": "Av. Corrientes 600, Microcentro",
+    "latitude": -34.6037,
+    "longitude": -58.3748,
+    "logo": "farmacity_logo"
+  },
+  {
+    "id": 9,
+    "name": "Dr. Ahorro - Caballito",
+    "categoryCode": "FARMACIA",
+    "address": "Av. Rivadavia 4980, Caballito",
+    "latitude": -34.6178,
+    "longitude": -58.4449,
+    "logo": "dr_ahorro_logo"
+  },
+  {
+    "id": 10,
+    "name": "Farmacia del Pueblo - Belgrano",
+    "categoryCode": "FARMACIA",
+    "address": "Av. Cabildo 1540, Belgrano",
+    "latitude": -34.5634,
+    "longitude": -58.4488,
+    "logo": "farmacia_pueblo_logo"
+  },
+  {
+    "id": 11,
+    "name": "Farmacity - Recoleta",
+    "categoryCode": "FARMACIA",
+    "address": "Av. Santa Fe 1800, Recoleta",
+    "latitude": -34.5947,
+    "longitude": -58.3932,
+    "logo": "farmacity_logo"
+  },
+  {
+    "id": 12,
+    "name": "Sport House - Palermo",
+    "categoryCode": "GIMNASIO",
+    "address": "Av. Córdoba 3180, Palermo",
+    "latitude": -34.5985,
+    "longitude": -58.4150,
+    "logo": "sport_house_logo"
+  },
+  {
+    "id": 13,
+    "name": "Adidas Store - Alto Palermo",
+    "categoryCode": "GIMNASIO",
+    "address": "Av. Santa Fe 3253, Palermo",
+    "latitude": -34.5877,
+    "longitude": -58.4071,
+    "logo": "adidas_logo"
+  },
+  {
+    "id": 14,
+    "name": "Decathlon - Caballito",
+    "categoryCode": "GIMNASIO",
+    "address": "Av. Rivadavia 5602, Caballito",
+    "latitude": -34.6201,
+    "longitude": -58.4512,
+    "logo": "decathlon_logo"
+  },
+  {
+    "id": 15,
+    "name": "Nike Factory - Flores",
+    "categoryCode": "GIMNASIO",
+    "address": "Av. Avellaneda 3450, Flores",
+    "latitude": -34.6318,
+    "longitude": -58.4801,
+    "logo": "nike_logo"
+  },
+  {
+    "id": 16,
+    "name": "Sanatorio Güemes - Palermo",
+    "categoryCode": "MEDICO",
+    "address": "Av. Córdoba 3933, Palermo",
+    "latitude": -34.5963,
+    "longitude": -58.4211,
+    "logo": "sanatorio_guemes_logo"
+  },
+  {
+    "id": 17,
+    "name": "Hospital Italiano - Almagro",
+    "categoryCode": "MEDICO",
+    "address": "Gascón 450, Almagro",
+    "latitude": -34.6082,
+    "longitude": -58.4332,
+    "logo": "hospital_italiano_logo"
+  },
+  {
+    "id": 18,
+    "name": "Swiss Medical - Recoleta",
+    "categoryCode": "MEDICO",
+    "address": "Av. Callao 1800, Recoleta",
+    "latitude": -34.5931,
+    "longitude": -58.3912,
+    "logo": "swiss_medical_logo"
+  },
+  {
+    "id": 19,
+    "name": "CEMIC - Belgrano",
+    "categoryCode": "MEDICO",
+    "address": "Av. Galván 4102, Belgrano",
+    "latitude": -34.5589,
+    "longitude": -58.4623,
+    "logo": "cemic_logo"
+  },
+  {
+    "id": 20,
+    "name": "Petco - Palermo",
+    "categoryCode": "VETERINARIA",
+    "address": "Av. Bullrich 345, Palermo",
+    "latitude": -34.5831,
+    "longitude": -58.4223,
+    "logo": "petco_logo"
+  },
+  {
+    "id": 21,
+    "name": "Puppis - Belgrano",
+    "categoryCode": "VETERINARIA",
+    "address": "Av. Cabildo 2450, Belgrano",
+    "latitude": -34.5577,
+    "longitude": -58.4538,
+    "logo": "puppis_logo"
+  },
+  {
+    "id": 22,
+    "name": "Puppis - Caballito",
+    "categoryCode": "VETERINARIA",
+    "address": "Av. Rivadavia 5400, Caballito",
+    "latitude": -34.6192,
+    "longitude": -58.4488,
+    "logo": "puppis_logo"
+  },
+  {
+    "id": 23,
+    "name": "Clínica Veterinaria Palermo",
+    "categoryCode": "VETERINARIA",
+    "address": "Thames 1620, Palermo",
+    "latitude": -34.5878,
+    "longitude": -58.4302,
+    "logo": "vet_palermo_logo"
+  },
+  {
+    "id": 24,
+    "name": "Blaisten - Palermo",
+    "categoryCode": "FERRETERIA",
+    "address": "Av. Córdoba 3880, Palermo",
+    "latitude": -34.5971,
+    "longitude": -58.4198,
+    "logo": "blaisten_logo"
+  },
+  {
+    "id": 25,
+    "name": "Sodimac - Caballito",
+    "categoryCode": "FERRETERIA",
+    "address": "Av. Rivadavia 5800, Caballito",
+    "latitude": -34.6214,
+    "longitude": -58.4531,
+    "logo": "sodimac_logo"
+  },
+  {
+    "id": 26,
+    "name": "Easy - Flores",
+    "categoryCode": "FERRETERIA",
+    "address": "Av. Nazca 1450, Flores",
+    "latitude": -34.6301,
+    "longitude": -58.4748,
+    "logo": "easy_logo"
+  },
+  {
+    "id": 27,
+    "name": "Ferretería El Clavo - Almagro",
+    "categoryCode": "FERRETERIA",
+    "address": "Av. Corrientes 3950, Almagro",
+    "latitude": -34.6044,
+    "longitude": -58.4278,
+    "logo": "ferreteria_clavo_logo"
+  },
+  {
+    "id": 28,
+    "name": "Panadería La Espiga - Caballito",
+    "categoryCode": "PANADERIA",
+    "address": "Av. Rivadavia 5012, Caballito",
+    "latitude": -34.6181,
+    "longitude": -58.4452,
+    "logo": "panaderia_espiga_logo"
+  },
+  {
+    "id": 29,
+    "name": "Panadería El Trigo - Palermo",
+    "categoryCode": "PANADERIA",
+    "address": "Av. Santa Fe 3400, Palermo",
+    "latitude": -34.5884,
+    "longitude": -58.4055,
+    "logo": "panaderia_trigo_logo"
+  },
+  {
+    "id": 30,
+    "name": "Panadería Don Carlos - Belgrano",
+    "categoryCode": "PANADERIA",
+    "address": "Av. Cabildo 1800, Belgrano",
+    "latitude": -34.5621,
+    "longitude": -58.4501,
+    "logo": "panaderia_don_carlos_logo"
+  },
+  {
+    "id": 31,
+    "name": "Panadería La Porteña - Almagro",
+    "categoryCode": "PANADERIA",
+    "address": "Av. Corrientes 4200, Almagro",
+    "latitude": -34.6051,
+    "longitude": -58.4301,
+    "logo": "panaderia_portena_logo"
+  },
+  {
+    "id": 32,
+    "name": "Librería El Ateneo - Recoleta",
+    "categoryCode": "LIBRERIA",
+    "address": "Av. Santa Fe 1860, Recoleta",
+    "latitude": -34.5944,
+    "longitude": -58.3928,
+    "logo": "ateneo_logo"
+  },
+  {
+    "id": 33,
+    "name": "Librería Yenny - Palermo",
+    "categoryCode": "LIBRERIA",
+    "address": "Av. Santa Fe 3253, Palermo",
+    "latitude": -34.5877,
+    "longitude": -58.4071,
+    "logo": "yenny_logo"
+  },
+  {
+    "id": 34,
+    "name": "Fotocopias UBA - Balvanera",
+    "categoryCode": "LIBRERIA",
+    "address": "Av. Corrientes 2038, Balvanera",
+    "latitude": -34.6043,
+    "longitude": -58.3971,
+    "logo": "fotocopias_uba_logo"
+  },
+  {
+    "id": 35,
+    "name": "Librería Cuspide - Belgrano",
+    "categoryCode": "LIBRERIA",
+    "address": "Av. Cabildo 1900, Belgrano",
+    "latitude": -34.5614,
+    "longitude": -58.4511,
+    "logo": "cuspide_logo"
+  },
+  {
+    "id": 36,
+    "name": "Peluquería Look - Palermo",
+    "categoryCode": "PELUQUERIA",
+    "address": "Thames 1780, Palermo",
+    "latitude": -34.5865,
+    "longitude": -58.4318,
+    "logo": "look_logo"
+  },
+  {
+    "id": 37,
+    "name": "Barbería El Navajero - Belgrano",
+    "categoryCode": "PELUQUERIA",
+    "address": "Av. Cabildo 2280, Belgrano",
+    "latitude": -34.5591,
+    "longitude": -58.4524,
+    "logo": "navajero_logo"
+  },
+  {
+    "id": 38,
+    "name": "Studio Hair - Caballito",
+    "categoryCode": "PELUQUERIA",
+    "address": "Av. Rivadavia 5340, Caballito",
+    "latitude": -34.6189,
+    "longitude": -58.4478,
+    "logo": "studio_hair_logo"
+  },
+  {
+    "id": 39,
+    "name": "Peluquería Regia - Almagro",
+    "categoryCode": "PELUQUERIA",
+    "address": "Av. Corrientes 4050, Almagro",
+    "latitude": -34.6048,
+    "longitude": -58.4289,
+    "logo": "regia_logo"
+  }
+]

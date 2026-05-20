@@ -1,0 +1,107 @@
+[
+  {
+    "id": 1,
+    "name": "Supermercado",
+    "code": "SUPERMERCADO",
+    "description": "Compras de alimentos, bebidas y productos del hogar",
+    "activatesOffers": true
+  },
+  {
+    "id": 2,
+    "name": "Farmacia",
+    "code": "FARMACIA",
+    "description": "Medicamentos, perfumería y productos de cuidado personal",
+    "activatesOffers": true
+  },
+  {
+    "id": 3,
+    "name": "Trabajo",
+    "code": "TRABAJO",
+    "description": "Tareas relacionadas con la jornada laboral presencial",
+    "activatesOffers": false
+  },
+  {
+    "id": 4,
+    "name": "Facultad",
+    "code": "FACULTAD",
+    "description": "Tareas académicas o de cursada universitaria",
+    "activatesOffers": false
+  },
+  {
+    "id": 5,
+    "name": "Gimnasio",
+    "code": "GIMNASIO",
+    "description": "Tareas relacionadas con actividad física o entrenamiento",
+    "activatesOffers": true
+  },
+  {
+    "id": 6,
+    "name": "Médico",
+    "code": "MEDICO",
+    "description": "Turnos médicos, estudios o consultas de salud",
+    "activatesOffers": true
+  },
+  {
+    "id": 7,
+    "name": "Banco",
+    "code": "BANCO",
+    "description": "Trámites bancarios, pagos o gestiones financieras",
+    "activatesOffers": false
+  },
+  {
+    "id": 8,
+    "name": "Escuela",
+    "code": "ESCUELA",
+    "description": "Actividades relacionadas con la educación primaria o secundaria",
+    "activatesOffers": false
+  },
+  {
+    "id": 9,
+    "name": "Veterinaria",
+    "code": "VETERINARIA",
+    "description": "Atención, compras y cuidado de mascotas",
+    "activatesOffers": true
+  },
+  {
+    "id": 10,
+    "name": "Ferretería",
+    "code": "FERRETERIA",
+    "description": "Compras de herramientas, materiales y productos para el hogar",
+    "activatesOffers": true
+  },
+  {
+    "id": 11,
+    "name": "Panadería",
+    "code": "PANADERIA",
+    "description": "Compras de pan, facturas y productos de almacén",
+    "activatesOffers": true
+  },
+  {
+    "id": 12,
+    "name": "Transporte",
+    "code": "TRANSPORTE",
+    "description": "Uso de transporte público, estación de tren o parada de colectivo",
+    "activatesOffers": false
+  },
+  {
+    "id": 13,
+    "name": "Librería",
+    "code": "LIBRERIA",
+    "description": "Compra de útiles, fotocopias o material de estudio",
+    "activatesOffers": true
+  },
+  {
+    "id": 14,
+    "name": "Peluquería",
+    "code": "PELUQUERIA",
+    "description": "Turnos de peluquería, barbería o estética personal",
+    "activatesOffers": true
+  },
+  {
+    "id": 15,
+    "name": "Casa",
+    "code": "CASA",
+    "description": "Tareas del hogar o recordatorios personales sin salir",
+    "activatesOffers": false
+  }
+]

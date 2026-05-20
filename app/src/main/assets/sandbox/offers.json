@@ -1,0 +1,398 @@
+[
+  {
+    "id": 1,
+    "storeId": 1,
+    "categoryCode": "SUPERMERCADO",
+    "title": "20% en productos seleccionados",
+    "description": "Descuento en góndola de almacén y lácteos pagando con tarjeta de débito",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 2,
+    "storeId": 1,
+    "categoryCode": "SUPERMERCADO",
+    "title": "3x2 en bebidas sin alcohol",
+    "description": "Llevá 3 unidades de aguas, jugos o gaseosas y pagás solo 2",
+    "discount": 33,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 3,
+    "storeId": 2,
+    "categoryCode": "SUPERMERCADO",
+    "title": "2x1 en bebidas",
+    "description": "Dos por uno en gaseosas y aguas de todas las marcas",
+    "discount": 50,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 4,
+    "storeId": 2,
+    "categoryCode": "SUPERMERCADO",
+    "title": "15% pagando con billetera virtual",
+    "description": "Descuento aplicable con Mercado Pago, Ualá o Naranja X",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 5,
+    "storeId": 3,
+    "categoryCode": "SUPERMERCADO",
+    "title": "25% en carnes los jueves",
+    "description": "Todos los jueves 25% de descuento en la sección carnicería",
+    "discount": 25,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 6,
+    "storeId": 3,
+    "categoryCode": "SUPERMERCADO",
+    "title": "10% en productos de limpieza",
+    "description": "Descuento en detergentes, lavandinas y artículos de limpieza del hogar",
+    "discount": 10,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 7,
+    "storeId": 4,
+    "categoryCode": "SUPERMERCADO",
+    "title": "30% en la segunda unidad",
+    "description": "Comprando dos productos iguales, el segundo tiene 30% de descuento",
+    "discount": 30,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 8,
+    "storeId": 5,
+    "categoryCode": "SUPERMERCADO",
+    "title": "20% en productos de marca propia",
+    "description": "Descuento en toda la línea de productos Disco",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 9,
+    "storeId": 6,
+    "categoryCode": "SUPERMERCADO",
+    "title": "15% con tarjeta Walmart",
+    "description": "Descuento exclusivo para clientes con tarjeta fidelidad Walmart",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 10,
+    "storeId": 7,
+    "categoryCode": "FARMACIA",
+    "title": "20% en perfumería y cosmética",
+    "description": "Descuento en cremas, maquillaje y productos de cuidado personal",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 11,
+    "storeId": 7,
+    "categoryCode": "FARMACIA",
+    "title": "15% en vitaminas y suplementos",
+    "description": "Descuento en toda la línea de vitaminas, minerales y suplementos dietarios",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 12,
+    "storeId": 8,
+    "categoryCode": "FARMACIA",
+    "title": "2x1 en protector solar",
+    "description": "Dos por uno en protectores solares de todas las marcas y factores",
+    "discount": 50,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 13,
+    "storeId": 9,
+    "categoryCode": "FARMACIA",
+    "title": "10% en medicamentos con receta",
+    "description": "Descuento presentando receta médica en cualquier medicamento de venta bajo receta",
+    "discount": 10,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 14,
+    "storeId": 10,
+    "categoryCode": "FARMACIA",
+    "title": "25% en pañales y artículos de bebé",
+    "description": "Descuento en pañales, toallitas y accesorios para bebés",
+    "discount": 25,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 15,
+    "storeId": 11,
+    "categoryCode": "FARMACIA",
+    "title": "15% pagando con OSDE o Swiss Medical",
+    "description": "Descuento especial para afiliados a OSDE o Swiss Medical en productos seleccionados",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 16,
+    "storeId": 12,
+    "categoryCode": "GIMNASIO",
+    "title": "20% en indumentaria deportiva",
+    "description": "Descuento en ropa y calzado deportivo de todas las marcas",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 17,
+    "storeId": 12,
+    "categoryCode": "GIMNASIO",
+    "title": "15% en suplementos deportivos",
+    "description": "Descuento en proteínas, creatina y barritas energéticas",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 18,
+    "storeId": 13,
+    "categoryCode": "GIMNASIO",
+    "title": "30% en la segunda prenda",
+    "description": "Comprando dos prendas Adidas, la segunda tiene 30% de descuento",
+    "discount": 30,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 19,
+    "storeId": 14,
+    "categoryCode": "GIMNASIO",
+    "title": "10% en equipamiento de natación",
+    "description": "Descuento en antiparras, gorros y accesorios de natación",
+    "discount": 10,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 20,
+    "storeId": 15,
+    "categoryCode": "GIMNASIO",
+    "title": "25% en zapatillas running",
+    "description": "Descuento en toda la línea de zapatillas para correr Nike",
+    "discount": 25,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 21,
+    "storeId": 16,
+    "categoryCode": "MEDICO",
+    "title": "15% en estudios de laboratorio",
+    "description": "Descuento en análisis clínicos sin obra social",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 22,
+    "storeId": 17,
+    "categoryCode": "MEDICO",
+    "title": "Consulta médica con descuento",
+    "description": "20% de descuento en la primera consulta médica particular",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 23,
+    "storeId": 18,
+    "categoryCode": "MEDICO",
+    "title": "10% en estudios por imágenes",
+    "description": "Descuento en ecografías, radiografías y tomografías abonando en efectivo",
+    "discount": 10,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 24,
+    "storeId": 19,
+    "categoryCode": "MEDICO",
+    "title": "Chequeo preventivo bonificado",
+    "description": "30% de descuento en el plan de chequeo anual para nuevos pacientes",
+    "discount": 30,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 25,
+    "storeId": 20,
+    "categoryCode": "VETERINARIA",
+    "title": "20% en alimento balanceado",
+    "description": "Descuento en bolsas de alimento balanceado para perros y gatos de todas las marcas",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 26,
+    "storeId": 21,
+    "categoryCode": "VETERINARIA",
+    "title": "15% en accesorios para mascotas",
+    "description": "Descuento en correas, camas, juguetes y accesorios varios",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 27,
+    "storeId": 22,
+    "categoryCode": "VETERINARIA",
+    "title": "2x1 en antiparasitarios",
+    "description": "Dos por uno en pipetas y pastillas antiparasitarias para perros y gatos",
+    "discount": 50,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 28,
+    "storeId": 23,
+    "categoryCode": "VETERINARIA",
+    "title": "Consulta veterinaria con descuento",
+    "description": "25% de descuento en la primera consulta clínica para nuevos pacientes",
+    "discount": 25,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 29,
+    "storeId": 24,
+    "categoryCode": "FERRETERIA",
+    "title": "15% en pinturas y accesorios",
+    "description": "Descuento en pinturas látex, esmaltes y rodillos de todas las marcas",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 30,
+    "storeId": 25,
+    "categoryCode": "FERRETERIA",
+    "title": "20% en herramientas eléctricas",
+    "description": "Descuento en taladros, amoladoras y herramientas eléctricas Bosch y Black & Decker",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 31,
+    "storeId": 26,
+    "categoryCode": "FERRETERIA",
+    "title": "10% en materiales de construcción",
+    "description": "Descuento en cerámicos, adhesivos y materiales para obra",
+    "discount": 10,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 32,
+    "storeId": 27,
+    "categoryCode": "FERRETERIA",
+    "title": "15% pagando en efectivo",
+    "description": "Descuento especial abonando en efectivo en cualquier producto de la ferretería",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 33,
+    "storeId": 28,
+    "categoryCode": "PANADERIA",
+    "title": "10% en compras mayores a $5000",
+    "description": "Descuento en el total de la compra superando los $5000 en productos de panadería",
+    "discount": 10,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 34,
+    "storeId": 29,
+    "categoryCode": "PANADERIA",
+    "title": "Docena de medialunas bonificada",
+    "description": "Comprando dos docenas de medialunas, la tercera va con 50% de descuento",
+    "discount": 50,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 35,
+    "storeId": 30,
+    "categoryCode": "PANADERIA",
+    "title": "20% en pan artesanal los sábados",
+    "description": "Todos los sábados 20% de descuento en panes artesanales y de masa madre",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 36,
+    "storeId": 31,
+    "categoryCode": "PANADERIA",
+    "title": "15% pagando con billetera virtual",
+    "description": "Descuento abonando con Mercado Pago o cualquier billetera virtual",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 37,
+    "storeId": 32,
+    "categoryCode": "LIBRERIA",
+    "title": "20% en libros de texto universitarios",
+    "description": "Descuento en libros de texto para carreras universitarias presentando libreta",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 38,
+    "storeId": 33,
+    "categoryCode": "LIBRERIA",
+    "title": "15% en útiles escolares",
+    "description": "Descuento en carpetas, lapiceras, marcadores y útiles escolares en general",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 39,
+    "storeId": 34,
+    "categoryCode": "LIBRERIA",
+    "title": "Fotocopias a precio especial",
+    "description": "10% de descuento en fotocopias presentando credencial universitaria UBA",
+    "discount": 10,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 40,
+    "storeId": 35,
+    "categoryCode": "LIBRERIA",
+    "title": "2x1 en novelas y ficción",
+    "description": "Dos por uno en toda la sección de novelas y literatura de ficción nacional e internacional",
+    "discount": 50,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 41,
+    "storeId": 36,
+    "categoryCode": "PELUQUERIA",
+    "title": "20% en coloración completa",
+    "description": "Descuento en tintura y coloración total para nuevos clientes",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 42,
+    "storeId": 37,
+    "categoryCode": "PELUQUERIA",
+    "title": "Barba gratis con corte",
+    "description": "Perfilado y arreglo de barba sin costo adicional al contratar corte de cabello",
+    "discount": 30,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 43,
+    "storeId": 38,
+    "categoryCode": "PELUQUERIA",
+    "title": "15% pagando con transferencia",
+    "description": "Descuento en cualquier servicio abonando por transferencia bancaria",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 44,
+    "storeId": 39,
+    "categoryCode": "PELUQUERIA",
+    "title": "Tratamiento capilar con 25% off",
+    "description": "Descuento en tratamientos de keratina, hidratación y botox capilar",
+    "discount": 25,
+    "validUntil": "2025-12-31"
+  }
+]
