@@ -1,4 +1,4 @@
-package com.example.taskpoint.ui.theme
+package com.example.apk_mock.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
