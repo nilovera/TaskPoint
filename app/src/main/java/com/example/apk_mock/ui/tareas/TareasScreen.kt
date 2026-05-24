@@ -2,6 +2,7 @@ package com.example.apk_mock.ui.tareas
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,6 +25,7 @@ import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.ui.rutinas.FiltrosDias
 import com.example.apk_mock.ui.theme.*
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -37,9 +39,8 @@ fun TareasScreen(
 ) {
     val listState by viewModel.listState.collectAsState()
     val tareas = viewModel.tareasFiltradas()
+    val canCreateTask = listState.rutinasDisponibles > 0
     val today = LocalDate.now()
-    val monthName = today.month.getDisplayName(TextStyle.FULL, Locale("es", "AR"))
-    val dateLabel = "${today.dayOfMonth} de $monthName · ${today.year}"
 
     LaunchedEffect(Unit) { viewModel.refreshTareas() }
 
@@ -48,13 +49,20 @@ fun TareasScreen(
     Scaffold(
         containerColor = BackgroundDark,
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onNavigateToCrear,
-                containerColor = AccentBlue,
-                contentColor = Color.White,
-                shape = RoundedCornerShape(50)
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (canCreateTask) AccentBlue else Color(0xFF4E5562))
+                    .clickable(enabled = canCreateTask, onClick = onNavigateToCrear)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text("Nueva tarea +", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Nueva tarea +",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         },
         floatingActionButtonPosition = FabPosition.End
@@ -90,6 +98,15 @@ fun TareasScreen(
             }
 
             Spacer(Modifier.height(16.dp))
+            FiltrosDias(seleccionado = listState.filtroDia, onSelect = { viewModel.onFiltroDia(it) })
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = diaLabel(listState.filtroDia ?: today.toDiaSemana(), today),
+                color = AccentBlue,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(Modifier.height(12.dp))
 
             if (tareas.isEmpty()) {
                 Box(
@@ -102,23 +119,31 @@ fun TareasScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            "No tenés tareas\nel día de hoy.",
+                            "No tenes tareas\ncargadas.",
                             color = SubtitleGray, fontSize = 15.sp, lineHeight = 22.sp,
                             textAlign = TextAlign.Center
                         )
                         Spacer(Modifier.height(20.dp))
                         Button(
                             onClick = onNavigateToCrear,
+                            enabled = canCreateTask,
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue.copy(alpha = 0.25f))
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = AccentBlue.copy(alpha = 0.25f),
+                                disabledContainerColor = Color(0xFF59606E),
+                                disabledContentColor = Color.White
+                            )
                         ) {
-                            Text("Crear tarea ↗", color = AccentBlue, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "Crear tarea \u2197",
+                                color = if (canCreateTask) AccentBlue else Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
                 }
             } else {
-                FiltrosDias(seleccionado = listState.filtroDia, onSelect = { viewModel.onFiltroDia(it) })
-                Spacer(Modifier.height(16.dp))
                 val agrupadas = tareas.groupBy { it.dia }
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     agrupadas.forEach { (dia, tareasDelDia) ->
@@ -153,6 +178,16 @@ private fun diaLabel(dia: DiaSemana?, today: LocalDate): String {
         DiaSemana.DOM -> "Domingo ${today.dayOfMonth + 6} de $monthName"
         null -> "Sin día asignado"
     }
+}
+
+private fun LocalDate.toDiaSemana(): DiaSemana = when (dayOfWeek) {
+    DayOfWeek.MONDAY -> DiaSemana.LUN
+    DayOfWeek.TUESDAY -> DiaSemana.MAR
+    DayOfWeek.WEDNESDAY -> DiaSemana.MIE
+    DayOfWeek.THURSDAY -> DiaSemana.JUE
+    DayOfWeek.FRIDAY -> DiaSemana.VIE
+    DayOfWeek.SATURDAY -> DiaSemana.SAB
+    DayOfWeek.SUNDAY -> DiaSemana.DOM
 }
 
 @Composable

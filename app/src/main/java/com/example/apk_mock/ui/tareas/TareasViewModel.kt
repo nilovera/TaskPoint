@@ -17,7 +17,8 @@ import kotlinx.coroutines.flow.update
 // ── UiState lista ─────────────────────────────────────────────────────────────
 data class TareasListUiState(
     val tareas: List<Tarea> = emptyList(),
-    val filtroDia: DiaSemana? = null
+    val filtroDia: DiaSemana? = null,
+    val rutinasDisponibles: Int = 0
 )
 
 // ── UiState formulario ────────────────────────────────────────────────────────
@@ -52,7 +53,12 @@ class TareasViewModel(
     private val _formState = MutableStateFlow(CrearTareaUiState())
     val formState: StateFlow<CrearTareaUiState> = _formState.asStateFlow()
 
-    fun refreshTareas() = _listState.update { it.copy(tareas = getTareas()) }
+    fun refreshTareas() = _listState.update {
+        it.copy(
+            tareas = getTareas(),
+            rutinasDisponibles = getRutinas().size
+        )
+    }
 
     fun onFiltroDia(dia: DiaSemana?) = _listState.update { it.copy(filtroDia = dia) }
 

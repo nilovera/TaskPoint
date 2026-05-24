@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
@@ -18,9 +19,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.apk_mock.data.MockAuthRepository
-import com.example.apk_mock.data.MockRutinaRepository
-import com.example.apk_mock.data.MockTareaRepository
+import com.example.apk_mock.data.repository.JsonAuthRepository
+import com.example.apk_mock.data.repository.JsonRutinaRepository
+import com.example.apk_mock.data.repository.JsonTareaRepository
 import com.example.apk_mock.domain.useCase.*
 import com.example.apk_mock.ui.forgotPassword.ForgotPasswordEmailScreen
 import com.example.apk_mock.ui.forgotPassword.ForgotPasswordViewModel
@@ -39,20 +40,8 @@ import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.*
 
 // ── Repositorios mock (Single Source of Truth) ────────────────────────────────
-private val authRepository   = MockAuthRepository()
-private val rutinaRepository = MockRutinaRepository()
-private val tareaRepository  = MockTareaRepository()
 
 // ── Use cases ─────────────────────────────────────────────────────────────────
-private val registerUseCase    = RegisterUseCase(authRepository)
-private val loginUseCase       = LoginUseCase(authRepository)
-private val sendCodeUseCase    = SendResetCodeUseCase(authRepository)
-private val verifyCodeUseCase  = VerifyResetCodeUseCase(authRepository)
-private val changePassUseCase  = ChangePasswordUseCase(authRepository)
-private val getRutinasUseCase  = GetRutinasUseCase(rutinaRepository)
-private val crearRutinaUseCase = CrearRutinaUseCase(rutinaRepository)
-private val getTareasUseCase   = GetTareasUseCase(tareaRepository)
-private val crearTareaUseCase  = CrearTareaUseCase(tareaRepository)
 
 // ── Modelo de ítem del bottom bar ─────────────────────────────────────────────
 private data class BottomNavItem(
@@ -72,9 +61,24 @@ private val tabRoutes = setOf(Routes.HOME, Routes.RUTINAS, Routes.TAREAS)
 
 @Composable
 fun AppNavigation() {
+    val context = LocalContext.current.applicationContext
     val navController = rememberNavController()
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStack?.destination?.route
+
+    val authRepository = remember(context) { JsonAuthRepository(context) }
+    val rutinaRepository = remember(context, authRepository) { JsonRutinaRepository(context, authRepository) }
+    val tareaRepository = remember(context, authRepository) { JsonTareaRepository(context, authRepository) }
+
+    val registerUseCase = remember(authRepository) { RegisterUseCase(authRepository) }
+    val loginUseCase = remember(authRepository) { LoginUseCase(authRepository) }
+    val sendCodeUseCase = remember(authRepository) { SendResetCodeUseCase(authRepository) }
+    val verifyCodeUseCase = remember(authRepository) { VerifyResetCodeUseCase(authRepository) }
+    val changePassUseCase = remember(authRepository) { ChangePasswordUseCase(authRepository) }
+    val getRutinasUseCase = remember(rutinaRepository) { GetRutinasUseCase(rutinaRepository) }
+    val crearRutinaUseCase = remember(rutinaRepository) { CrearRutinaUseCase(rutinaRepository) }
+    val getTareasUseCase = remember(tareaRepository) { GetTareasUseCase(tareaRepository) }
+    val crearTareaUseCase = remember(tareaRepository) { CrearTareaUseCase(tareaRepository) }
 
     // Estado del nombre del usuario: se setea al hacer login y persiste
     var userName by remember { mutableStateOf("") }
@@ -182,7 +186,17 @@ fun AppNavigation() {
             composable(Routes.HOME) {
                 HomeScreen(
                     userName = userName,
+                    rutinasViewModel = rutinasViewModel,
+                    tareasViewModel = tareasViewModel,
+                    onCrearRutina = { navController.navigate(Routes.CREAR_RUTINA) },
                     onCrearTarea = { navController.navigate(Routes.CREAR_TAREA) },
+                    onLogout = {
+                        authRepository.logout()
+                        userName = ""
+                        navController.navigate(Routes.LOGIN) {
+                            popUpTo(Routes.HOME) { inclusive = true }
+                        }
+                    },
                     innerPadding = innerPadding
                 )
             }

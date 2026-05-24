@@ -28,7 +28,8 @@ fun MainScreen(
     rutinasViewModel: RutinasViewModel,
     tareasViewModel: TareasViewModel,
     onNavigateToCrearRutina: () -> Unit,
-    onNavigateToCrearTarea: () -> Unit
+    onNavigateToCrearTarea: () -> Unit,
+    onLogout: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(MainTab.HOME) }
 
@@ -85,7 +86,11 @@ fun MainScreen(
                 )
                 MainTab.HOME -> HomeScreen(
                     userName = userName,
-                    onCrearTarea = onNavigateToCrearTarea
+                    rutinasViewModel = rutinasViewModel,
+                    tareasViewModel = tareasViewModel,
+                    onCrearRutina = onNavigateToCrearRutina,
+                    onCrearTarea = onNavigateToCrearTarea,
+                    onLogout = onLogout
                 )
                 MainTab.TAREAS -> TareasScreen(
                     viewModel = tareasViewModel,

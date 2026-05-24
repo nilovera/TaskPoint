@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "table": "rutinas",
+  "primaryKey": "id",
+  "foreignKeys": {
+    "userId": "users.id"
+  },
+  "rows": [
+    {
+      "id": "rut_full_trabajo",
+      "userId": "user_full_week",
+      "nombre": "Trabajo presencial",
+      "icono": "TRABAJO",
+      "direccion": "Av. Santa Fe 3000",
+      "diasSemana": ["LUN", "MAR", "MIE", "JUE", "VIE"],
+      "horarioInicio": "09:00",
+      "horarioFin": "17:00",
+      "descripcion": "Bloque de trabajo y pendientes laborales.",
+      "cantidadTareas": 10,
+      "createdAt": "2026-05-24T00:00:00Z",
+      "updatedAt": "2026-05-24T00:00:00Z"
+    },
+    {
+      "id": "rut_full_gimnasio",
+      "userId": "user_full_week",
+      "nombre": "Gimnasio",
+      "icono": "GIMNASIO",
+      "direccion": "Av. Cordoba 3200",
+      "diasSemana": ["LUN", "MIE", "VIE", "SAB"],
+      "horarioInicio": "18:00",
+      "horarioFin": "19:00",
+      "descripcion": "Entrenamiento y habitos saludables.",
+      "cantidadTareas": 4,
+      "createdAt": "2026-05-24T00:00:00Z",
+      "updatedAt": "2026-05-24T00:00:00Z"
+    },
+    {
+      "id": "rut_full_facultad",
+      "userId": "user_full_week",
+      "nombre": "Facultad",
+      "icono": "FACULTAD",
+      "direccion": "Lima 775",
+      "diasSemana": ["MAR", "JUE", "DOM"],
+      "horarioInicio": "19:30",
+      "horarioFin": "23:00",
+      "descripcion": "Clases, estudio y entregas.",
+      "cantidadTareas": 5,
+      "createdAt": "2026-05-24T00:00:00Z",
+      "updatedAt": "2026-05-24T00:00:00Z"
+    },
+    {
+      "id": "rut_sab_trabajo",
+      "userId": "user_saturday_tasks",
+      "nombre": "Turno sabado",
+      "icono": "TRABAJO",
+      "direccion": "Av. Corrientes 1200",
+      "diasSemana": ["SAB"],
+      "horarioInicio": "10:00",
+      "horarioFin": "14:00",
+      "descripcion": "Actividades de revision semanal.",
+      "cantidadTareas": 2,
+      "createdAt": "2026-05-24T00:00:00Z",
+      "updatedAt": "2026-05-24T00:00:00Z"
+    },
+    {
+      "id": "rut_sab_hogar",
+      "userId": "user_saturday_tasks",
+      "nombre": "Casa",
+      "icono": "HOGAR",
+      "direccion": "Honduras 4100",
+      "diasSemana": ["LUN", "MAR", "MIE", "JUE", "VIE", "SAB", "DOM"],
+      "horarioInicio": "16:00",
+      "horarioFin": "18:00",
+      "descripcion": "Organizacion general del hogar.",
+      "cantidadTareas": 1,
+      "createdAt": "2026-05-24T00:00:00Z",
+      "updatedAt": "2026-05-24T00:00:00Z"
+    },
+    {
+      "id": "rut_only_estudio",
+      "userId": "user_routines_only",
+      "nombre": "Estudio",
+      "icono": "ESTUDIO",
+      "direccion": "Biblioteca UADE",
+      "diasSemana": ["LUN", "MIE", "VIE"],
+      "horarioInicio": "18:00",
+      "horarioFin": "20:00",
+      "descripcion": "Bloque reservado para lectura y practica.",
+      "cantidadTareas": 0,
+      "createdAt": "2026-05-24T00:00:00Z",
+      "updatedAt": "2026-05-24T00:00:00Z"
+    },
+    {
+      "id": "rut_only_salud",
+      "userId": "user_routines_only",
+      "nombre": "Salud",
+      "icono": "SALUD",
+      "direccion": "Centro Medico Norte",
+      "diasSemana": ["MAR", "JUE"],
+      "horarioInicio": "08:00",
+      "horarioFin": "09:00",
+      "descripcion": "Controles y habitos de salud.",
+      "cantidadTareas": 0,
+      "createdAt": "2026-05-24T00:00:00Z",
+      "updatedAt": "2026-05-24T00:00:00Z"
+    }
+  ]
+}
