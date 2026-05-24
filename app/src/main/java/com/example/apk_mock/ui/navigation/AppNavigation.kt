@@ -27,6 +27,7 @@ import com.example.apk_mock.ui.forgotPassword.ForgotPasswordViewModel
 import com.example.apk_mock.ui.home.HomeScreen
 import com.example.apk_mock.ui.login.LoginScreen
 import com.example.apk_mock.ui.login.LoginViewModel
+import com.example.apk_mock.ui.onboarding.OnboardingScreen
 import com.example.apk_mock.ui.register.RegisterScreen
 import com.example.apk_mock.ui.register.RegisterViewModel
 import com.example.apk_mock.ui.rutinas.CrearRutinaScreen
@@ -100,12 +101,32 @@ fun AppNavigation() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Routes.REGISTER,
+            startDestination = Routes.ONBOARDING,
             // El NavHost respeta el innerPadding del Scaffold externo
             // Cada pantalla recibe este padding limpio sin duplicación
         ) {
 
             // ── Auth (sin bottom bar) ─────────────────────────────────────────
+
+            composable(Routes.ONBOARDING) {
+                OnboardingScreen(
+                    onFinish = {
+                        navController.navigate(Routes.REGISTER) {
+                            popUpTo(Routes.ONBOARDING) { inclusive = true }
+                        }
+                    },
+                    onSkip = {
+                        navController.navigate(Routes.REGISTER) {
+                            popUpTo(Routes.ONBOARDING) { inclusive = true }
+                        }
+                    },
+                    onLogin = {
+                        navController.navigate(Routes.LOGIN) {
+                            popUpTo(Routes.ONBOARDING) { inclusive = true }
+                        }
+                    }
+                )
+            }
 
             composable(Routes.REGISTER) {
                 val vm = viewModel<RegisterViewModel>(

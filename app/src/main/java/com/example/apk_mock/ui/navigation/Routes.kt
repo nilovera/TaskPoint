@@ -1,6 +1,9 @@
 package com.example.apk_mock.ui.navigation
 
 object Routes {
+    // Onboarding
+    const val ONBOARDING      = "onboarding"
+
     // Auth
     const val REGISTER        = "register"
     const val LOGIN           = "login"

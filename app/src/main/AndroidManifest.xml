@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TaskPoint">
         <activity
-            android:name=".MainActivity"
+            android:name="com.example.apk_mock.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.TaskPoint">
