@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 // ── UiState lista ─────────────────────────────────────────────────────────────
 data class TareasListUiState(
@@ -31,6 +33,8 @@ data class CrearTareaUiState(
     val horario: String? = null,
     val notas: String = "",
     val rutinasDisponibles: List<Rutina> = emptyList(),
+    val diasDisponibles: List<DiaSemana> = emptyList(),
+    val horariosDisponibles: List<String> = emptyList(),
     // errores
     val tituloError: String? = null,
     val categoriaError: String? = null,
@@ -75,7 +79,17 @@ class TareasViewModel(
     fun onTituloChange(v: String) = _formState.update { it.copy(titulo = v, tituloError = null) }
     fun onCategoriaSelect(c: CategoriaTarea) = _formState.update { it.copy(categoriaSeleccionada = c, categoriaError = null) }
     fun onRutinaSelect(r: Rutina?) = _formState.update {
-        it.copy(rutinaSeleccionadaId = r?.id, rutinaSeleccionadaNombre = r?.nombre, rutinaError = null)
+        it.copy(
+            rutinaSeleccionadaId = r?.id,
+            rutinaSeleccionadaNombre = r?.nombre,
+            diaSeleccionado = null,
+            horario = null,
+            diasDisponibles = r?.diasSemana.orEmpty(),
+            horariosDisponibles = r?.horariosDisponibles().orEmpty(),
+            rutinaError = null,
+            diaError = null,
+            horarioError = null
+        )
     }
     fun onDiaSelect(d: DiaSemana?) = _formState.update { it.copy(diaSeleccionado = d, diaError = null) }
     fun onHorarioChange(v: String) = _formState.update { it.copy(horario = v, horarioError = null) }
@@ -83,6 +97,14 @@ class TareasViewModel(
 
     fun onCrearTarea() {
         val s = _formState.value
+        if (s.diaSeleccionado != null && s.diaSeleccionado !in s.diasDisponibles) {
+            _formState.update { it.copy(diaError = "Seleccioná un día de la rutina asociada.") }
+            return
+        }
+        if (!s.horario.isNullOrBlank() && s.horario !in s.horariosDisponibles) {
+            _formState.update { it.copy(horarioError = "Seleccioná un horario de la rutina asociada.") }
+            return
+        }
         when (val r = crearTarea(
             s.titulo, s.categoriaSeleccionada,
             s.rutinaSeleccionadaId, s.rutinaSeleccionadaNombre,
@@ -109,4 +131,18 @@ class TareasViewModel(
             )
         }
     }
+}
+
+private val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+
+private fun Rutina.horariosDisponibles(): List<String> {
+    return runCatching {
+        val inicio = LocalTime.parse(horarioInicio, timeFormatter)
+        val fin = LocalTime.parse(horarioFin, timeFormatter)
+        if (fin.isBefore(inicio)) return emptyList()
+
+        generateSequence(inicio) { current ->
+            current.plusMinutes(30).takeIf { !it.isAfter(fin) }
+        }.map { it.format(timeFormatter) }.toList()
+    }.getOrDefault(emptyList())
 }

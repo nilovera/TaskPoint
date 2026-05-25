@@ -16,6 +16,7 @@ val PlaceholderGray = Color(0xFF4A4F6A)
 
 // Accent
 val AccentBlue = Color(0xFF4D6BFE)
+val DateBlue = Color(0xFF5B8EF0)
 
 // Strength bar
 val StrengthGreen = Color(0xFF34C759)

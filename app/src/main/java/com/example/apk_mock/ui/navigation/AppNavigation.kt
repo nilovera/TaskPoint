@@ -207,10 +207,20 @@ fun AppNavigation() {
             }
 
             composable(Routes.TAREAS) {
+                val taskCreated by currentBackStack
+                    ?.savedStateHandle
+                    ?.getStateFlow("task_created", false)
+                    ?.collectAsState()
+                    ?: remember { mutableStateOf(false) }
+
                 TareasScreen(
                     viewModel = tareasViewModel,
                     userName = userName,
                     onNavigateToCrear = { navController.navigate(Routes.CREAR_TAREA) },
+                    showTaskCreatedMessage = taskCreated,
+                    onTaskCreatedMessageShown = {
+                        currentBackStack?.savedStateHandle?.set("task_created", false)
+                    },
                     innerPadding = innerPadding
                 )
             }
@@ -227,7 +237,13 @@ fun AppNavigation() {
             composable(Routes.CREAR_TAREA) {
                 CrearTareaScreen(
                     viewModel = tareasViewModel,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onTaskCreated = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("task_created", true)
+                        navController.popBackStack()
+                    }
                 )
             }
         }

@@ -17,7 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.CategoriaTarea
@@ -29,7 +32,8 @@ import com.example.apk_mock.ui.theme.*
 @Composable
 fun CrearTareaScreen(
     viewModel: TareasViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onTaskCreated: () -> Unit = onBack
 ) {
     val state by viewModel.formState.collectAsState()
 
@@ -38,7 +42,7 @@ fun CrearTareaScreen(
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             viewModel.consumeSuccess()
-            onBack()
+            onTaskCreated()
         }
     }
 
@@ -72,7 +76,7 @@ fun CrearTareaScreen(
             Spacer(Modifier.height(24.dp))
 
             // ── Título ────────────────────────────────────────────────────────
-            SectionLabel("Título de la tarea *")
+            SectionLabel("Título de la tarea", required = true)
             AppTextField(
                 label = "",
                 value = state.titulo,
@@ -85,7 +89,7 @@ fun CrearTareaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Categoría ─────────────────────────────────────────────────────
-            SectionLabel("Categoría *")
+            SectionLabel("Categoría", required = true)
             CategoriaSelector(
                 seleccionada = state.categoriaSeleccionada,
                 onSelect = viewModel::onCategoriaSelect
@@ -98,19 +102,22 @@ fun CrearTareaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Rutina asociada ───────────────────────────────────────────────
-            SectionLabel("Rutina asociada *")
+            SectionLabel("Rutina asociada", required = true)
             DropdownField(
                 placeholder = "Seleccioná una rutina",
                 selectedText = state.rutinaSeleccionadaNombre,
                 isError = state.rutinaError != null,
                 errorMessage = state.rutinaError
-            ) {
+            ) { dismissMenu ->
                 state.rutinasDisponibles.forEach { rutina ->
                     DropdownMenuItem(
                         text = {
                             Text(rutina.nombre, color = Color.White, fontSize = 14.sp)
                         },
-                        onClick = { viewModel.onRutinaSelect(rutina) },
+                        onClick = {
+                            viewModel.onRutinaSelect(rutina)
+                            dismissMenu()
+                        },
                         modifier = Modifier.background(SurfaceField)
                     )
                 }
@@ -126,17 +133,32 @@ fun CrearTareaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Día ───────────────────────────────────────────────────────────
-            SectionLabel("Día *")
+            SectionLabel("Día", required = true)
             DropdownField(
-                placeholder = "Seleccioná un día",
+                placeholder = if (state.rutinaSeleccionadaId == null) {
+                    "Seleccioná una rutina primero"
+                } else {
+                    "Seleccioná un día"
+                },
                 selectedText = state.diaSeleccionado?.label,
                 isError = state.diaError != null,
                 errorMessage = state.diaError
-            ) {
-                DiaSemana.values().forEach { dia ->
+            ) { dismissMenu ->
+                val dias = state.diasDisponibles
+                dias.forEach { dia ->
                     DropdownMenuItem(
                         text = { Text(dia.label, color = Color.White, fontSize = 14.sp) },
-                        onClick = { viewModel.onDiaSelect(dia) },
+                        onClick = {
+                            viewModel.onDiaSelect(dia)
+                            dismissMenu()
+                        },
+                        modifier = Modifier.background(SurfaceField)
+                    )
+                }
+                if (dias.isEmpty()) {
+                    DropdownMenuItem(
+                        text = { Text("Seleccioná una rutina para ver los días", color = SubtitleGray, fontSize = 14.sp) },
+                        onClick = {},
                         modifier = Modifier.background(SurfaceField)
                     )
                 }
@@ -145,18 +167,32 @@ fun CrearTareaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Horario ───────────────────────────────────────────────────────
-            SectionLabel("Horario *")
+            SectionLabel("Horario", required = true)
             DropdownField(
-                placeholder = "Seleccioná un horario",
+                placeholder = if (state.rutinaSeleccionadaId == null) {
+                    "Seleccioná una rutina primero"
+                } else {
+                    "Seleccioná un horario"
+                },
                 selectedText = state.horario,
                 isError = state.horarioError != null,
                 errorMessage = state.horarioError
-            ) {
-                listOf("06:00","07:00","08:00","09:00","10:00","11:00","12:00",
-                    "13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00").forEach { h ->
+            ) { dismissMenu ->
+                val horarios = state.horariosDisponibles
+                horarios.forEach { h ->
                     DropdownMenuItem(
                         text = { Text(h, color = Color.White, fontSize = 14.sp) },
-                        onClick = { viewModel.onHorarioChange(h) },
+                        onClick = {
+                            viewModel.onHorarioChange(h)
+                            dismissMenu()
+                        },
+                        modifier = Modifier.background(SurfaceField)
+                    )
+                }
+                if (horarios.isEmpty()) {
+                    DropdownMenuItem(
+                        text = { Text("Seleccioná una rutina para ver los horarios", color = SubtitleGray, fontSize = 14.sp) },
+                        onClick = {},
                         modifier = Modifier.background(SurfaceField)
                     )
                 }
@@ -188,7 +224,7 @@ fun CrearTareaScreen(
 
             // ── Notas (opcional) ──────────────────────────────────────────────
             SectionLabel("Notas (opcional)")
-            val maxNotas = 100
+            val maxNotas = 120
             OutlinedTextField(
                 value = state.notas,
                 onValueChange = { if (it.length <= maxNotas) viewModel.onNotasChange(it) },
@@ -234,8 +270,21 @@ fun CrearTareaScreen(
 // ── Componentes reutilizables ─────────────────────────────────────────────────
 
 @Composable
-private fun SectionLabel(text: String) {
-    Text(text, color = LabelGray, fontSize = 13.sp, modifier = Modifier.padding(bottom = 8.dp))
+private fun SectionLabel(text: String, required: Boolean = false) {
+    Text(
+        text = buildAnnotatedString {
+            append(text)
+            if (required) {
+                withStyle(SpanStyle(color = ErrorRed)) {
+                    append(" *")
+                }
+            }
+        },
+        color = LabelGray,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
 }
 
 @Composable
@@ -280,7 +329,7 @@ private fun DropdownField(
     selectedText: String?,
     isError: Boolean = false,
     errorMessage: String? = null,
-    menuContent: @Composable ColumnScope.() -> Unit
+    menuContent: @Composable ColumnScope.(dismissMenu: () -> Unit) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -322,7 +371,7 @@ private fun DropdownField(
             onDismissRequest = { expanded = false },
             modifier = Modifier.background(SurfaceField)
         ) {
-            menuContent()
+            menuContent { expanded = false }
         }
     }
     if (isError && errorMessage != null) {

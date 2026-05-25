@@ -2,7 +2,6 @@ package com.example.apk_mock.ui.tareas
 
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,50 +28,70 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 @Composable
 fun TareasScreen(
     viewModel: TareasViewModel,
     userName: String,
     onNavigateToCrear: () -> Unit,
+    showTaskCreatedMessage: Boolean = false,
+    onTaskCreatedMessageShown: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
     val listState by viewModel.listState.collectAsState()
     val tareas = viewModel.tareasFiltradas()
     val canCreateTask = listState.rutinasDisponibles > 0
     val today = LocalDate.now()
+    var showCreatedOverlay by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.refreshTareas() }
+    LaunchedEffect(showTaskCreatedMessage) {
+        if (showTaskCreatedMessage) {
+            showCreatedOverlay = true
+            delay(3000)
+            showCreatedOverlay = false
+            onTaskCreatedMessageShown()
+        }
+    }
 
-    // Scaffold propio: maneja el FAB
-    // Recibe innerPadding del Scaffold externo (bottom bar) sin duplicar
     Scaffold(
         containerColor = BackgroundDark,
         floatingActionButton = {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(if (canCreateTask) AccentBlue else Color(0xFF4E5562))
-                    .clickable(enabled = canCreateTask, onClick = onNavigateToCrear)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "Nueva tarea +",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            if (!showCreatedOverlay) {
+                Box(
+                    modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding() + 8.dp)
+                ) {
+                    Button(
+                        onClick = onNavigateToCrear,
+                        enabled = canCreateTask,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AccentBlue,
+                            contentColor = Color.White,
+                            disabledContainerColor = Color(0xFF4E5562),
+                            disabledContentColor = Color.White
+                        ),
+                        modifier = Modifier.height(48.dp)
+                    ) {
+                        Text(
+                            "Nueva tarea +",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         },
         floatingActionButtonPosition = FabPosition.End
     ) { selfPadding ->
-        Column(
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
                     top = innerPadding.calculateTopPadding() + 8.dp,
-                    bottom = selfPadding.calculateBottomPadding(),
+                    bottom = innerPadding.calculateBottomPadding() + selfPadding.calculateBottomPadding(),
                     start = 20.dp,
                     end = 20.dp
                 )
@@ -99,14 +118,7 @@ fun TareasScreen(
 
             Spacer(Modifier.height(16.dp))
             FiltrosDias(seleccionado = listState.filtroDia, onSelect = { viewModel.onFiltroDia(it) })
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = diaLabel(listState.filtroDia ?: today.toDiaSemana(), today),
-                color = AccentBlue,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(20.dp))
 
             if (tareas.isEmpty()) {
                 Box(
@@ -150,7 +162,7 @@ fun TareasScreen(
                         item {
                             Text(
                                 diaLabel(dia, today),
-                                color = SubtitleGray, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                                color = DateBlue, fontSize = 13.sp, fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(top = 12.dp, bottom = 6.dp)
                             )
                         }
@@ -160,6 +172,36 @@ fun TareasScreen(
                         }
                     }
                     item { Spacer(Modifier.height(80.dp)) }
+                }
+            }
+            }
+
+            if (showCreatedOverlay) {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = StrengthGreen,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(
+                            start = 20.dp,
+                            end = 20.dp,
+                            bottom = innerPadding.calculateBottomPadding() + 16.dp
+                        )
+                        .height(48.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Text(
+                            "Tarea creada correctamente.",
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
         }
@@ -195,9 +237,6 @@ fun TareaCard(tarea: Tarea) {
     val catColor = categoriaColor(tarea.categoria)
     Surface(shape = RoundedCornerShape(14.dp), color = SurfaceField, modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(shape = CircleShape, color = Color.Transparent, border = ButtonDefaults.outlinedButtonBorder) {
-                Spacer(Modifier.size(22.dp))
-            }
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(tarea.titulo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
