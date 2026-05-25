@@ -72,14 +72,14 @@ private val onboardingPages = listOf(
         eyebrow = "ORGANIZA",
         titleLead = "Tus tareas,\nsiempre ",
         titleAccent = "bajo control",
-        description = "Cre\u00e1 recordatorios simples o asociados a una ubicaci\u00f3n. Task Point te ayuda a no olvidar nada en tu d\u00eda a d\u00eda.",
+        description = "Cre\u00e1 recordatorios simples y asociados a una rutina. Task Point te ayuda a no olvidar nada en tus tareas del d\u00eda a d\u00eda.",
         accent = Color(0xFF5278FF)
     ),
     OnboardingPage(
         eyebrow = "UBICACION",
         titleLead = "Recordatorios\ndonde los ",
         titleAccent = "necesit\u00e1s",
-        description = "Asoci\u00e1 una tarea a un punto en el mapa. Task Point verifica si est\u00e1s cerca y te avisa en el momento justo.",
+        description = "Asoci\u00e1 una tarea a un momento de tu d\u00eda. Task Point verifica si cerca ten\u00e9s beneficios que faciliten tus tareas.",
         accent = Color(0xFF32C86A)
     ),
     OnboardingPage(
@@ -310,20 +310,12 @@ private fun TasksHero(accent: Color) {
         }
 
         StatusPill(
-            text = "3 pendientes",
-            dotColor = accent,
-            containerColor = Color(0xFF171B49),
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = (-2).dp, y = 10.dp)
-        )
-        StatusPill(
-            text = "2 completadas hoy",
+            text = "3 pendientes hoy",
             dotColor = Color(0xFF44D890),
             containerColor = Color(0xFF0D3D2B),
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .offset(x = (-8).dp, y = (-2).dp)
+                .offset(x = (-8).dp, y = (-38).dp)
         )
     }
 }
@@ -492,17 +484,17 @@ private fun StatusPill(
 ) {
     Row(
         modifier = modifier
-            .heightIn(min = 39.dp)
+            .heightIn(min = 31.dp)
             .clip(RoundedCornerShape(50))
             .background(containerColor)
-            .padding(horizontal = 15.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (dotColor != null) {
             Box(
                 modifier = Modifier
-                    .size(10.dp)
+                    .size(8.dp)
                     .clip(CircleShape)
                     .background(dotColor)
             )
@@ -510,8 +502,8 @@ private fun StatusPill(
         Text(
             text = text,
             color = Color.White,
-            fontSize = 15.sp,
-            lineHeight = 18.sp,
+            fontSize = 13.sp,
+            lineHeight = 16.sp,
             fontWeight = FontWeight.Medium
         )
     }
