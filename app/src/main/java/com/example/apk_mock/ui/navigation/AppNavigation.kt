@@ -282,9 +282,19 @@ private fun RowScope.BottomNavButton(
     val isHome = item.route == Routes.HOME
     val itemShape = RoundedCornerShape(if (isHome) 24.dp else 18.dp)
     val iconSize = when {
-        isHome && selected -> 28.dp
-        isHome -> 25.dp
+        isHome && selected -> 27.dp
+        isHome -> 23.dp
         else -> 18.dp
+    }
+    val horizontalPadding = when {
+        isHome && selected -> 17.dp
+        isHome -> 12.dp
+        else -> 14.dp
+    }
+    val verticalPadding = when {
+        isHome && selected -> 10.dp
+        isHome -> 7.dp
+        else -> 6.dp
     }
 
     Box(
@@ -303,8 +313,8 @@ private fun RowScope.BottomNavButton(
                 .clip(itemShape)
                 .background(if (selected) AccentBlue else Color.Transparent)
                 .padding(
-                    horizontal = if (isHome) 15.dp else 14.dp,
-                    vertical = if (isHome) 9.dp else 6.dp
+                    horizontal = horizontalPadding,
+                    vertical = verticalPadding
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

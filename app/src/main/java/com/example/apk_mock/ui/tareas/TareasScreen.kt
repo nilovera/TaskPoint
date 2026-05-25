@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.CategoriaTarea
@@ -144,7 +145,7 @@ fun TareasScreen(
                         item {
                             Text(
                                 diaLabel(dia, today),
-                                color = SubtitleGray, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                                color = AccentBlue, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.padding(top = 12.dp, bottom = 6.dp)
                             )
                         }
@@ -202,26 +203,45 @@ private fun DiaSemana.displayName(): String = when (this) {
 @Composable
 fun TareaCard(tarea: Tarea) {
     val catColor = categoriaColor(tarea.categoria)
-    Surface(shape = RoundedCornerShape(14.dp), color = SurfaceField, modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(shape = CircleShape, color = Color.Transparent, border = ButtonDefaults.outlinedButtonBorder) {
-                Spacer(Modifier.size(22.dp))
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(tarea.titulo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = SurfaceField,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 62.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 12.dp)
+            ) {
+                Text(
+                    tarea.titulo,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
                 if (tarea.horario != null || tarea.rutinaNombre != null) {
                     Text(
                         listOfNotNull(tarea.horario, tarea.rutinaNombre).joinToString(" | "),
-                        color = SubtitleGray, fontSize = 12.sp
+                        color = SubtitleGray,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
-            Surface(shape = RoundedCornerShape(6.dp), color = catColor.copy(alpha = 0.18f)) {
+            Surface(shape = RoundedCornerShape(5.dp), color = catColor.copy(alpha = 0.18f)) {
                 Text(
                     tarea.categoria.label,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    fontSize = 11.sp, color = catColor, fontWeight = FontWeight.SemiBold
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                    fontSize = 10.sp, color = catColor, fontWeight = FontWeight.ExtraBold
                 )
             }
         }
