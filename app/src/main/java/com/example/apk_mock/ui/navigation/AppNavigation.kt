@@ -269,6 +269,8 @@ fun AppNavigation() {
                     taskId = taskId,
                     viewModel = tareasViewModel,
                     onBack = { navController.popBackStack() },
+                    onEditTask = { },
+                    onDeleteTask = { },
                     innerPadding = innerPadding
                 )
             }

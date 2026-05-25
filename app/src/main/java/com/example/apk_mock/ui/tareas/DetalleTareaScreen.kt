@@ -21,16 +21,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Work
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +67,8 @@ fun DetalleTareaScreen(
     taskId: String,
     viewModel: TareasViewModel,
     onBack: () -> Unit,
+    onEditTask: (String) -> Unit = {},
+    onDeleteTask: (String) -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
     LaunchedEffect(Unit) { viewModel.refreshTareas() }
@@ -92,7 +102,12 @@ fun DetalleTareaScreen(
                 bottom = innerPadding.calculateBottomPadding() + 24.dp
             )
     ) {
-        DetailHeader(onBack = onBack)
+        DetailHeader(
+            taskId = tarea.id,
+            onBack = onBack,
+            onEditTask = onEditTask,
+            onDeleteTask = onDeleteTask
+        )
         Spacer(Modifier.height(22.dp))
         DetailTitle(tarea = tarea)
         Spacer(Modifier.height(18.dp))
@@ -116,7 +131,14 @@ fun DetalleTareaScreen(
 }
 
 @Composable
-private fun DetailHeader(onBack: () -> Unit) {
+private fun DetailHeader(
+    taskId: String,
+    onBack: () -> Unit,
+    onEditTask: (String) -> Unit,
+    onDeleteTask: (String) -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -139,8 +161,44 @@ private fun DetailHeader(onBack: () -> Unit) {
             modifier = Modifier.weight(1f),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
-        IconButton(onClick = {}, modifier = Modifier.size(48.dp)) {
-            Icon(Icons.Default.MoreVert, contentDescription = "Más opciones", tint = LabelGray)
+        Box {
+            IconButton(
+                onClick = { menuExpanded = true },
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color(0xFF11154A))
+            ) {
+                Icon(Icons.Default.MoreVert, contentDescription = "Más opciones", tint = LabelGray)
+            }
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+                modifier = Modifier
+                    .background(Color(0xFF0F1450))
+                    .border(1.dp, Color(0xFF161D68), RoundedCornerShape(12.dp))
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Editar tarea", color = Color.White, fontSize = 14.sp) },
+                    leadingIcon = {
+                        Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    },
+                    onClick = {
+                        menuExpanded = false
+                        onEditTask(taskId)
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Eliminar tarea", color = Color(0xFFFF4D64), fontSize = 14.sp) },
+                    leadingIcon = {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFFF4D64), modifier = Modifier.size(18.dp))
+                    },
+                    onClick = {
+                        menuExpanded = false
+                        onDeleteTask(taskId)
+                    }
+                )
+            }
         }
     }
 }
