@@ -19,6 +19,11 @@ sealed class ResetResult {
     data class Error(val message: String) : ResetResult()
 }
 
+sealed class ProfileResult {
+    data class Success(val user: User? = null) : ProfileResult()
+    data class Error(val message: String) : ProfileResult()
+}
+
 interface AuthRepository {
     fun register(name: String, email: String, password: String): AuthResult
     fun login(email: String, password: String): AuthResult
@@ -27,6 +32,8 @@ interface AuthRepository {
     fun sendResetCode(email: String): ResetResult
     fun verifyResetCode(email: String, code: String): ResetResult
     fun changePassword(email: String, newPassword: String): ResetResult
+    fun changeCurrentPassword(currentPassword: String, newPassword: String): ProfileResult
+    fun deleteCurrentUser(): ProfileResult
 }
 
 interface UserSessionProvider {

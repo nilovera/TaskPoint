@@ -29,6 +29,9 @@ import com.example.apk_mock.ui.home.HomeScreen
 import com.example.apk_mock.ui.login.LoginScreen
 import com.example.apk_mock.ui.login.LoginViewModel
 import com.example.apk_mock.ui.onboarding.OnboardingScreen
+import com.example.apk_mock.ui.profile.ChangePasswordScreen
+import com.example.apk_mock.ui.profile.ProfileScreen
+import com.example.apk_mock.ui.profile.ProfileViewModel
 import com.example.apk_mock.ui.register.RegisterScreen
 import com.example.apk_mock.ui.register.RegisterViewModel
 import com.example.apk_mock.ui.rutinas.CrearRutinaScreen
@@ -54,6 +57,8 @@ private val bottomNavItems = listOf(
 
 // ── Rutas donde se muestra el bottom bar ─────────────────────────────────────
 private val tabRoutes = setOf(Routes.HOME, Routes.RUTINAS, Routes.TAREAS)
+private val profileRoutes = setOf(Routes.PROFILE, Routes.PROFILE_PASSWORD)
+private val bottomBarRoutes = tabRoutes + profileRoutes
 
 @Composable
 fun AppNavigation() {
@@ -75,6 +80,10 @@ fun AppNavigation() {
     val crearRutinaUseCase = remember(rutinaRepository) { CrearRutinaUseCase(rutinaRepository) }
     val getTareasUseCase = remember(tareaRepository) { GetTareasUseCase(tareaRepository) }
     val crearTareaUseCase = remember(tareaRepository) { CrearTareaUseCase(tareaRepository) }
+    val getCurrentUserUseCase = remember(authRepository) { GetCurrentUserUseCase(authRepository) }
+    val logoutUseCase = remember(authRepository) { LogoutUseCase(authRepository) }
+    val changeCurrentPasswordUseCase = remember(authRepository) { ChangeCurrentPasswordUseCase(authRepository) }
+    val deleteAccountUseCase = remember(authRepository) { DeleteAccountUseCase(authRepository) }
 
     // Estado del nombre del usuario: se setea al hacer login y persiste
     var userName by remember { mutableStateOf("") }
@@ -86,12 +95,31 @@ fun AppNavigation() {
     val tareasViewModel = viewModel<TareasViewModel>(
         factory = vmFactory { TareasViewModel(getTareasUseCase, crearTareaUseCase, getRutinasUseCase) }
     )
+    val profileViewModel = viewModel<ProfileViewModel>(
+        factory = vmFactory {
+            ProfileViewModel(
+                getCurrentUserUseCase,
+                logoutUseCase,
+                changeCurrentPasswordUseCase,
+                deleteAccountUseCase
+            )
+        }
+    )
+
+    val navigateToLoginAfterSessionEnd: () -> Unit = {
+        authRepository.logout()
+        userName = ""
+        navController.navigate(Routes.LOGIN) {
+            popUpTo(Routes.HOME) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
 
     Scaffold(
         containerColor = BackgroundDark,
         bottomBar = {
-            // El bottom bar solo aparece en las 3 tabs principales
-            if (currentRoute in tabRoutes) {
+            // El bottom bar aparece en tabs y en el flujo de perfil.
+            if (currentRoute in bottomBarRoutes) {
                 AppBottomBar(
                     navController = navController,
                     currentRoute = currentRoute
@@ -186,12 +214,9 @@ fun AppNavigation() {
                     tareasViewModel = tareasViewModel,
                     onCrearRutina = { navController.navigate(Routes.CREAR_RUTINA) },
                     onCrearTarea = { navController.navigate(Routes.CREAR_TAREA) },
+                    onProfile = { navController.navigate(Routes.PROFILE) },
                     onLogout = {
-                        authRepository.logout()
-                        userName = ""
-                        navController.navigate(Routes.LOGIN) {
-                            popUpTo(Routes.HOME) { inclusive = true }
-                        }
+                        navigateToLoginAfterSessionEnd()
                     },
                     innerPadding = innerPadding
                 )
@@ -217,6 +242,35 @@ fun AppNavigation() {
 
             // ── Flujos secundarios (sin bottom bar) ───────────────────────────
 
+            composable(Routes.PROFILE) {
+                ProfileScreen(
+                    viewModel = profileViewModel,
+                    userName = userName,
+                    onBack = {
+                        if (!navController.popBackStack()) {
+                            navController.navigate(Routes.HOME)
+                        }
+                    },
+                    onChangePassword = { navController.navigate(Routes.PROFILE_PASSWORD) },
+                    onSessionEnded = navigateToLoginAfterSessionEnd,
+                    innerPadding = innerPadding
+                )
+            }
+
+            composable(Routes.PROFILE_PASSWORD) {
+                ChangePasswordScreen(
+                    viewModel = profileViewModel,
+                    onBack = { navController.popBackStack() },
+                    onPasswordChanged = {
+                        navController.navigate(Routes.PROFILE) {
+                            popUpTo(Routes.PROFILE) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    },
+                    innerPadding = innerPadding
+                )
+            }
+
             composable(Routes.CREAR_RUTINA) {
                 CrearRutinaScreen(
                     viewModel = rutinasViewModel,
@@ -237,9 +291,11 @@ fun AppNavigation() {
 // ── Bottom bar ────────────────────────────────────────────────────────────────
 @Composable
 private fun AppBottomBar(navController: NavController, currentRoute: String?) {
+    val selectedRoute = if (currentRoute in profileRoutes) Routes.HOME else currentRoute
+
     NavigationBar(containerColor = SurfaceField, tonalElevation = 0.dp) {
         bottomNavItems.forEach { item ->
-            val selected = currentRoute == item.route
+            val selected = selectedRoute == item.route
             NavigationBarItem(
                 selected = selected,
                 onClick = {

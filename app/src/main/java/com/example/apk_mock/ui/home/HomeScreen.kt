@@ -102,6 +102,7 @@ fun HomeScreen(
     tareasViewModel: TareasViewModel,
     onCrearRutina: () -> Unit,
     onCrearTarea: () -> Unit = {},
+    onProfile: () -> Unit = {},
     onLogout: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
@@ -158,6 +159,7 @@ fun HomeScreen(
                 HomeHeader(
                     dateLabel = today.homeDateLabel(),
                     userName = displayName,
+                    onProfile = onProfile,
                     onLogout = onLogout
                 )
             }
@@ -196,6 +198,7 @@ fun HomeScreen(
 private fun HomeHeader(
     dateLabel: String,
     userName: String,
+    onProfile: () -> Unit,
     onLogout: () -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -251,7 +254,10 @@ private fun HomeHeader(
                             modifier = Modifier.size(16.dp)
                         )
                     },
-                    onClick = { menuExpanded = false }
+                    onClick = {
+                        menuExpanded = false
+                        onProfile()
+                    }
                 )
                 DropdownMenuItem(
                     text = { Text("Cerrar sesion", color = OfflineText, fontSize = 12.sp) },

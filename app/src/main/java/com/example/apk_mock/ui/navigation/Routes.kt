@@ -13,6 +13,8 @@ object Routes {
     const val HOME            = "home"
     const val RUTINAS         = "rutinas"
     const val TAREAS          = "tareas"
+    const val PROFILE         = "profile"
+    const val PROFILE_PASSWORD = "profile_password"
 
     // Flujos secundarios
     const val CREAR_RUTINA    = "crear_rutina"

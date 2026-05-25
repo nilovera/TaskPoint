@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.apk_mock.data.source.JsonDataSource
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.AuthResult
+import com.example.apk_mock.domain.repository.ProfileResult
 import com.example.apk_mock.domain.repository.ResetResult
 import com.example.apk_mock.domain.repository.User
 import com.example.apk_mock.domain.repository.UserSessionProvider
@@ -41,7 +42,7 @@ class JsonAuthRepository(context: Context) : AuthRepository, UserSessionProvider
             loggedUser = user
             AuthResult.Success(user)
         } else {
-            AuthResult.Error("Correo o contrasena incorrectos.\nIntenta de nuevo.")
+            AuthResult.Error("Correo o contraseña incorrectos.\nIntenta de nuevo.")
         }
     }
 
@@ -77,7 +78,7 @@ class JsonAuthRepository(context: Context) : AuthRepository, UserSessionProvider
 
     override fun changePassword(email: String, newPassword: String): ResetResult {
         if (!verifiedResetEmails.contains(email.lowercase())) {
-            return ResetResult.Error("Verifica el codigo antes de cambiar la contrasena.")
+            return ResetResult.Error("Verifica el codigo antes de cambiar la contraseña.")
         }
 
         val index = users.indexOfFirst { it.email.equals(email, ignoreCase = true) }
@@ -88,5 +89,29 @@ class JsonAuthRepository(context: Context) : AuthRepository, UserSessionProvider
         if (loggedUser?.id == updatedUser.id) loggedUser = updatedUser
         verifiedResetEmails.remove(email.lowercase())
         return ResetResult.PasswordChanged
+    }
+
+    override fun changeCurrentPassword(currentPassword: String, newPassword: String): ProfileResult {
+        val user = loggedUser ?: return ProfileResult.Error("No hay una sesion activa.")
+        if (user.password != currentPassword) {
+            return ProfileResult.Error("La contraseña ingresada es incorrecta.")
+        }
+
+        val index = users.indexOfFirst { it.id == user.id }
+        if (index == -1) return ProfileResult.Error("Usuario no encontrado.")
+
+        val updatedUser = user.copy(password = newPassword)
+        users[index] = updatedUser
+        loggedUser = updatedUser
+        return ProfileResult.Success(updatedUser)
+    }
+
+    override fun deleteCurrentUser(): ProfileResult {
+        val user = loggedUser ?: return ProfileResult.Error("No hay una sesion activa.")
+        users.removeAll { it.id == user.id }
+        pendingResetEmails.remove(user.email.lowercase())
+        verifiedResetEmails.remove(user.email.lowercase())
+        loggedUser = null
+        return ProfileResult.Success()
     }
 }
