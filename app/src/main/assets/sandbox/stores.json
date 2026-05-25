@@ -349,5 +349,140 @@
     "latitude": -34.6048,
     "longitude": -58.4289,
     "logo": "regia_logo"
+  },
+  {
+    "id": 40,
+    "name": "Office Point - Palermo",
+    "categoryCode": "TRABAJO",
+    "address": "Av. Santa Fe 3120, Palermo",
+    "latitude": -34.5886,
+    "longitude": -58.4086,
+    "logo": "office_point_logo"
+  },
+  {
+    "id": 41,
+    "name": "Café Ejecutivo - Recoleta",
+    "categoryCode": "TRABAJO",
+    "address": "Av. Santa Fe 1950, Recoleta",
+    "latitude": -34.5929,
+    "longitude": -58.3948,
+    "logo": "cafe_ejecutivo_logo"
+  },
+  {
+    "id": 42,
+    "name": "Fotocopias UADE - Monserrat",
+    "categoryCode": "FACULTAD",
+    "address": "Lima 750, Monserrat",
+    "latitude": -34.6171,
+    "longitude": -58.3813,
+    "logo": "fotocopias_uade_logo"
+  },
+  {
+    "id": 43,
+    "name": "Librería Universitaria - Congreso",
+    "categoryCode": "FACULTAD",
+    "address": "Av. Callao 280, Congreso",
+    "latitude": -34.6078,
+    "longitude": -58.3921,
+    "logo": "libreria_universitaria_logo"
+  },
+  {
+    "id": 44,
+    "name": "Banco Galicia - Palermo",
+    "categoryCode": "BANCO",
+    "address": "Av. Santa Fe 3200, Palermo",
+    "latitude": -34.5883,
+    "longitude": -58.4075,
+    "logo": "galicia_logo"
+  },
+  {
+    "id": 45,
+    "name": "Pago Fácil - Caballito",
+    "categoryCode": "BANCO",
+    "address": "Av. Rivadavia 5050, Caballito",
+    "latitude": -34.6182,
+    "longitude": -58.4457,
+    "logo": "pago_facil_logo"
+  },
+  {
+    "id": 46,
+    "name": "Librería Escolar Norte - Belgrano",
+    "categoryCode": "ESCUELA",
+    "address": "Av. Cabildo 1700, Belgrano",
+    "latitude": -34.5628,
+    "longitude": -58.4496,
+    "logo": "libreria_escolar_logo"
+  },
+  {
+    "id": 47,
+    "name": "Uniformes Aula - Palermo",
+    "categoryCode": "ESCUELA",
+    "address": "Honduras 4200, Palermo",
+    "latitude": -34.5898,
+    "longitude": -58.4211,
+    "logo": "uniformes_aula_logo"
+  },
+  {
+    "id": 48,
+    "name": "Kiosco SUBE - Palermo",
+    "categoryCode": "TRANSPORTE",
+    "address": "Av. Santa Fe 3005, Palermo",
+    "latitude": -34.5890,
+    "longitude": -58.4100,
+    "logo": "sube_logo"
+  },
+  {
+    "id": 49,
+    "name": "Bicicletería Urbana - Almagro",
+    "categoryCode": "TRANSPORTE",
+    "address": "Av. Corrientes 3900, Almagro",
+    "latitude": -34.6040,
+    "longitude": -58.4268,
+    "logo": "bicicleteria_urbana_logo"
+  },
+  {
+    "id": 50,
+    "name": "Todo Hogar - Palermo",
+    "categoryCode": "CASA",
+    "address": "Av. Córdoba 3450, Palermo",
+    "latitude": -34.5981,
+    "longitude": -58.4168,
+    "logo": "todo_hogar_logo"
+  },
+  {
+    "id": 51,
+    "name": "Ropa Urbana - Palermo",
+    "categoryCode": "INDUMENTARIA",
+    "address": "Av. Santa Fe 3300, Palermo",
+    "latitude": -34.5879,
+    "longitude": -58.4068,
+    "logo": "ropa_urbana_logo"
+  },
+  {
+    "id": 52,
+    "name": "Zapatería Centro - Monserrat",
+    "categoryCode": "INDUMENTARIA",
+    "address": "Lima 690, Monserrat",
+    "latitude": -34.6167,
+    "longitude": -58.3810,
+    "logo": "zapateria_centro_logo"
+  },
+  {
+    "id": 53,
+    "name": "Biblioteca Store - Palermo",
+    "categoryCode": "ESTUDIO",
+    "address": "Av. Santa Fe 3150, Palermo",
+    "latitude": -34.5885,
+    "longitude": -58.4081,
+    "logo": "biblioteca_store_logo"
+  },
+  {
+    "id": 54,
+    "name": "Papelería Apuntes - Congreso",
+    "categoryCode": "ESTUDIO",
+    "address": "Av. Callao 330, Congreso",
+    "latitude": -34.6072,
+    "longitude": -58.3923,
+    "logo": "papeleria_apuntes_logo"
   }
 ]

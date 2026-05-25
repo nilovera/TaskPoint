@@ -12,10 +12,13 @@ data class Tarea(
     val completada: Boolean = false
 )
 
-enum class CategoriaTarea(val label: String) {
-    PERSONAL("PERSONAL"),
-    SUPERMERCADO("SUPERMERCADO"),
-    INDUMENTARIA("INDUMENTARIA"),
-    FACULTAD("FACULTAD"),
-    ESTUDIO("ESTUDIO")
+data class CategoriaTarea(
+    val id: Int,
+    val name: String,
+    val code: String,
+    val description: String,
+    val activatesOffers: Boolean
+) {
+    val label: String
+        get() = name.uppercase()
 }

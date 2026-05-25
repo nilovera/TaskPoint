@@ -531,10 +531,11 @@ private fun DeleteRoutineDialog(
     )
 }
 
-private fun categoriaColor(cat: CategoriaTarea): Color = when (cat) {
-    CategoriaTarea.PERSONAL -> Color(0xFF5E7CFF)
-    CategoriaTarea.SUPERMERCADO -> Color(0xFF35D07F)
-    CategoriaTarea.INDUMENTARIA -> Color(0xFFE85D75)
-    CategoriaTarea.FACULTAD -> Color(0xFFD79728)
-    CategoriaTarea.ESTUDIO -> Color(0xFF31B7D7)
+private fun categoriaColor(cat: CategoriaTarea): Color = when (cat.code) {
+    "PERSONAL" -> Color(0xFF5E7CFF)
+    "SUPERMERCADO" -> Color(0xFF35D07F)
+    "INDUMENTARIA" -> Color(0xFFE85D75)
+    "FACULTAD" -> Color(0xFFD79728)
+    "ESTUDIO" -> Color(0xFF31B7D7)
+    else -> Color(0xFF8A8FA8)
 }

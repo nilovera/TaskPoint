@@ -146,7 +146,7 @@ private class FakeEditTareaRepository : TareaRepository {
         Tarea(
             id = "tarea-1",
             titulo = "Revisar agenda",
-            categoria = CategoriaTarea.PERSONAL,
+            categoria = testCategory("PERSONAL"),
             rutinaId = "rutina-1",
             rutinaNombre = "Trabajo presencial",
             dia = DiaSemana.LUN,
@@ -183,4 +183,31 @@ private class FakeEditTareaRepository : TareaRepository {
     ): TareaResult {
         error("No se usa en este test")
     }
+
+    override fun editarTarea(
+        taskId: String,
+        titulo: String,
+        categoria: CategoriaTarea,
+        rutinaId: String?,
+        rutinaNombre: String?,
+        dia: DiaSemana?,
+        horario: String?,
+        notas: String
+    ): TareaResult {
+        error("No se usa en este test")
+    }
+
+    override fun eliminarTarea(taskId: String): TareaResult {
+        error("No se usa en este test")
+    }
+}
+
+private fun testCategory(code: String): CategoriaTarea {
+    return CategoriaTarea(
+        id = -1,
+        name = code.lowercase().replaceFirstChar { it.uppercase() },
+        code = code,
+        description = "",
+        activatesOffers = false
+    )
 }

@@ -37,6 +37,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.apk_mock.data.repository.JsonAuthRepository
+import com.example.apk_mock.data.repository.JsonCategoriaRepository
+import com.example.apk_mock.data.repository.JsonOfferRepository
 import com.example.apk_mock.data.repository.JsonRutinaRepository
 import com.example.apk_mock.data.repository.JsonTareaRepository
 import com.example.apk_mock.domain.useCase.*
@@ -57,6 +59,8 @@ import com.example.apk_mock.ui.rutinas.EditarRutinaScreen
 import com.example.apk_mock.ui.rutinas.RutinasScreen
 import com.example.apk_mock.ui.rutinas.RutinasViewModel
 import com.example.apk_mock.ui.tareas.CrearTareaScreen
+import com.example.apk_mock.ui.tareas.DetalleTareaScreen
+import com.example.apk_mock.ui.tareas.EditarTareaScreen
 import com.example.apk_mock.ui.tareas.TareasScreen
 import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.*
@@ -77,7 +81,7 @@ private val bottomNavItems = listOf(
 // ── Rutas donde se muestra el bottom bar ─────────────────────────────────────
 private val tabRoutes = setOf(Routes.HOME, Routes.RUTINAS, Routes.TAREAS)
 private val profileRoutes = setOf(Routes.PROFILE, Routes.PROFILE_PASSWORD)
-private val bottomBarRoutes = tabRoutes + profileRoutes + Routes.RUTINA_DETALLE_ROUTE
+private val bottomBarRoutes = tabRoutes + profileRoutes + Routes.RUTINA_DETALLE_ROUTE + Routes.DETALLE_TAREA
 
 @Composable
 fun AppNavigation() {
@@ -89,6 +93,8 @@ fun AppNavigation() {
     val authRepository = remember(context) { JsonAuthRepository(context) }
     val rutinaRepository = remember(context, authRepository) { JsonRutinaRepository(context, authRepository) }
     val tareaRepository = remember(context, authRepository) { JsonTareaRepository(context, authRepository) }
+    val categoriaRepository = remember(context) { JsonCategoriaRepository(context) }
+    val offerRepository = remember(context) { JsonOfferRepository(context) }
 
     val registerUseCase = remember(authRepository) { RegisterUseCase(authRepository) }
     val loginUseCase = remember(authRepository) { LoginUseCase(authRepository) }
@@ -106,6 +112,10 @@ fun AppNavigation() {
     }
     val getTareasUseCase = remember(tareaRepository) { GetTareasUseCase(tareaRepository) }
     val crearTareaUseCase = remember(tareaRepository) { CrearTareaUseCase(tareaRepository) }
+    val eliminarTareaUseCase = remember(tareaRepository) { EliminarTareaUseCase(tareaRepository) }
+    val editarTareaUseCase = remember(tareaRepository) { EditarTareaUseCase(tareaRepository) }
+    val getCategoriasUseCase = remember(categoriaRepository) { GetCategoriasUseCase(categoriaRepository) }
+    val getOffersByCategoryUseCase = remember(offerRepository) { GetOffersByCategoryUseCase(offerRepository) }
     val getCurrentUserUseCase = remember(authRepository) { GetCurrentUserUseCase(authRepository) }
     val logoutUseCase = remember(authRepository) { LogoutUseCase(authRepository) }
     val changeCurrentPasswordUseCase = remember(authRepository) { ChangeCurrentPasswordUseCase(authRepository) }
@@ -127,7 +137,17 @@ fun AppNavigation() {
         }
     )
     val tareasViewModel = viewModel<TareasViewModel>(
-        factory = vmFactory { TareasViewModel(getTareasUseCase, crearTareaUseCase, getRutinasUseCase) }
+        factory = vmFactory {
+            TareasViewModel(
+                getTareasUseCase,
+                crearTareaUseCase,
+                eliminarTareaUseCase,
+                editarTareaUseCase,
+                getRutinasUseCase,
+                getCategoriasUseCase,
+                getOffersByCategoryUseCase
+            )
+        }
     )
     val profileViewModel = viewModel<ProfileViewModel>(
         factory = vmFactory {
@@ -269,12 +289,32 @@ fun AppNavigation() {
             }
 
             composable(Routes.TAREAS) {
+                val taskCreated by currentBackStack
+                    ?.savedStateHandle
+                    ?.getStateFlow("task_created", false)
+                    ?.collectAsState()
+                    ?: remember { mutableStateOf(false) }
+                val taskDeleted by currentBackStack
+                    ?.savedStateHandle
+                    ?.getStateFlow("task_deleted", false)
+                    ?.collectAsState()
+                    ?: remember { mutableStateOf(false) }
+
                 TareasScreen(
                     viewModel = tareasViewModel,
                     userName = userName,
                     onNavigateToCrear = { navController.navigate(Routes.CREAR_TAREA) },
                     onProfile = { navController.navigate(Routes.PROFILE) },
                     onLogout = navigateToLoginAfterSessionEnd,
+                    onNavigateToDetalle = { taskId -> navController.navigate(Routes.detalleTarea(taskId)) },
+                    showTaskCreatedMessage = taskCreated,
+                    onTaskCreatedMessageShown = {
+                        currentBackStack?.savedStateHandle?.set("task_created", false)
+                    },
+                    showTaskDeletedMessage = taskDeleted,
+                    onTaskDeletedMessageShown = {
+                        currentBackStack?.savedStateHandle?.set("task_deleted", false)
+                    },
                     innerPadding = innerPadding
                 )
             }
@@ -365,7 +405,55 @@ fun AppNavigation() {
             composable(Routes.CREAR_TAREA) {
                 CrearTareaScreen(
                     viewModel = tareasViewModel,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onTaskCreated = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("task_created", true)
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Routes.DETALLE_TAREA) { backStackEntry ->
+                val taskId = backStackEntry.arguments?.getString("taskId").orEmpty()
+                val taskEdited by currentBackStack
+                    ?.savedStateHandle
+                    ?.getStateFlow("task_edited", false)
+                    ?.collectAsState()
+                    ?: remember { mutableStateOf(false) }
+
+                DetalleTareaScreen(
+                    taskId = taskId,
+                    viewModel = tareasViewModel,
+                    onBack = { navController.popBackStack() },
+                    onEditTask = { id -> navController.navigate(Routes.editarTarea(id)) },
+                    onTaskDeleted = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("task_deleted", true)
+                        navController.popBackStack()
+                    },
+                    showTaskEditedMessage = taskEdited,
+                    onTaskEditedMessageShown = {
+                        currentBackStack?.savedStateHandle?.set("task_edited", false)
+                    },
+                    innerPadding = innerPadding
+                )
+            }
+
+            composable(Routes.EDITAR_TAREA) { backStackEntry ->
+                val taskId = backStackEntry.arguments?.getString("taskId").orEmpty()
+                EditarTareaScreen(
+                    taskId = taskId,
+                    viewModel = tareasViewModel,
+                    onBack = { navController.popBackStack() },
+                    onTaskEdited = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("task_edited", true)
+                        navController.popBackStack()
+                    }
                 )
             }
         }
@@ -384,6 +472,7 @@ private fun AppBottomBar(navController: NavController, currentRoute: String?) {
     NavigationBar(containerColor = SurfaceField, tonalElevation = 0.dp) {
         bottomNavItems.forEach { item ->
             val selected = selectedRoute == item.route
+                || (currentRoute == Routes.DETALLE_TAREA && item.route == Routes.TAREAS)
             BottomNavButton(
                 item = item,
                 selected = selected,

@@ -5,6 +5,8 @@ import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.domain.model.Offer
+import com.example.apk_mock.domain.model.Store
 import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.domain.repository.User
 import java.io.File
@@ -89,19 +91,64 @@ class JsonDataSource(private val context: Context) {
         writableAssetCopy("seed/rutinas.json").writeText(json.toString(2), Charsets.UTF_8)
     }
 
+    fun loadCategorias(): List<CategoriaTarea> {
+        val json = context.assets.open("sandbox/categories.json").bufferedReader().use { it.readText() }
+        return JSONArray(json).toObjectList().map { row ->
+            CategoriaTarea(
+                id = row.getInt("id"),
+                name = row.getString("name"),
+                code = row.getString("code"),
+                description = row.getString("description"),
+                activatesOffers = row.optBoolean("activatesOffers", false)
+            )
+        }
+    }
+
+    fun loadStores(): List<Store> {
+        val json = context.assets.open("sandbox/stores.json").bufferedReader().use { it.readText() }
+        return JSONArray(json).toObjectList().map { row ->
+            Store(
+                id = row.getInt("id"),
+                name = row.getString("name"),
+                categoryCode = row.getString("categoryCode"),
+                address = row.getString("address"),
+                latitude = row.getDouble("latitude"),
+                longitude = row.getDouble("longitude"),
+                logo = row.getString("logo")
+            )
+        }
+    }
+
+    fun loadOffers(): List<Offer> {
+        val json = context.assets.open("sandbox/offers.json").bufferedReader().use { it.readText() }
+        return JSONArray(json).toObjectList().map { row ->
+            Offer(
+                id = row.getInt("id"),
+                storeId = row.getInt("storeId"),
+                categoryCode = row.getString("categoryCode"),
+                title = row.getString("title"),
+                description = row.getString("description"),
+                discount = row.getInt("discount"),
+                validUntil = row.getString("validUntil")
+            )
+        }
+    }
+
     fun loadTareas(rutinas: List<StoredRutina>): List<StoredTarea> {
         val rutinasById = rutinas.associateBy { it.rutina.id }
+        val categoriasByCode = loadCategorias().associateBy { it.code }
 
         return readRows("seed/tareas.json").map { row ->
             val rutinaId = row.optNullableString("rutinaId")
             val rutina = rutinaId?.let { rutinasById[it]?.rutina }
+            val categoriaCode = row.getString("categoria")
 
             StoredTarea(
                 userId = row.getString("userId"),
                 tarea = Tarea(
                     id = row.getString("id"),
                     titulo = row.getString("titulo"),
-                    categoria = CategoriaTarea.valueOf(row.getString("categoria")),
+                    categoria = categoriasByCode[categoriaCode] ?: categoriaFallback(categoriaCode),
                     rutinaId = rutinaId,
                     rutinaNombre = rutina?.nombre,
                     dia = row.optNullableString("dia")?.let { DiaSemana.valueOf(it) },
@@ -174,6 +221,20 @@ class JsonDataSource(private val context: Context) {
         }
         return file
     }
+}
+
+private fun categoriaFallback(code: String): CategoriaTarea {
+    val name = code.lowercase()
+        .split("_")
+        .joinToString(" ") { word -> word.replaceFirstChar { it.uppercase() } }
+
+    return CategoriaTarea(
+        id = -1,
+        name = name,
+        code = code,
+        description = "",
+        activatesOffers = code in setOf("ESTUDIO", "INDUMENTARIA")
+    )
 }
 
 private fun JSONArray.toObjectList(): List<JSONObject> {

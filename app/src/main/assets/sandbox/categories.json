@@ -18,14 +18,14 @@
     "name": "Trabajo",
     "code": "TRABAJO",
     "description": "Tareas relacionadas con la jornada laboral presencial",
-    "activatesOffers": false
+    "activatesOffers": true
   },
   {
     "id": 4,
     "name": "Facultad",
     "code": "FACULTAD",
     "description": "Tareas académicas o de cursada universitaria",
-    "activatesOffers": false
+    "activatesOffers": true
   },
   {
     "id": 5,
@@ -46,14 +46,14 @@
     "name": "Banco",
     "code": "BANCO",
     "description": "Trámites bancarios, pagos o gestiones financieras",
-    "activatesOffers": false
+    "activatesOffers": true
   },
   {
     "id": 8,
     "name": "Escuela",
     "code": "ESCUELA",
     "description": "Actividades relacionadas con la educación primaria o secundaria",
-    "activatesOffers": false
+    "activatesOffers": true
   },
   {
     "id": 9,
@@ -81,7 +81,7 @@
     "name": "Transporte",
     "code": "TRANSPORTE",
     "description": "Uso de transporte público, estación de tren o parada de colectivo",
-    "activatesOffers": false
+    "activatesOffers": true
   },
   {
     "id": 13,
@@ -103,5 +103,26 @@
     "code": "CASA",
     "description": "Tareas del hogar o recordatorios personales sin salir",
     "activatesOffers": false
+  },
+  {
+    "id": 16,
+    "name": "Personal",
+    "code": "PERSONAL",
+    "description": "Recordatorios personales y organización diaria",
+    "activatesOffers": false
+  },
+  {
+    "id": 17,
+    "name": "Indumentaria",
+    "code": "INDUMENTARIA",
+    "description": "Ropa, accesorios o elementos para llevar",
+    "activatesOffers": true
+  },
+  {
+    "id": 18,
+    "name": "Estudio",
+    "code": "ESTUDIO",
+    "description": "Lectura, preparación de parciales y materiales de estudio",
+    "activatesOffers": true
   }
 ]
