@@ -1,7 +1,7 @@
 package com.example.apk_mock.domain.useCase
 
-import com.example.apk_mock.domain.AuthRepository
-import com.example.apk_mock.domain.AuthResult
+import com.example.apk_mock.domain.repository.AuthRepository
+import com.example.apk_mock.domain.repository.AuthResult
 
 class LoginUseCase(private val repository: AuthRepository) {
     operator fun invoke(email: String, password: String): AuthResult {

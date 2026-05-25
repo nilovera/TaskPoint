@@ -1,9 +1,9 @@
 package com.example.apk_mock.domain.useCase
 
-import com.example.apk_mock.domain.RutinaRepository
-import com.example.apk_mock.domain.RutinaResult
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.domain.repository.RutinaRepository
+import com.example.apk_mock.domain.repository.RutinaResult
 
 class GetRutinasUseCase(private val repository: RutinaRepository) {
     operator fun invoke() = repository.getRutinas()

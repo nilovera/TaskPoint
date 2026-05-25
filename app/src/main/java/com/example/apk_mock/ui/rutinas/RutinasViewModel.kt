@@ -1,10 +1,10 @@
 package com.example.apk_mock.ui.rutinas
 
 import androidx.lifecycle.ViewModel
-import com.example.apk_mock.domain.RutinaResult
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.domain.repository.RutinaResult
 import com.example.apk_mock.domain.useCase.CrearRutinaUseCase
 import com.example.apk_mock.domain.useCase.GetRutinasUseCase
 import kotlinx.coroutines.flow.MutableStateFlow

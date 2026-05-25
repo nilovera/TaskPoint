@@ -3,12 +3,12 @@ package com.example.apk_mock.data.repository
 import android.content.Context
 import com.example.apk_mock.data.source.JsonDataSource
 import com.example.apk_mock.data.source.StoredRutina
-import com.example.apk_mock.domain.RutinaRepository
-import com.example.apk_mock.domain.RutinaResult
-import com.example.apk_mock.domain.UserSessionProvider
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.domain.repository.RutinaRepository
+import com.example.apk_mock.domain.repository.RutinaResult
+import com.example.apk_mock.domain.repository.UserSessionProvider
 import java.util.UUID
 
 class JsonRutinaRepository(

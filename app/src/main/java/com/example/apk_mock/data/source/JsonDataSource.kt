@@ -1,12 +1,12 @@
 package com.example.apk_mock.data.source
 
 import android.content.Context
-import com.example.apk_mock.domain.User
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.repository.User
 import org.json.JSONArray
 import org.json.JSONObject
 

@@ -39,10 +39,6 @@ import com.example.apk_mock.ui.tareas.TareasScreen
 import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.*
 
-// ── Repositorios mock (Single Source of Truth) ────────────────────────────────
-
-// ── Use cases ─────────────────────────────────────────────────────────────────
-
 // ── Modelo de ítem del bottom bar ─────────────────────────────────────────────
 private data class BottomNavItem(
     val route: String,

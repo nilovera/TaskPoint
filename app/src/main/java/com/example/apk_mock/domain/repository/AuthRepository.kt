@@ -1,4 +1,4 @@
-package com.example.apk_mock.domain
+package com.example.apk_mock.domain.repository
 
 data class User(
     val id: String,
@@ -18,8 +18,6 @@ sealed class ResetResult {
     object PasswordChanged : ResetResult()
     data class Error(val message: String) : ResetResult()
 }
-
-// ── Contrato del repositorio ──────────────────────────────────────────────────
 
 interface AuthRepository {
     fun register(name: String, email: String, password: String): AuthResult

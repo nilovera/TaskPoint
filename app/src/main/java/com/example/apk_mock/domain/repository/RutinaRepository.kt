@@ -1,4 +1,4 @@
-package com.example.apk_mock.domain
+package com.example.apk_mock.domain.repository
 
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina

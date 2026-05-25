@@ -1,7 +1,7 @@
 package com.example.apk_mock.domain.useCase
 
-import com.example.apk_mock.domain.AuthRepository
-import com.example.apk_mock.domain.ResetResult
+import com.example.apk_mock.domain.repository.AuthRepository
+import com.example.apk_mock.domain.repository.ResetResult
 
 class SendResetCodeUseCase(private val repository: AuthRepository) {
     operator fun invoke(email: String): ResetResult {

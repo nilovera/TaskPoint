@@ -1,7 +1,7 @@
 package com.example.apk_mock.ui.forgotPassword
 
 import androidx.lifecycle.ViewModel
-import com.example.apk_mock.domain.ResetResult
+import com.example.apk_mock.domain.repository.ResetResult
 import com.example.apk_mock.domain.useCase.ChangePasswordUseCase
 import com.example.apk_mock.domain.useCase.SendResetCodeUseCase
 import com.example.apk_mock.domain.useCase.VerifyResetCodeUseCase

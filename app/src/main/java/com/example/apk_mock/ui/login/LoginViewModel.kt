@@ -1,8 +1,7 @@
 package com.example.apk_mock.ui.login
 
 import androidx.lifecycle.ViewModel
-import com.example.apk_mock.domain.AuthRepository
-import com.example.apk_mock.domain.AuthResult
+import com.example.apk_mock.domain.repository.AuthResult
 import com.example.apk_mock.domain.useCase.LoginUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

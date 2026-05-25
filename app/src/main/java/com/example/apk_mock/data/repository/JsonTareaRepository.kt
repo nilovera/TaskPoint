@@ -3,12 +3,12 @@ package com.example.apk_mock.data.repository
 import android.content.Context
 import com.example.apk_mock.data.source.JsonDataSource
 import com.example.apk_mock.data.source.StoredTarea
-import com.example.apk_mock.domain.TareaRepository
-import com.example.apk_mock.domain.TareaResult
-import com.example.apk_mock.domain.UserSessionProvider
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.repository.TareaRepository
+import com.example.apk_mock.domain.repository.TareaResult
+import com.example.apk_mock.domain.repository.UserSessionProvider
 import java.util.UUID
 
 class JsonTareaRepository(

@@ -1,11 +1,11 @@
 package com.example.apk_mock.ui.tareas
 
 import androidx.lifecycle.ViewModel
-import com.example.apk_mock.domain.TareaResult
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.repository.TareaResult
 import com.example.apk_mock.domain.useCase.CrearTareaUseCase
 import com.example.apk_mock.domain.useCase.GetTareasUseCase
 import com.example.apk_mock.domain.useCase.GetRutinasUseCase

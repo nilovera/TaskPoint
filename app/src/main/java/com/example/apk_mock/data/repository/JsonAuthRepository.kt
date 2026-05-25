@@ -2,11 +2,11 @@ package com.example.apk_mock.data.repository
 
 import android.content.Context
 import com.example.apk_mock.data.source.JsonDataSource
-import com.example.apk_mock.domain.AuthRepository
-import com.example.apk_mock.domain.AuthResult
-import com.example.apk_mock.domain.ResetResult
-import com.example.apk_mock.domain.User
-import com.example.apk_mock.domain.UserSessionProvider
+import com.example.apk_mock.domain.repository.AuthRepository
+import com.example.apk_mock.domain.repository.AuthResult
+import com.example.apk_mock.domain.repository.ResetResult
+import com.example.apk_mock.domain.repository.User
+import com.example.apk_mock.domain.repository.UserSessionProvider
 import java.util.UUID
 
 class JsonAuthRepository(context: Context) : AuthRepository, UserSessionProvider {
@@ -15,7 +15,7 @@ class JsonAuthRepository(context: Context) : AuthRepository, UserSessionProvider
     private val pendingResetEmails = mutableSetOf<String>()
     private val verifiedResetEmails = mutableSetOf<String>()
     private var loggedUser: User? = null
-    private val mockCode = "123456"
+    private val resetCode = "123456"
 
     override fun register(name: String, email: String, password: String): AuthResult {
         if (users.any { it.email.equals(email, ignoreCase = true) }) {
@@ -66,7 +66,7 @@ class JsonAuthRepository(context: Context) : AuthRepository, UserSessionProvider
             return ResetResult.Error("Primero solicita el codigo de recuperacion.")
         }
 
-        return if (code == mockCode) {
+        return if (code == resetCode) {
             pendingResetEmails.remove(email.lowercase())
             verifiedResetEmails.add(email.lowercase())
             ResetResult.CodeValid
