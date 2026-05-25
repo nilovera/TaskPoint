@@ -1,0 +1,68 @@
+[
+  {
+    "id": "tarea-001",
+    "titulo": "Llevar notebook",
+    "categoria": "PERSONAL",
+    "rutinaId": "rutina-001",
+    "rutinaNombre": "Trabajo presencial",
+    "dia": "LUN",
+    "horario": "09:00",
+    "notas": "Cargar el cargador también.",
+    "completada": false
+  },
+  {
+    "id": "tarea-002",
+    "titulo": "Comprar comida",
+    "categoria": "SUPERMERCADO",
+    "rutinaId": "rutina-001",
+    "rutinaNombre": "Trabajo presencial",
+    "dia": "LUN",
+    "horario": "17:00",
+    "notas": "Verduras, pollo y arroz.",
+    "completada": false
+  },
+  {
+    "id": "tarea-003",
+    "titulo": "Entrenar piernas",
+    "categoria": "INDUMENTARIA",
+    "rutinaId": "rutina-002",
+    "rutinaNombre": "Gimnasio",
+    "dia": "LUN",
+    "horario": "18:00",
+    "notas": "Sentadillas y peso muerto.",
+    "completada": false
+  },
+  {
+    "id": "tarea-004",
+    "titulo": "Llevar apuntes",
+    "categoria": "FACULTAD",
+    "rutinaId": "rutina-003",
+    "rutinaNombre": "Facultad",
+    "dia": "LUN",
+    "horario": "19:30",
+    "notas": "",
+    "completada": false
+  },
+  {
+    "id": "tarea-005",
+    "titulo": "Estudiar para parcial",
+    "categoria": "ESTUDIO",
+    "rutinaId": "rutina-004",
+    "rutinaNombre": "Estudio en casa",
+    "dia": "MAR",
+    "horario": "20:00",
+    "notas": "Repasar unidad 3 y 4.",
+    "completada": false
+  },
+  {
+    "id": "tarea-006",
+    "titulo": "Estudiar para parcial",
+    "categoria": "ESTUDIO",
+    "rutinaId": "rutina-003",
+    "rutinaNombre": "Facultad",
+    "dia": "JUE",
+    "horario": "14:00",
+    "notas": "Ejercicios de práctica.",
+    "completada": false
+  }
+]

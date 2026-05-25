@@ -1,0 +1,62 @@
+[
+  {
+    "id": "rutina-001",
+    "nombre": "Trabajo presencial",
+    "icono": "TRABAJO",
+    "direccion": "Av. Santa Fe 3000",
+    "diasSemana": [
+      "LUN",
+      "MIE",
+      "VIE"
+    ],
+    "horarioInicio": "09:00",
+    "horarioFin": "17:00",
+    "descripcion": "Jornada laboral en la oficina.",
+    "cantidadTareas": 3
+  },
+  {
+    "id": "rutina-002",
+    "nombre": "Gimnasio",
+    "icono": "GIMNASIO",
+    "direccion": "Av. Córdoba 3200",
+    "diasSemana": [
+      "LUN",
+      "MIE",
+      "VIE"
+    ],
+    "horarioInicio": "18:00",
+    "horarioFin": "19:00",
+    "descripcion": "Entrenamiento de fuerza y cardio.",
+    "cantidadTareas": 2
+  },
+  {
+    "id": "rutina-003",
+    "nombre": "Facultad",
+    "icono": "FACULTAD",
+    "direccion": "Lima 775",
+    "diasSemana": [
+      "LUN",
+      "MAR",
+      "JUE"
+    ],
+    "horarioInicio": "19:30",
+    "horarioFin": "23:00",
+    "descripcion": "Cursada en la universidad.",
+    "cantidadTareas": 4
+  },
+  {
+    "id": "rutina-004",
+    "nombre": "Estudio en casa",
+    "icono": "ESTUDIO",
+    "direccion": "Mi hogar",
+    "diasSemana": [
+      "MAR",
+      "JUE",
+      "DOM"
+    ],
+    "horarioInicio": "08:00",
+    "horarioFin": "14:00",
+    "descripcion": "Repaso de materias y práctica de proyectos.",
+    "cantidadTareas": 1
+  }
+]
