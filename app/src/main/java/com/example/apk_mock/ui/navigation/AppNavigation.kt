@@ -1,14 +1,29 @@
 package com.example.apk_mock.ui.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
@@ -296,7 +311,8 @@ private fun AppBottomBar(navController: NavController, currentRoute: String?) {
     NavigationBar(containerColor = SurfaceField, tonalElevation = 0.dp) {
         bottomNavItems.forEach { item ->
             val selected = selectedRoute == item.route
-            NavigationBarItem(
+            BottomNavButton(
+                item = item,
                 selected = selected,
                 onClick = {
                     navController.navigate(item.route) {
@@ -307,17 +323,72 @@ private fun AppBottomBar(navController: NavController, currentRoute: String?) {
                         launchSingleTop = true
                         restoreState = true
                     }
-                },
-                icon = { Icon(item.icon, contentDescription = item.label) },
-                label = { Text(item.label, fontSize = 11.sp) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color.White,
-                    selectedTextColor = Color.White,
-                    unselectedIconColor = SubtitleGray,
-                    unselectedTextColor = SubtitleGray,
-                    indicatorColor = AccentBlue
-                )
+                }
             )
+        }
+    }
+}
+
+@Composable
+private fun RowScope.BottomNavButton(
+    item: BottomNavItem,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val isHome = item.route == Routes.HOME
+    val itemShape = RoundedCornerShape(if (isHome) 24.dp else 18.dp)
+    val iconSize = when {
+        isHome && selected -> 27.dp
+        isHome -> 23.dp
+        else -> 18.dp
+    }
+    val horizontalPadding = when {
+        isHome && selected -> 17.dp
+        isHome -> 12.dp
+        else -> 14.dp
+    }
+    val verticalPadding = when {
+        isHome && selected -> 10.dp
+        isHome -> 7.dp
+        else -> 6.dp
+    }
+
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .height(64.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .clip(itemShape)
+                .background(if (selected) AccentBlue else Color.Transparent)
+                .padding(
+                    horizontal = horizontalPadding,
+                    vertical = verticalPadding
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                item.icon,
+                contentDescription = item.label.ifBlank { "Inicio" },
+                tint = if (selected) Color.White else SubtitleGray,
+                modifier = Modifier.size(iconSize)
+            )
+            if (item.label.isNotBlank()) {
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    item.label,
+                    color = if (selected) Color.White else SubtitleGray,
+                    fontSize = 10.sp,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                )
+            }
         }
     }
 }

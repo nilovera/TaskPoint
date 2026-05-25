@@ -1,6 +1,7 @@
 package com.example.apk_mock.ui.rutinas
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -53,6 +54,25 @@ fun RutinasScreen(
     // Recibe innerPadding del Scaffold externo (bottom bar) sin duplicar
     Scaffold(
         containerColor = BackgroundDark,
+        floatingActionButton = {
+            Box(
+                modifier = Modifier
+                    .padding(bottom = innerPadding.calculateBottomPadding())
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(AccentBlue)
+                    .clickable(onClick = onNavigateToCrear)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "Nueva rutina +",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End,
         snackbarHost = {
             SnackbarHost(snackbarHostState) { data ->
                 Snackbar(

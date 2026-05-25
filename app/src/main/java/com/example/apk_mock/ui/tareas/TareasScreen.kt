@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.CategoriaTarea
@@ -51,6 +52,7 @@ fun TareasScreen(
         floatingActionButton = {
             Box(
                 modifier = Modifier
+                    .padding(bottom = innerPadding.calculateBottomPadding())
                     .clip(RoundedCornerShape(12.dp))
                     .background(if (canCreateTask) AccentBlue else Color(0xFF4E5562))
                     .clickable(enabled = canCreateTask, onClick = onNavigateToCrear)
@@ -99,13 +101,6 @@ fun TareasScreen(
 
             Spacer(Modifier.height(16.dp))
             FiltrosDias(seleccionado = listState.filtroDia, onSelect = { viewModel.onFiltroDia(it) })
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = diaLabel(listState.filtroDia ?: today.toDiaSemana(), today),
-                color = AccentBlue,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
-            )
             Spacer(Modifier.height(12.dp))
 
             if (tareas.isEmpty()) {
@@ -150,7 +145,7 @@ fun TareasScreen(
                         item {
                             Text(
                                 diaLabel(dia, today),
-                                color = SubtitleGray, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                                color = AccentBlue, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.padding(top = 12.dp, bottom = 6.dp)
                             )
                         }
@@ -167,52 +162,86 @@ fun TareasScreen(
 }
 
 private fun diaLabel(dia: DiaSemana?, today: LocalDate): String {
-    val monthName = today.month.getDisplayName(TextStyle.FULL, Locale("es", "AR"))
-    return when (dia) {
-        DiaSemana.LUN -> "Hoy · Lunes ${today.dayOfMonth} de $monthName"
-        DiaSemana.MAR -> "Mañana · Martes ${today.dayOfMonth + 1} de $monthName"
-        DiaSemana.MIE -> "Miércoles ${today.dayOfMonth + 2} de $monthName"
-        DiaSemana.JUE -> "Jueves ${today.dayOfMonth + 3} de $monthName"
-        DiaSemana.VIE -> "Viernes ${today.dayOfMonth + 4} de $monthName"
-        DiaSemana.SAB -> "Sábado ${today.dayOfMonth + 5} de $monthName"
-        DiaSemana.DOM -> "Domingo ${today.dayOfMonth + 6} de $monthName"
-        null -> "Sin día asignado"
+    if (dia == null) return "Sin día asignado"
+
+    val targetDate = today.nextOccurrenceOf(dia.toDayOfWeek())
+    val monthName = targetDate.month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-AR"))
+    val prefix = when (targetDate) {
+        today -> "Hoy · "
+        today.plusDays(1) -> "Mañana · "
+        else -> ""
     }
+
+    return "$prefix${dia.displayName()} ${targetDate.dayOfMonth} de $monthName"
 }
 
-private fun LocalDate.toDiaSemana(): DiaSemana = when (dayOfWeek) {
-    DayOfWeek.MONDAY -> DiaSemana.LUN
-    DayOfWeek.TUESDAY -> DiaSemana.MAR
-    DayOfWeek.WEDNESDAY -> DiaSemana.MIE
-    DayOfWeek.THURSDAY -> DiaSemana.JUE
-    DayOfWeek.FRIDAY -> DiaSemana.VIE
-    DayOfWeek.SATURDAY -> DiaSemana.SAB
-    DayOfWeek.SUNDAY -> DiaSemana.DOM
+private fun LocalDate.nextOccurrenceOf(dayOfWeek: DayOfWeek): LocalDate {
+    val daysUntil = (dayOfWeek.value - this.dayOfWeek.value + 7) % 7
+    return plusDays(daysUntil.toLong())
+}
+
+private fun DiaSemana.toDayOfWeek(): DayOfWeek = when (this) {
+    DiaSemana.LUN -> DayOfWeek.MONDAY
+    DiaSemana.MAR -> DayOfWeek.TUESDAY
+    DiaSemana.MIE -> DayOfWeek.WEDNESDAY
+    DiaSemana.JUE -> DayOfWeek.THURSDAY
+    DiaSemana.VIE -> DayOfWeek.FRIDAY
+    DiaSemana.SAB -> DayOfWeek.SATURDAY
+    DiaSemana.DOM -> DayOfWeek.SUNDAY
+}
+
+private fun DiaSemana.displayName(): String = when (this) {
+    DiaSemana.LUN -> "Lunes"
+    DiaSemana.MAR -> "Martes"
+    DiaSemana.MIE -> "Miércoles"
+    DiaSemana.JUE -> "Jueves"
+    DiaSemana.VIE -> "Viernes"
+    DiaSemana.SAB -> "Sábado"
+    DiaSemana.DOM -> "Domingo"
 }
 
 @Composable
 fun TareaCard(tarea: Tarea) {
     val catColor = categoriaColor(tarea.categoria)
-    Surface(shape = RoundedCornerShape(14.dp), color = SurfaceField, modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(shape = CircleShape, color = Color.Transparent, border = ButtonDefaults.outlinedButtonBorder) {
-                Spacer(Modifier.size(22.dp))
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(tarea.titulo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = SurfaceField,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 62.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 12.dp)
+            ) {
+                Text(
+                    tarea.titulo,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
                 if (tarea.horario != null || tarea.rutinaNombre != null) {
                     Text(
                         listOfNotNull(tarea.horario, tarea.rutinaNombre).joinToString(" | "),
-                        color = SubtitleGray, fontSize = 12.sp
+                        color = SubtitleGray,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
-            Surface(shape = RoundedCornerShape(6.dp), color = catColor.copy(alpha = 0.18f)) {
+            Surface(shape = RoundedCornerShape(5.dp), color = catColor.copy(alpha = 0.18f)) {
                 Text(
                     tarea.categoria.label,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    fontSize = 11.sp, color = catColor, fontWeight = FontWeight.SemiBold
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                    fontSize = 10.sp, color = catColor, fontWeight = FontWeight.ExtraBold
                 )
             }
         }
