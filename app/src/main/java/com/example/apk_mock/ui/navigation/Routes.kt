@@ -19,9 +19,17 @@ object Routes {
     // Flujos secundarios
     const val CREAR_RUTINA    = "crear_rutina"
     const val CREAR_TAREA     = "crear_tarea"
+    const val RUTINA_DETALLE  = "rutina_detalle"
+    const val EDITAR_RUTINA   = "editar_rutina"
+    const val ARG_RUTINA_ID   = "rutinaId"
+    const val RUTINA_DETALLE_ROUTE = "$RUTINA_DETALLE/{$ARG_RUTINA_ID}"
+    const val EDITAR_RUTINA_ROUTE = "$EDITAR_RUTINA/{$ARG_RUTINA_ID}"
 
     // Arg para pasar el nombre del usuario a las tabs
     const val ARG_NAME        = "name"
+
+    fun rutinaDetalle(rutinaId: String) = "$RUTINA_DETALLE/$rutinaId"
+    fun editarRutina(rutinaId: String) = "$EDITAR_RUTINA/$rutinaId"
 
     // Rutas con argumentos (solo para auth → tabs)
     // Usamos un wrapper para pasar el nombre via SavedStateHandle en el VM

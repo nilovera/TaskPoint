@@ -25,6 +25,34 @@ class JsonTareaRepository(
         return tareas.filter { it.userId == userId }.map { it.tarea }
     }
 
+    override fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String): Int {
+        val userId = sessionProvider.currentUserId() ?: return 0
+        var updatedCount = 0
+        tareas.replaceAll { stored ->
+            if (stored.userId == userId && stored.tarea.rutinaId == rutinaId) {
+                updatedCount++
+                stored.copy(tarea = stored.tarea.copy(rutinaNombre = nuevoNombre))
+            } else {
+                stored
+            }
+        }
+        if (updatedCount > 0) {
+            dataSource.saveTareas(tareas)
+        }
+        return updatedCount
+    }
+
+    override fun eliminarTareasDeRutina(rutinaId: String): Int {
+        val userId = sessionProvider.currentUserId() ?: return 0
+        val before = tareas.size
+        tareas.removeAll { it.userId == userId && it.tarea.rutinaId == rutinaId }
+        val deletedCount = before - tareas.size
+        if (deletedCount > 0) {
+            dataSource.saveTareas(tareas)
+        }
+        return deletedCount
+    }
+
     override fun crearTarea(
         titulo: String,
         categoria: CategoriaTarea,
@@ -48,6 +76,7 @@ class JsonTareaRepository(
             notas = notas
         )
         tareas.add(StoredTarea(userId = userId, tarea = tarea))
+        dataSource.saveTareas(tareas)
         return TareaResult.Success(tarea)
     }
 }

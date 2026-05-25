@@ -1,0 +1,540 @@
+package com.example.apk_mock.ui.rutinas
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.apk_mock.domain.model.CategoriaTarea
+import com.example.apk_mock.domain.model.Rutina
+import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.ui.tareas.TareasViewModel
+import com.example.apk_mock.ui.theme.AccentBlue
+import com.example.apk_mock.ui.theme.BackgroundDark
+import com.example.apk_mock.ui.theme.ErrorRed
+import com.example.apk_mock.ui.theme.FieldBorder
+import com.example.apk_mock.ui.theme.StrengthGreen
+import com.example.apk_mock.ui.theme.SubtitleGray
+import com.example.apk_mock.ui.theme.SurfaceField
+
+private val DetailCard = Color(0xFF171B2D)
+private val DetailBorder = Color(0xFF252B44)
+private val DetailMenu = Color(0xFF0B1540)
+
+@Composable
+fun DetalleRutinaScreen(
+    rutinaId: String,
+    rutinasViewModel: RutinasViewModel,
+    tareasViewModel: TareasViewModel,
+    onBack: () -> Unit,
+    onDeleted: () -> Unit,
+    onEdit: () -> Unit,
+    innerPadding: PaddingValues = PaddingValues()
+) {
+    val detalleState by rutinasViewModel.detalleState.collectAsState()
+    val tareasState by tareasViewModel.listState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(rutinaId) {
+        rutinasViewModel.loadDetalleRutina(rutinaId)
+        tareasViewModel.refreshTareas()
+    }
+
+    LaunchedEffect(detalleState.errorMessage) {
+        detalleState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            rutinasViewModel.consumeDetalleError()
+        }
+    }
+
+    LaunchedEffect(detalleState.snackbarMessage) {
+        detalleState.snackbarMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            rutinasViewModel.consumeDetalleSnackbar()
+        }
+    }
+
+    LaunchedEffect(detalleState.isDeleted) {
+        if (detalleState.isDeleted) {
+            rutinasViewModel.consumeDetalleDeletion()
+            onDeleted()
+        }
+    }
+
+    val rutina = detalleState.rutina
+    val tareasAsociadas = remember(rutina, tareasState.tareas) {
+        if (rutina == null) emptyList()
+        else tareasState.tareas
+            .filter { it.rutinaId == rutina.id || it.rutinaNombre == rutina.nombre }
+            .sortedBy { it.horario ?: "" }
+    }
+
+    Scaffold(
+        containerColor = BackgroundDark,
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+            ) { data ->
+                Snackbar(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    containerColor = StrengthGreen,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(data.visuals.message, fontSize = 13.sp)
+                }
+            }
+        }
+    ) { selfPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BackgroundDark)
+                .padding(horizontal = 24.dp),
+            contentPadding = PaddingValues(
+                top = innerPadding.calculateTopPadding() + 28.dp,
+                bottom = innerPadding.calculateBottomPadding() + selfPadding.calculateBottomPadding() + 28.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                DetailTopBar(
+                    onBack = onBack,
+                    onEdit = onEdit,
+                    onDelete = { showDeleteDialog = true }
+                )
+            }
+
+            if (rutina == null) {
+                item { MissingRoutineState(onBack = onBack) }
+            } else {
+                item { RoutineHero(rutina = rutina) }
+                item { DaysSection(rutina = rutina) }
+                item { TimeSection(rutina = rutina) }
+                item { DescriptionSection(rutina = rutina) }
+                item { TasksSection(tareas = tareasAsociadas) }
+            }
+        }
+    }
+
+    if (showDeleteDialog && rutina != null) {
+        DeleteRoutineDialog(
+            routineName = rutina.nombre,
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                showDeleteDialog = false
+                rutinasViewModel.onEliminarRutina(rutina.id)
+            }
+        )
+    }
+
+}
+
+@Composable
+private fun DetailTopBar(
+    onBack: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .size(36.dp)
+                .background(SurfaceField, RoundedCornerShape(10.dp))
+        ) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
+        }
+        Text(
+            "Detalle de rutina",
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Box {
+            IconButton(onClick = { menuExpanded = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = "Acciones", tint = Color.White)
+            }
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+                containerColor = DetailMenu
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Editar rutina", color = Color.White, fontSize = 12.sp) },
+                    leadingIcon = {
+                        Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    },
+                    onClick = {
+                        menuExpanded = false
+                        onEdit()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Eliminar rutina", color = ErrorRed, fontSize = 12.sp) },
+                    leadingIcon = {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = ErrorRed, modifier = Modifier.size(16.dp))
+                    },
+                    onClick = {
+                        menuExpanded = false
+                        onDelete()
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RoutineHero(rutina: Rutina) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(112.dp)
+                .background(Color(rutina.icono.colorHex), RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(rutina.icono.emoji, fontSize = 42.sp)
+        }
+        Spacer(Modifier.height(10.dp))
+        Text(
+            rutina.nombre,
+            color = Color.White,
+            fontSize = 21.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        if (rutina.direccion.isNotBlank()) {
+            Text(
+                rutina.direccion,
+                color = SubtitleGray,
+                fontSize = 14.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun DetailSection(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        color = DetailCard,
+        border = BorderStroke(1.dp, DetailBorder)
+    ) {
+        Column {
+            Text(
+                title,
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp)
+            )
+            HorizontalDivider(color = DetailBorder)
+            Box(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+                content()
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DaysSection(rutina: Rutina) {
+    DetailSection(title = "Dias de la semana") {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            rutina.diasSemana.distinct().sortedBy { it.ordinal }.forEach { dia ->
+                Surface(shape = RoundedCornerShape(5.dp), color = AccentBlue.copy(alpha = 0.35f)) {
+                    Text(
+                        dia.label,
+                        color = Color(0xFF9EB0FF),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimeSection(rutina: Rutina) {
+    DetailSection(title = "Horario") {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            TimeValue(label = "Inicio", value = rutina.horarioInicio, modifier = Modifier.weight(1f))
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(34.dp)
+                    .background(DetailBorder)
+            )
+            TimeValue(label = "Fin", value = rutina.horarioFin, modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun TimeValue(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label, color = SubtitleGray, fontSize = 10.sp, modifier = Modifier.fillMaxWidth())
+        Text(value, color = SubtitleGray, fontSize = 16.sp)
+    }
+}
+
+@Composable
+private fun DescriptionSection(rutina: Rutina) {
+    DetailSection(title = "Descripcion") {
+        Text(
+            rutina.descripcion.ifBlank { "Sin descripcion" },
+            color = SubtitleGray,
+            fontSize = 13.sp,
+            lineHeight = 18.sp,
+            modifier = Modifier.height(48.dp)
+        )
+    }
+}
+
+@Composable
+private fun TasksSection(tareas: List<Tarea>) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        color = DetailCard,
+        border = BorderStroke(1.dp, DetailBorder)
+    ) {
+        Column {
+            Text(
+                "Tareas asociadas",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp)
+            )
+            HorizontalDivider(color = DetailBorder)
+            if (tareas.isEmpty()) {
+                Text(
+                    "No hay tareas asociadas.",
+                    color = SubtitleGray,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
+                )
+            } else {
+                tareas.forEachIndexed { index, tarea ->
+                    AssociatedTaskRow(tarea = tarea)
+                    if (index < tareas.lastIndex) {
+                        HorizontalDivider(color = DetailBorder)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AssociatedTaskRow(tarea: Tarea) {
+    val catColor = categoriaColor(tarea.categoria)
+
+    Row(
+        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.Default.DateRange,
+            contentDescription = null,
+            tint = SubtitleGray,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(Modifier.width(8.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp)
+        ) {
+            Text(
+                tarea.titulo,
+                color = Color.White,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                tarea.horario ?: "--:--",
+                color = SubtitleGray,
+                fontSize = 11.sp
+            )
+        }
+        Surface(shape = RoundedCornerShape(5.dp), color = catColor.copy(alpha = 0.22f)) {
+            Text(
+                tarea.categoria.label,
+                color = catColor,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun MissingRoutineState(onBack: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = DetailCard,
+        border = BorderStroke(1.dp, DetailBorder)
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "No se encontro esta rutina.",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Puede haber sido eliminada o no pertenecer a tu cuenta.",
+                color = SubtitleGray,
+                fontSize = 13.sp
+            )
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = onBack,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
+            ) {
+                Text("Volver", color = Color.White, fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeleteRoutineDialog(
+    routineName: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = DetailCard,
+        shape = RoundedCornerShape(16.dp),
+        title = {
+            Text(
+                "Eliminar rutina",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Text(
+                "Estas seguro que queres eliminar \"$routineName\"? Esta accion tambien elimina sus tareas asociadas y no se puede deshacer.",
+                color = SubtitleGray,
+                fontSize = 14.sp,
+                lineHeight = 19.sp
+            )
+        },
+        dismissButton = {
+            OutlinedButton(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(9.dp),
+                border = BorderStroke(1.dp, FieldBorder),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+            ) {
+                Text("Cancelar", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                shape = RoundedCornerShape(9.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = ErrorRed)
+            ) {
+                Text("Eliminar", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            }
+        }
+    )
+}
+
+private fun categoriaColor(cat: CategoriaTarea): Color = when (cat) {
+    CategoriaTarea.PERSONAL -> Color(0xFF5E7CFF)
+    CategoriaTarea.SUPERMERCADO -> Color(0xFF35D07F)
+    CategoriaTarea.INDUMENTARIA -> Color(0xFFE85D75)
+    CategoriaTarea.FACULTAD -> Color(0xFFD79728)
+    CategoriaTarea.ESTUDIO -> Color(0xFF31B7D7)
+}

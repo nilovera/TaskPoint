@@ -6,10 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.ui.components.ProfileMenuButton
 import com.example.apk_mock.ui.rutinas.FiltrosDias
 import com.example.apk_mock.ui.theme.*
 import java.time.DayOfWeek
@@ -36,6 +34,8 @@ fun TareasScreen(
     viewModel: TareasViewModel,
     userName: String,
     onNavigateToCrear: () -> Unit,
+    onProfile: () -> Unit = {},
+    onLogout: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
     val listState by viewModel.listState.collectAsState()
@@ -91,12 +91,11 @@ fun TareasScreen(
                        fontSize = 28.sp,
                        fontWeight = FontWeight.Bold)
                 }
-                Box(
-                    modifier = Modifier.size(44.dp).clip(CircleShape).background(SurfaceField),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.Person, contentDescription = "Perfil", tint = SubtitleGray, modifier = Modifier.size(26.dp))
-                }
+                ProfileMenuButton(
+                    userName = userName,
+                    onProfile = onProfile,
+                    onLogout = onLogout
+                )
             }
 
             Spacer(Modifier.height(16.dp))

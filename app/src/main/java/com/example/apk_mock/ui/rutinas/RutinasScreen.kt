@@ -7,11 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
+import com.example.apk_mock.ui.components.ProfileMenuButton
 import com.example.apk_mock.ui.theme.*
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -34,6 +31,9 @@ fun RutinasScreen(
     viewModel: RutinasViewModel,
     userName: String,
     onNavigateToCrear: () -> Unit,
+    onRutinaClick: (Rutina) -> Unit = {},
+    onProfile: () -> Unit = {},
+    onLogout: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
     val listState by viewModel.listState.collectAsState()
@@ -110,20 +110,11 @@ fun RutinasScreen(
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(SurfaceField),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = "Perfil",
-                        tint = SubtitleGray,
-                        modifier = Modifier.size(26.dp)
-                    )
-                }
+                ProfileMenuButton(
+                    userName = userName,
+                    onProfile = onProfile,
+                    onLogout = onLogout
+                )
             }
 
             if (rutinas.isEmpty()) {
@@ -176,7 +167,9 @@ fun RutinasScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    items(rutinas) { rutina -> RutinaCard(rutina = rutina) }
+                    items(rutinas) { rutina ->
+                        RutinaCard(rutina = rutina, onClick = { onRutinaClick(rutina) })
+                    }
                     item { Spacer(Modifier.height(80.dp)) }
                 }
             }
@@ -216,12 +209,15 @@ fun FiltrosDias(seleccionado: DiaSemana?, onSelect: (DiaSemana?) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun RutinaCard(rutina: Rutina) {
+fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = SurfaceField,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -244,8 +240,12 @@ fun RutinaCard(rutina: Rutina) {
                     Text(rutina.direccion, color = SubtitleGray, fontSize = 12.sp)
                 }
                 Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    rutina.diasSemana.forEach { dia ->
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    rutina.diasSemana.distinct().sortedBy { it.ordinal }.forEach { dia ->
                         Surface(shape = RoundedCornerShape(6.dp), color = AccentBlue.copy(alpha = 0.18f)) {
                             Text(
                                 dia.label,

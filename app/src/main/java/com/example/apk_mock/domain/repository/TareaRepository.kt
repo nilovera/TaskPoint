@@ -11,6 +11,8 @@ sealed class TareaResult {
 
 interface TareaRepository {
     fun getTareas(): List<Tarea>
+    fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String): Int
+    fun eliminarTareasDeRutina(rutinaId: String): Int
     fun crearTarea(
         titulo: String,
         categoria: CategoriaTarea,

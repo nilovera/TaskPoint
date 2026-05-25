@@ -30,10 +30,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.apk_mock.data.repository.JsonAuthRepository
 import com.example.apk_mock.data.repository.JsonRutinaRepository
 import com.example.apk_mock.data.repository.JsonTareaRepository
@@ -50,6 +52,8 @@ import com.example.apk_mock.ui.profile.ProfileViewModel
 import com.example.apk_mock.ui.register.RegisterScreen
 import com.example.apk_mock.ui.register.RegisterViewModel
 import com.example.apk_mock.ui.rutinas.CrearRutinaScreen
+import com.example.apk_mock.ui.rutinas.DetalleRutinaScreen
+import com.example.apk_mock.ui.rutinas.EditarRutinaScreen
 import com.example.apk_mock.ui.rutinas.RutinasScreen
 import com.example.apk_mock.ui.rutinas.RutinasViewModel
 import com.example.apk_mock.ui.tareas.CrearTareaScreen
@@ -73,7 +77,7 @@ private val bottomNavItems = listOf(
 // ── Rutas donde se muestra el bottom bar ─────────────────────────────────────
 private val tabRoutes = setOf(Routes.HOME, Routes.RUTINAS, Routes.TAREAS)
 private val profileRoutes = setOf(Routes.PROFILE, Routes.PROFILE_PASSWORD)
-private val bottomBarRoutes = tabRoutes + profileRoutes
+private val bottomBarRoutes = tabRoutes + profileRoutes + Routes.RUTINA_DETALLE_ROUTE
 
 @Composable
 fun AppNavigation() {
@@ -92,7 +96,14 @@ fun AppNavigation() {
     val verifyCodeUseCase = remember(authRepository) { VerifyResetCodeUseCase(authRepository) }
     val changePassUseCase = remember(authRepository) { ChangePasswordUseCase(authRepository) }
     val getRutinasUseCase = remember(rutinaRepository) { GetRutinasUseCase(rutinaRepository) }
+    val getRutinaByIdUseCase = remember(rutinaRepository) { GetRutinaByIdUseCase(rutinaRepository) }
     val crearRutinaUseCase = remember(rutinaRepository) { CrearRutinaUseCase(rutinaRepository) }
+    val editarRutinaUseCase = remember(rutinaRepository, tareaRepository) {
+        EditarRutinaUseCase(rutinaRepository, tareaRepository)
+    }
+    val eliminarRutinaUseCase = remember(rutinaRepository, tareaRepository) {
+        EliminarRutinaUseCase(rutinaRepository, tareaRepository)
+    }
     val getTareasUseCase = remember(tareaRepository) { GetTareasUseCase(tareaRepository) }
     val crearTareaUseCase = remember(tareaRepository) { CrearTareaUseCase(tareaRepository) }
     val getCurrentUserUseCase = remember(authRepository) { GetCurrentUserUseCase(authRepository) }
@@ -105,7 +116,15 @@ fun AppNavigation() {
 
     // ViewModels de tabs: viven aquí para persistir al cambiar de tab
     val rutinasViewModel = viewModel<RutinasViewModel>(
-        factory = vmFactory { RutinasViewModel(getRutinasUseCase, crearRutinaUseCase) }
+        factory = vmFactory {
+            RutinasViewModel(
+                getRutinasUseCase,
+                crearRutinaUseCase,
+                getRutinaByIdUseCase,
+                editarRutinaUseCase,
+                eliminarRutinaUseCase
+            )
+        }
     )
     val tareasViewModel = viewModel<TareasViewModel>(
         factory = vmFactory { TareasViewModel(getTareasUseCase, crearTareaUseCase, getRutinasUseCase) }
@@ -242,6 +261,9 @@ fun AppNavigation() {
                     viewModel = rutinasViewModel,
                     userName = userName,
                     onNavigateToCrear = { navController.navigate(Routes.CREAR_RUTINA) },
+                    onRutinaClick = { rutina -> navController.navigate(Routes.rutinaDetalle(rutina.id)) },
+                    onProfile = { navController.navigate(Routes.PROFILE) },
+                    onLogout = navigateToLoginAfterSessionEnd,
                     innerPadding = innerPadding
                 )
             }
@@ -251,11 +273,58 @@ fun AppNavigation() {
                     viewModel = tareasViewModel,
                     userName = userName,
                     onNavigateToCrear = { navController.navigate(Routes.CREAR_TAREA) },
+                    onProfile = { navController.navigate(Routes.PROFILE) },
+                    onLogout = navigateToLoginAfterSessionEnd,
                     innerPadding = innerPadding
                 )
             }
 
             // ── Flujos secundarios (sin bottom bar) ───────────────────────────
+
+            composable(
+                route = Routes.RUTINA_DETALLE_ROUTE,
+                arguments = listOf(navArgument(Routes.ARG_RUTINA_ID) { type = NavType.StringType })
+            ) { entry ->
+                val rutinaId = entry.arguments?.getString(Routes.ARG_RUTINA_ID).orEmpty()
+                DetalleRutinaScreen(
+                    rutinaId = rutinaId,
+                    rutinasViewModel = rutinasViewModel,
+                    tareasViewModel = tareasViewModel,
+                    onBack = {
+                        if (!navController.popBackStack()) {
+                            navController.navigate(Routes.RUTINAS)
+                        }
+                    },
+                    onDeleted = {
+                        tareasViewModel.refreshTareas()
+                        navController.popBackStack()
+                    },
+                    onEdit = {
+                        navController.navigate(Routes.editarRutina(rutinaId))
+                    },
+                    innerPadding = innerPadding
+                )
+            }
+
+            composable(
+                route = Routes.EDITAR_RUTINA_ROUTE,
+                arguments = listOf(navArgument(Routes.ARG_RUTINA_ID) { type = NavType.StringType })
+            ) { entry ->
+                val rutinaId = entry.arguments?.getString(Routes.ARG_RUTINA_ID).orEmpty()
+                EditarRutinaScreen(
+                    rutinaId = rutinaId,
+                    viewModel = rutinasViewModel,
+                    onBack = { navController.popBackStack() },
+                    onSaved = {
+                        tareasViewModel.refreshTareas()
+                        val didReturnToDetail = navController.popBackStack()
+                        rutinasViewModel.showDetalleSnackbar("Cambios guardados correctamente.")
+                        if (!didReturnToDetail) {
+                            navController.navigate(Routes.rutinaDetalle(rutinaId))
+                        }
+                    }
+                )
+            }
 
             composable(Routes.PROFILE) {
                 ProfileScreen(
@@ -306,7 +375,11 @@ fun AppNavigation() {
 // ── Bottom bar ────────────────────────────────────────────────────────────────
 @Composable
 private fun AppBottomBar(navController: NavController, currentRoute: String?) {
-    val selectedRoute = if (currentRoute in profileRoutes) Routes.HOME else currentRoute
+    val selectedRoute = when (currentRoute) {
+        in profileRoutes -> Routes.HOME
+        Routes.RUTINA_DETALLE_ROUTE -> Routes.RUTINAS
+        else -> currentRoute
+    }
 
     NavigationBar(containerColor = SurfaceField, tonalElevation = 0.dp) {
         bottomNavItems.forEach { item ->

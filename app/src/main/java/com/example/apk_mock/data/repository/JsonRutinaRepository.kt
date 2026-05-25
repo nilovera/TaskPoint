@@ -16,11 +16,17 @@ class JsonRutinaRepository(
     private val sessionProvider: UserSessionProvider
 ) : RutinaRepository {
 
-    private val rutinas = JsonDataSource(context).loadRutinas().toMutableList()
+    private val dataSource = JsonDataSource(context)
+    private val rutinas = dataSource.loadRutinas().toMutableList()
 
     override fun getRutinas(): List<Rutina> {
         val userId = sessionProvider.currentUserId() ?: return emptyList()
         return rutinas.filter { it.userId == userId }.map { it.rutina }
+    }
+
+    override fun getRutinaById(id: String): Rutina? {
+        val userId = sessionProvider.currentUserId() ?: return null
+        return rutinas.firstOrNull { it.userId == userId && it.rutina.id == id }?.rutina
     }
 
     override fun crearRutina(
@@ -47,6 +53,54 @@ class JsonRutinaRepository(
             cantidadTareas = 0
         )
         rutinas.add(StoredRutina(userId = userId, rutina = rutina))
+        dataSource.saveRutinas(rutinas)
+        return RutinaResult.Success(rutina)
+    }
+
+    override fun editarRutina(
+        id: String,
+        nombre: String,
+        icono: RutinaIcono,
+        direccion: String,
+        dias: List<DiaSemana>,
+        horarioInicio: String,
+        horarioFin: String,
+        descripcion: String
+    ): RutinaResult {
+        val userId = sessionProvider.currentUserId()
+            ?: return RutinaResult.Error("Inicia sesion para editar rutinas.")
+
+        val index = rutinas.indexOfFirst { it.userId == userId && it.rutina.id == id }
+        if (index == -1) {
+            return RutinaResult.Error("La rutina no existe o no pertenece a tu cuenta.")
+        }
+
+        val current = rutinas[index]
+        val updated = current.rutina.copy(
+            nombre = nombre,
+            icono = icono,
+            direccion = direccion,
+            diasSemana = dias,
+            horarioInicio = horarioInicio,
+            horarioFin = horarioFin,
+            descripcion = descripcion
+        )
+        rutinas[index] = current.copy(rutina = updated)
+        dataSource.saveRutinas(rutinas)
+        return RutinaResult.Success(updated)
+    }
+
+    override fun eliminarRutina(id: String): RutinaResult {
+        val userId = sessionProvider.currentUserId()
+            ?: return RutinaResult.Error("Inicia sesion para eliminar rutinas.")
+
+        val index = rutinas.indexOfFirst { it.userId == userId && it.rutina.id == id }
+        if (index == -1) {
+            return RutinaResult.Error("La rutina no existe o no pertenece a tu cuenta.")
+        }
+
+        val rutina = rutinas.removeAt(index).rutina
+        dataSource.saveRutinas(rutinas)
         return RutinaResult.Success(rutina)
     }
 }

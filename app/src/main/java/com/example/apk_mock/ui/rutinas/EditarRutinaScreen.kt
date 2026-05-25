@@ -4,38 +4,84 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.RutinaIcono
 import com.example.apk_mock.ui.register.AppTextField
-import com.example.apk_mock.ui.theme.*
+import com.example.apk_mock.ui.theme.AccentBlue
+import com.example.apk_mock.ui.theme.BackgroundDark
+import com.example.apk_mock.ui.theme.ErrorRed
+import com.example.apk_mock.ui.theme.FieldBorder
+import com.example.apk_mock.ui.theme.LabelGray
+import com.example.apk_mock.ui.theme.PlaceholderGray
+import com.example.apk_mock.ui.theme.StrengthGreen
+import com.example.apk_mock.ui.theme.SubtitleGray
+import com.example.apk_mock.ui.theme.SurfaceField
 
 @Composable
-fun CrearRutinaScreen(
+fun EditarRutinaScreen(
+    rutinaId: String,
     viewModel: RutinasViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSaved: () -> Unit
 ) {
-    val state by viewModel.formState.collectAsState()
+    val state by viewModel.editState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(rutinaId) {
+        viewModel.loadEditarRutina(rutinaId)
+    }
+
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.consumeEditError()
+        }
+    }
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
-            viewModel.consumeSuccess()
-            onBack()
+            viewModel.consumeEditSuccess()
+            onSaved()
         }
     }
 
@@ -49,12 +95,11 @@ fun CrearRutinaScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 24.dp)
                 .padding(bottom = 100.dp)
         ) {
             Spacer(Modifier.height(16.dp))
 
-            // ── Header ────────────────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -68,70 +113,65 @@ fun CrearRutinaScreen(
                 ) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
                 }
-                Text("Nueva rutina", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                Text("Editar rutina", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(36.dp))
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // ── Nombre ────────────────────────────────────────────────────────
-            FieldLabel("Nombre de la rutina *")
+            RequiredLabel("Nombre de la rutina")
             AppTextField(
                 label = "",
                 value = state.nombre,
-                onValueChange = viewModel::onNombreChange,
+                onValueChange = viewModel::onEditNombreChange,
                 placeholder = "Gimnasio",
                 isError = state.nombreError != null,
                 errorMessage = state.nombreError
             )
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(18.dp))
 
-            // ── Ícono ─────────────────────────────────────────────────────────
-            FieldLabel("Ícono *")
-            IconosGrid(
+            RequiredLabel("Ícono")
+            EditIconosGrid(
                 seleccionado = state.iconoSeleccionado,
-                onSelect = viewModel::onIconoChange
+                onSelect = viewModel::onEditIconoChange
             )
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(18.dp))
 
-            // ── Dirección ─────────────────────────────────────────────────────
-            FieldLabel("Dirección *")
+            RequiredLabel("Dirección")
             AppTextField(
                 label = "",
                 value = state.direccion,
-                onValueChange = viewModel::onDireccionChange,
+                onValueChange = viewModel::onEditDireccionChange,
                 placeholder = "Ingresá una dirección...",
                 isError = state.direccionError != null,
                 errorMessage = state.direccionError
             )
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(18.dp))
 
-            // ── Días de la semana ─────────────────────────────────────────────
-            FieldLabel("Días de la semana *")
-            DiasSelector(
+            RequiredLabel("Días de la semana")
+            EditDiasSelector(
                 seleccionados = state.diasSeleccionados,
-                onToggle = viewModel::onDiaToggle
+                onToggle = viewModel::onEditDiaToggle
             )
             if (state.diasError != null) {
                 Spacer(Modifier.height(4.dp))
                 Text(state.diasError!!, color = ErrorRed, fontSize = 12.sp)
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(18.dp))
 
-            // ── Horario ───────────────────────────────────────────────────────
-            FieldLabel("Horario *")
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            RequiredLabel("Horario")
+            Row(horizontalArrangement = Arrangement.spacedBy(46.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Inicio", color = SubtitleGray, fontSize = 12.sp)
+                    Text("Inicio", color = SubtitleGray, fontSize = 11.sp)
                     Spacer(Modifier.height(4.dp))
-                    HorarioField(
+                    EditHorarioField(
                         value = state.horarioInicio,
-                        onValueChange = viewModel::onHorarioInicioChange,
-                        placeholder = "18:00",
+                        onValueChange = viewModel::onEditHorarioInicioChange,
+                        placeholder = "09:00",
                         isError = state.horarioInicioError != null
                     )
                     if (state.horarioInicioError != null) {
@@ -139,12 +179,12 @@ fun CrearRutinaScreen(
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Fin", color = SubtitleGray, fontSize = 12.sp)
+                    Text("Fin", color = SubtitleGray, fontSize = 11.sp)
                     Spacer(Modifier.height(4.dp))
-                    HorarioField(
+                    EditHorarioField(
                         value = state.horarioFin,
-                        onValueChange = viewModel::onHorarioFinChange,
-                        placeholder = "19:00",
+                        onValueChange = viewModel::onEditHorarioFinChange,
+                        placeholder = "18:00",
                         isError = state.horarioFinError != null
                     )
                     if (state.horarioFinError != null) {
@@ -153,14 +193,13 @@ fun CrearRutinaScreen(
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(18.dp))
 
-            // ── Descripción ───────────────────────────────────────────────────
-            FieldLabel("Descripción *")
+            RequiredLabel("Descripción")
             val maxDesc = 120
             OutlinedTextField(
                 value = state.descripcion,
-                onValueChange = { if (it.length <= maxDesc) viewModel.onDescripcionChange(it) },
+                onValueChange = { if (it.length <= maxDesc) viewModel.onEditDescripcionChange(it) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(110.dp),
@@ -184,85 +223,102 @@ fun CrearRutinaScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (state.descripcionError != null)
+                if (state.descripcionError != null) {
                     Text(state.descripcionError!!, color = ErrorRed, fontSize = 12.sp)
-                else Spacer(Modifier.width(1.dp))
+                } else {
+                    Spacer(Modifier.width(1.dp))
+                }
                 Text("${state.descripcion.length}/$maxDesc", color = SubtitleGray, fontSize = 11.sp)
             }
 
             Spacer(Modifier.height(28.dp))
         }
 
-        // ── Botón fijo abajo ──────────────────────────────────────────────────
         Button(
-            onClick = viewModel::onCrearRutina,
+            onClick = viewModel::onGuardarCambiosRutina,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 20.dp)
-                .height(54.dp),
-            shape = RoundedCornerShape(14.dp),
+                .padding(horizontal = 24.dp, vertical = 20.dp)
+                .height(50.dp),
+            shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = StrengthGreen)
         ) {
-            Text("Crear rutina", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+            Text("Guardar cambios", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
-    }
-}
 
-// ── Componentes internos ──────────────────────────────────────────────────────
-
-@Composable
-private fun FieldLabel(text: String) {
-    Text(text, color = LabelGray, fontSize = 13.sp, modifier = Modifier.padding(bottom = 8.dp))
-}
-
-@Composable
-private fun IconosGrid(seleccionado: RutinaIcono, onSelect: (RutinaIcono) -> Unit) {
-    val iconos = RutinaIcono.values()
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        iconos.forEach { icono ->
-            val isSelected = icono == seleccionado
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(icono.colorHex))
-                    .then(
-                        if (isSelected) Modifier.border(2.dp, Color.White, RoundedCornerShape(12.dp))
-                        else Modifier
-                    )
-                    .clickable { onSelect(icono) },
-                contentAlignment = Alignment.Center
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 24.dp, vertical = 86.dp)
+        ) { data ->
+            Snackbar(
+                containerColor = SurfaceField,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(10.dp)
             ) {
-                Text(icono.emoji, fontSize = 22.sp)
+                Text(data.visuals.message, fontSize = 13.sp)
             }
         }
-        Spacer(Modifier.width(24.dp))
     }
 }
 
 @Composable
-private fun DiasSelector(seleccionados: Set<DiaSemana>, onToggle: (DiaSemana) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+private fun RequiredLabel(text: String) {
+    Row(modifier = Modifier.padding(bottom = 8.dp)) {
+        Text(text, color = LabelGray, fontSize = 13.sp)
+        Text("*", color = ErrorRed, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun EditIconosGrid(seleccionado: RutinaIcono, onSelect: (RutinaIcono) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        RutinaIcono.values().toList().chunked(5).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                row.forEach { icono ->
+                    val isSelected = icono == seleccionado
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(RoundedCornerShape(9.dp))
+                            .background(Color(icono.colorHex))
+                            .then(
+                                if (isSelected) Modifier.border(2.dp, AccentBlue, RoundedCornerShape(9.dp))
+                                else Modifier
+                            )
+                            .clickable { onSelect(icono) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(icono.emoji, fontSize = 18.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditDiasSelector(seleccionados: Set<DiaSemana>, onToggle: (DiaSemana) -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.horizontalScroll(rememberScrollState())
+    ) {
         DiaSemana.values().forEach { dia ->
-            val selected = seleccionados.contains(dia)
+            val selected = dia in seleccionados
             Surface(
                 onClick = { onToggle(dia) },
                 shape = RoundedCornerShape(20.dp),
                 color = if (selected) AccentBlue else SurfaceField,
                 modifier = Modifier.height(32.dp)
             ) {
-                Box(Modifier.padding(horizontal = 10.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
                     Text(
                         dia.label,
                         fontSize = 12.sp,
                         color = if (selected) Color.White else SubtitleGray,
-                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
                     )
                 }
             }
@@ -271,7 +327,7 @@ private fun DiasSelector(seleccionados: Set<DiaSemana>, onToggle: (DiaSemana) ->
 }
 
 @Composable
-private fun HorarioField(
+private fun EditHorarioField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
@@ -284,7 +340,7 @@ private fun HorarioField(
         placeholder = { Text(placeholder, color = PlaceholderGray) },
         singleLine = true,
         isError = isError,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(10.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = SurfaceField,
             unfocusedContainerColor = SurfaceField,
