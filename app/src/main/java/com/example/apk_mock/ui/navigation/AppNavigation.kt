@@ -80,6 +80,7 @@ fun AppNavigation() {
     val crearRutinaUseCase = remember(rutinaRepository) { CrearRutinaUseCase(rutinaRepository) }
     val getTareasUseCase = remember(tareaRepository) { GetTareasUseCase(tareaRepository) }
     val crearTareaUseCase = remember(tareaRepository) { CrearTareaUseCase(tareaRepository) }
+    val eliminarTareaUseCase = remember(tareaRepository) { EliminarTareaUseCase(tareaRepository) }
     val getCategoriasUseCase = remember(categoriaRepository) { GetCategoriasUseCase(categoriaRepository) }
     val getOffersByCategoryUseCase = remember(offerRepository) { GetOffersByCategoryUseCase(offerRepository) }
 
@@ -95,6 +96,7 @@ fun AppNavigation() {
             TareasViewModel(
                 getTareasUseCase,
                 crearTareaUseCase,
+                eliminarTareaUseCase,
                 getRutinasUseCase,
                 getCategoriasUseCase,
                 getOffersByCategoryUseCase
@@ -227,6 +229,11 @@ fun AppNavigation() {
                     ?.getStateFlow("task_created", false)
                     ?.collectAsState()
                     ?: remember { mutableStateOf(false) }
+                val taskDeleted by currentBackStack
+                    ?.savedStateHandle
+                    ?.getStateFlow("task_deleted", false)
+                    ?.collectAsState()
+                    ?: remember { mutableStateOf(false) }
 
                 TareasScreen(
                     viewModel = tareasViewModel,
@@ -236,6 +243,10 @@ fun AppNavigation() {
                     showTaskCreatedMessage = taskCreated,
                     onTaskCreatedMessageShown = {
                         currentBackStack?.savedStateHandle?.set("task_created", false)
+                    },
+                    showTaskDeletedMessage = taskDeleted,
+                    onTaskDeletedMessageShown = {
+                        currentBackStack?.savedStateHandle?.set("task_deleted", false)
                     },
                     innerPadding = innerPadding
                 )
@@ -269,6 +280,13 @@ fun AppNavigation() {
                     taskId = taskId,
                     viewModel = tareasViewModel,
                     onBack = { navController.popBackStack() },
+                    onEditTask = { },
+                    onTaskDeleted = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("task_deleted", true)
+                        navController.popBackStack()
+                    },
                     innerPadding = innerPadding
                 )
             }

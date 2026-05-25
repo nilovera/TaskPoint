@@ -37,3 +37,10 @@ class CrearTareaUseCase(private val repository: TareaRepository) {
         return repository.crearTarea(titulo, categoria, rutinaId, rutinaNombre, dia, horario, notas)
     }
 }
+
+class EliminarTareaUseCase(private val repository: TareaRepository) {
+    operator fun invoke(taskId: String): TareaResult {
+        if (taskId.isBlank()) return TareaResult.Error("No se encontro la tarea.")
+        return repository.eliminarTarea(taskId)
+    }
+}

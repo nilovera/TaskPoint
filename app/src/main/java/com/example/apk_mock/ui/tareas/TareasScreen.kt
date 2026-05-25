@@ -39,28 +39,38 @@ fun TareasScreen(
     onNavigateToDetalle: (String) -> Unit = {},
     showTaskCreatedMessage: Boolean = false,
     onTaskCreatedMessageShown: () -> Unit = {},
+    showTaskDeletedMessage: Boolean = false,
+    onTaskDeletedMessageShown: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
     val listState by viewModel.listState.collectAsState()
     val tareas = viewModel.tareasFiltradas()
     val canCreateTask = listState.rutinasDisponibles > 0
     val today = LocalDate.now()
-    var showCreatedOverlay by remember { mutableStateOf(false) }
+    var overlayMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) { viewModel.refreshTareas() }
     LaunchedEffect(showTaskCreatedMessage) {
         if (showTaskCreatedMessage) {
-            showCreatedOverlay = true
+            overlayMessage = "Tarea creada correctamente."
             delay(3000)
-            showCreatedOverlay = false
+            overlayMessage = null
             onTaskCreatedMessageShown()
+        }
+    }
+    LaunchedEffect(showTaskDeletedMessage) {
+        if (showTaskDeletedMessage) {
+            overlayMessage = "Tarea eliminada correctamente."
+            delay(3000)
+            overlayMessage = null
+            onTaskDeletedMessageShown()
         }
     }
 
     Scaffold(
         containerColor = BackgroundDark,
         floatingActionButton = {
-            if (!showCreatedOverlay) {
+            if (overlayMessage == null) {
                 Box(
                     modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding() + 8.dp)
                 ) {
@@ -181,7 +191,7 @@ fun TareasScreen(
             }
             }
 
-            if (showCreatedOverlay) {
+            if (overlayMessage != null) {
                 Surface(
                     shape = RoundedCornerShape(10.dp),
                     color = StrengthGreen,
@@ -202,7 +212,7 @@ fun TareasScreen(
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(
-                            "Tarea creada correctamente.",
+                            overlayMessage.orEmpty(),
                             color = Color.White,
                             fontSize = 14.sp
                         )

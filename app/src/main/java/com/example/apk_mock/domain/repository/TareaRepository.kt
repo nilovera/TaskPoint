@@ -20,4 +20,6 @@ interface TareaRepository {
         horario: String?,
         notas: String
     ): TareaResult
+
+    fun eliminarTarea(taskId: String): TareaResult
 }

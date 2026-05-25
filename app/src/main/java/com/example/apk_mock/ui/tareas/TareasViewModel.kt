@@ -8,6 +8,7 @@ import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.domain.repository.TareaResult
 import com.example.apk_mock.domain.useCase.CrearTareaUseCase
+import com.example.apk_mock.domain.useCase.EliminarTareaUseCase
 import com.example.apk_mock.domain.useCase.GetCategoriasUseCase
 import com.example.apk_mock.domain.useCase.GetOffersByCategoryUseCase
 import com.example.apk_mock.domain.useCase.GetTareasUseCase
@@ -52,6 +53,7 @@ data class CrearTareaUiState(
 class TareasViewModel(
     private val getTareas: GetTareasUseCase,
     private val crearTarea: CrearTareaUseCase,
+    private val eliminarTarea: EliminarTareaUseCase,
     private val getRutinas: GetRutinasUseCase,
     private val getCategorias: GetCategoriasUseCase,
     private val getOffersByCategory: GetOffersByCategoryUseCase
@@ -90,6 +92,16 @@ class TareasViewModel(
     fun getOffersForTarea(tarea: Tarea): List<StoreOffer> {
         if (!tarea.categoria.activatesOffers) return emptyList()
         return getOffersByCategory(tarea.categoria.code)
+    }
+
+    fun onEliminarTarea(taskId: String): Boolean {
+        return when (eliminarTarea(taskId)) {
+            is TareaResult.Success -> {
+                refreshTareas()
+                true
+            }
+            is TareaResult.Error -> false
+        }
     }
 
     fun loadFormData() {
