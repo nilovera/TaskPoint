@@ -38,6 +38,7 @@ import com.example.apk_mock.ui.rutinas.RutinasScreen
 import com.example.apk_mock.ui.rutinas.RutinasViewModel
 import com.example.apk_mock.ui.tareas.CrearTareaScreen
 import com.example.apk_mock.ui.tareas.DetalleTareaScreen
+import com.example.apk_mock.ui.tareas.EditarTareaScreen
 import com.example.apk_mock.ui.tareas.TareasScreen
 import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.*
@@ -80,6 +81,8 @@ fun AppNavigation() {
     val crearRutinaUseCase = remember(rutinaRepository) { CrearRutinaUseCase(rutinaRepository) }
     val getTareasUseCase = remember(tareaRepository) { GetTareasUseCase(tareaRepository) }
     val crearTareaUseCase = remember(tareaRepository) { CrearTareaUseCase(tareaRepository) }
+    val eliminarTareaUseCase = remember(tareaRepository) { EliminarTareaUseCase(tareaRepository) }
+    val editarTareaUseCase = remember(tareaRepository) { EditarTareaUseCase(tareaRepository) }
     val getCategoriasUseCase = remember(categoriaRepository) { GetCategoriasUseCase(categoriaRepository) }
     val getOffersByCategoryUseCase = remember(offerRepository) { GetOffersByCategoryUseCase(offerRepository) }
 
@@ -95,6 +98,8 @@ fun AppNavigation() {
             TareasViewModel(
                 getTareasUseCase,
                 crearTareaUseCase,
+                eliminarTareaUseCase,
+                editarTareaUseCase,
                 getRutinasUseCase,
                 getCategoriasUseCase,
                 getOffersByCategoryUseCase
@@ -227,6 +232,11 @@ fun AppNavigation() {
                     ?.getStateFlow("task_created", false)
                     ?.collectAsState()
                     ?: remember { mutableStateOf(false) }
+                val taskDeleted by currentBackStack
+                    ?.savedStateHandle
+                    ?.getStateFlow("task_deleted", false)
+                    ?.collectAsState()
+                    ?: remember { mutableStateOf(false) }
 
                 TareasScreen(
                     viewModel = tareasViewModel,
@@ -236,6 +246,10 @@ fun AppNavigation() {
                     showTaskCreatedMessage = taskCreated,
                     onTaskCreatedMessageShown = {
                         currentBackStack?.savedStateHandle?.set("task_created", false)
+                    },
+                    showTaskDeletedMessage = taskDeleted,
+                    onTaskDeletedMessageShown = {
+                        currentBackStack?.savedStateHandle?.set("task_deleted", false)
                     },
                     innerPadding = innerPadding
                 )
@@ -265,13 +279,43 @@ fun AppNavigation() {
 
             composable(Routes.DETALLE_TAREA) { backStackEntry ->
                 val taskId = backStackEntry.arguments?.getString("taskId").orEmpty()
+                val taskEdited by currentBackStack
+                    ?.savedStateHandle
+                    ?.getStateFlow("task_edited", false)
+                    ?.collectAsState()
+                    ?: remember { mutableStateOf(false) }
+
                 DetalleTareaScreen(
                     taskId = taskId,
                     viewModel = tareasViewModel,
                     onBack = { navController.popBackStack() },
-                    onEditTask = { },
-                    onDeleteTask = { },
+                    onEditTask = { id -> navController.navigate(Routes.editarTarea(id)) },
+                    onTaskDeleted = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("task_deleted", true)
+                        navController.popBackStack()
+                    },
+                    showTaskEditedMessage = taskEdited,
+                    onTaskEditedMessageShown = {
+                        currentBackStack?.savedStateHandle?.set("task_edited", false)
+                    },
                     innerPadding = innerPadding
+                )
+            }
+
+            composable(Routes.EDITAR_TAREA) { backStackEntry ->
+                val taskId = backStackEntry.arguments?.getString("taskId").orEmpty()
+                EditarTareaScreen(
+                    taskId = taskId,
+                    viewModel = tareasViewModel,
+                    onBack = { navController.popBackStack() },
+                    onTaskEdited = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("task_edited", true)
+                        navController.popBackStack()
+                    }
                 )
             }
         }

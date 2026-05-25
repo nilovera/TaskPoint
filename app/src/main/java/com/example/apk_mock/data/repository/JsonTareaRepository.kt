@@ -50,4 +50,44 @@ class JsonTareaRepository(
         tareas.add(StoredTarea(userId = userId, tarea = tarea))
         return TareaResult.Success(tarea)
     }
+
+    override fun editarTarea(
+        taskId: String,
+        titulo: String,
+        categoria: CategoriaTarea,
+        rutinaId: String?,
+        rutinaNombre: String?,
+        dia: DiaSemana?,
+        horario: String?,
+        notas: String
+    ): TareaResult {
+        val userId = sessionProvider.currentUserId()
+            ?: return TareaResult.Error("Inicia sesion para editar tareas.")
+
+        val index = tareas.indexOfFirst { it.userId == userId && it.tarea.id == taskId }
+        if (index == -1) return TareaResult.Error("No se encontro la tarea.")
+
+        val updated = tareas[index].tarea.copy(
+            titulo = titulo,
+            categoria = categoria,
+            rutinaId = rutinaId,
+            rutinaNombre = rutinaNombre,
+            dia = dia,
+            horario = horario,
+            notas = notas
+        )
+        tareas[index] = StoredTarea(userId = userId, tarea = updated)
+        return TareaResult.Success(updated)
+    }
+
+    override fun eliminarTarea(taskId: String): TareaResult {
+        val userId = sessionProvider.currentUserId()
+            ?: return TareaResult.Error("Inicia sesion para eliminar tareas.")
+
+        val index = tareas.indexOfFirst { it.userId == userId && it.tarea.id == taskId }
+        if (index == -1) return TareaResult.Error("No se encontro la tarea.")
+
+        val removed = tareas.removeAt(index).tarea
+        return TareaResult.Success(removed)
+    }
 }
