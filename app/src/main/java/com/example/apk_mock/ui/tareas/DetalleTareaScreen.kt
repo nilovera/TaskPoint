@@ -1,0 +1,329 @@
+package com.example.apk_mock.ui.tareas
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Work
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.apk_mock.domain.model.CategoriaTarea
+import com.example.apk_mock.domain.model.DiaSemana
+import com.example.apk_mock.domain.model.Rutina
+import com.example.apk_mock.domain.model.StoreOffer
+import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.ui.theme.AccentBlue
+import com.example.apk_mock.ui.theme.BackgroundDark
+import com.example.apk_mock.ui.theme.DateBlue
+import com.example.apk_mock.ui.theme.FieldBorder
+import com.example.apk_mock.ui.theme.LabelGray
+import com.example.apk_mock.ui.theme.PlaceholderGray
+import com.example.apk_mock.ui.theme.StrengthGreen
+import com.example.apk_mock.ui.theme.SubtitleGray
+import com.example.apk_mock.ui.theme.SurfaceField
+
+@Composable
+fun DetalleTareaScreen(
+    taskId: String,
+    viewModel: TareasViewModel,
+    onBack: () -> Unit,
+    innerPadding: PaddingValues = PaddingValues()
+) {
+    LaunchedEffect(Unit) { viewModel.refreshTareas() }
+
+    val tarea = viewModel.getTareaById(taskId)
+    val rutina = tarea?.let { viewModel.getRutinaForTarea(it) }
+    val offers = tarea?.let { viewModel.getOffersForTarea(it) }.orEmpty()
+
+    if (tarea == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BackgroundDark)
+                .padding(20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No se encontró la tarea.", color = SubtitleGray, fontSize = 16.sp)
+        }
+        return
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundDark)
+            .verticalScroll(rememberScrollState())
+            .padding(
+                start = 20.dp,
+                end = 20.dp,
+                top = innerPadding.calculateTopPadding() + 20.dp,
+                bottom = innerPadding.calculateBottomPadding() + 24.dp
+            )
+    ) {
+        DetailHeader(onBack = onBack)
+        Spacer(Modifier.height(22.dp))
+        DetailTitle(tarea = tarea)
+        Spacer(Modifier.height(18.dp))
+        TaskInfoCard(tarea = tarea, rutina = rutina)
+        Spacer(Modifier.height(16.dp))
+        DetailSectionTitle("Foto")
+        PhotoBlock()
+        Spacer(Modifier.height(20.dp))
+        DetailSectionTitle("Notas")
+        NotesBlock(text = tarea.notas.ifBlank { "Sin notas." })
+        Spacer(Modifier.height(20.dp))
+        if (offers.isNotEmpty()) {
+            DetailSectionTitle("OFERTAS CERCA DE ESTA RUTINA")
+            Spacer(Modifier.height(8.dp))
+            offers.forEach { offer ->
+                OfferCard(offer = offer)
+                Spacer(Modifier.height(10.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailHeader(onBack: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(SurfaceField)
+                .border(1.dp, FieldBorder, RoundedCornerShape(14.dp))
+        ) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = LabelGray)
+        }
+        Text(
+            "Detalle de tarea",
+            color = Color.White,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+        IconButton(onClick = {}, modifier = Modifier.size(48.dp)) {
+            Icon(Icons.Default.MoreVert, contentDescription = "Más opciones", tint = LabelGray)
+        }
+    }
+}
+
+@Composable
+private fun DetailTitle(tarea: Tarea) {
+    val categoryColor = categoriaColor(tarea.categoria)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            tarea.titulo,
+            color = Color.White,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f)
+        )
+    }
+    Spacer(Modifier.height(18.dp))
+    Surface(shape = RoundedCornerShape(5.dp), color = categoryColor.copy(alpha = 0.22f)) {
+        Text(
+            tarea.categoria.label,
+            color = categoryColor,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+        )
+    }
+}
+
+@Composable
+private fun TaskInfoCard(tarea: Tarea, rutina: Rutina?) {
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = SurfaceField,
+        border = androidx.compose.foundation.BorderStroke(1.dp, FieldBorder),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            InfoRow(Icons.Default.Work, "Rutina", tarea.rutinaNombre ?: rutina?.nombre ?: "Sin rutina")
+            DividerLine()
+            InfoRow(Icons.Default.LocationOn, "Dirección", rutina?.direccion ?: "Sin dirección")
+            DividerLine()
+            InfoRow(Icons.Default.DateRange, "Día", tarea.dia?.fullLabel() ?: "Sin día")
+            DividerLine()
+            InfoRow(Icons.Default.AccessTime, "Horario", tarea.horario ?: "Sin horario")
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(icon: ImageVector, label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF090B12)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = DateBlue, modifier = Modifier.size(20.dp))
+        }
+        Spacer(Modifier.size(12.dp))
+        Column {
+            Text(label, color = SubtitleGray, fontSize = 14.sp)
+            Text(value, color = Color.White, fontSize = 17.sp)
+        }
+    }
+}
+
+@Composable
+private fun DividerLine() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(FieldBorder.copy(alpha = 0.75f))
+    )
+}
+
+@Composable
+private fun DetailSectionTitle(text: String) {
+    Text(text, color = LabelGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+}
+
+@Composable
+private fun PhotoBlock() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(140.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xFF173016)),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(Icons.Default.Image, contentDescription = "Foto de la tarea", tint = StrengthGreen, modifier = Modifier.size(36.dp))
+    }
+}
+
+@Composable
+private fun NotesBlock(text: String) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = SurfaceField,
+        border = androidx.compose.foundation.BorderStroke(1.dp, FieldBorder),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(text, color = LabelGray, fontSize = 16.sp, modifier = Modifier.padding(16.dp))
+    }
+}
+
+@Composable
+private fun OfferCard(offer: StoreOffer) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = SurfaceField,
+        border = androidx.compose.foundation.BorderStroke(1.dp, FieldBorder),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFEAF2FF)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(offer.store.logo.toLogoText(), color = AccentBlue, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.size(12.dp))
+            Column {
+                Text(offer.store.name.displayStoreName(), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    "${offer.store.address.shortAddress()} | ${offer.distanceMeters} m",
+                    color = PlaceholderGray,
+                    fontSize = 13.sp
+                )
+                Text(offer.offer.title, color = StrengthGreen, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
+private fun String.toLogoText(): String {
+    return split("_")
+        .filter { it.isNotBlank() && it != "logo" }
+        .take(2)
+        .joinToString("") { it.take(1).uppercase() }
+        .ifBlank { take(3).uppercase() }
+}
+
+private fun String.displayStoreName(): String {
+    return substringBefore(" - ")
+}
+
+private fun String.shortAddress(): String {
+    return substringBefore(",")
+}
+
+private fun DiaSemana.fullLabel(): String = when (this) {
+    DiaSemana.LUN -> "Lunes"
+    DiaSemana.MAR -> "Martes"
+    DiaSemana.MIE -> "Miércoles"
+    DiaSemana.JUE -> "Jueves"
+    DiaSemana.VIE -> "Viernes"
+    DiaSemana.SAB -> "Sábado"
+    DiaSemana.DOM -> "Domingo"
+}
+
+private fun categoriaColor(cat: CategoriaTarea): Color = when (cat.code) {
+    "PERSONAL" -> Color(0xFF4D6BFE)
+    "SUPERMERCADO" -> Color(0xFF34C759)
+    "INDUMENTARIA" -> Color(0xFFFF9F0A)
+    "FACULTAD" -> Color(0xFFD79728)
+    "ESTUDIO" -> Color(0xFF06B6D4)
+    "FARMACIA", "MEDICO" -> Color(0xFFE85D75)
+    "GIMNASIO" -> Color(0xFF34C759)
+    "BANCO", "TRANSPORTE" -> Color(0xFF4D6BFE)
+    "ESCUELA", "LIBRERIA" -> Color(0xFFD79728)
+    "VETERINARIA", "FERRETERIA", "PANADERIA", "PELUQUERIA" -> Color(0xFFFF9F0A)
+    "CASA" -> Color(0xFF06B6D4)
+    else -> SubtitleGray
+}

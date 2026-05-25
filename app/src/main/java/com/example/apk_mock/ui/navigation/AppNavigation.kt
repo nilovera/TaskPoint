@@ -21,6 +21,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.apk_mock.data.repository.JsonAuthRepository
 import com.example.apk_mock.data.repository.JsonCategoriaRepository
+import com.example.apk_mock.data.repository.JsonOfferRepository
 import com.example.apk_mock.data.repository.JsonRutinaRepository
 import com.example.apk_mock.data.repository.JsonTareaRepository
 import com.example.apk_mock.domain.useCase.*
@@ -36,6 +37,7 @@ import com.example.apk_mock.ui.rutinas.CrearRutinaScreen
 import com.example.apk_mock.ui.rutinas.RutinasScreen
 import com.example.apk_mock.ui.rutinas.RutinasViewModel
 import com.example.apk_mock.ui.tareas.CrearTareaScreen
+import com.example.apk_mock.ui.tareas.DetalleTareaScreen
 import com.example.apk_mock.ui.tareas.TareasScreen
 import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.*
@@ -54,7 +56,7 @@ private val bottomNavItems = listOf(
 )
 
 // ── Rutas donde se muestra el bottom bar ─────────────────────────────────────
-private val tabRoutes = setOf(Routes.HOME, Routes.RUTINAS, Routes.TAREAS)
+private val tabRoutes = setOf(Routes.HOME, Routes.RUTINAS, Routes.TAREAS, Routes.DETALLE_TAREA)
 
 @Composable
 fun AppNavigation() {
@@ -67,6 +69,7 @@ fun AppNavigation() {
     val rutinaRepository = remember(context, authRepository) { JsonRutinaRepository(context, authRepository) }
     val tareaRepository = remember(context, authRepository) { JsonTareaRepository(context, authRepository) }
     val categoriaRepository = remember(context) { JsonCategoriaRepository(context) }
+    val offerRepository = remember(context) { JsonOfferRepository(context) }
 
     val registerUseCase = remember(authRepository) { RegisterUseCase(authRepository) }
     val loginUseCase = remember(authRepository) { LoginUseCase(authRepository) }
@@ -78,6 +81,7 @@ fun AppNavigation() {
     val getTareasUseCase = remember(tareaRepository) { GetTareasUseCase(tareaRepository) }
     val crearTareaUseCase = remember(tareaRepository) { CrearTareaUseCase(tareaRepository) }
     val getCategoriasUseCase = remember(categoriaRepository) { GetCategoriasUseCase(categoriaRepository) }
+    val getOffersByCategoryUseCase = remember(offerRepository) { GetOffersByCategoryUseCase(offerRepository) }
 
     // Estado del nombre del usuario: se setea al hacer login y persiste
     var userName by remember { mutableStateOf("") }
@@ -92,7 +96,8 @@ fun AppNavigation() {
                 getTareasUseCase,
                 crearTareaUseCase,
                 getRutinasUseCase,
-                getCategoriasUseCase
+                getCategoriasUseCase,
+                getOffersByCategoryUseCase
             )
         }
     )
@@ -227,6 +232,7 @@ fun AppNavigation() {
                     viewModel = tareasViewModel,
                     userName = userName,
                     onNavigateToCrear = { navController.navigate(Routes.CREAR_TAREA) },
+                    onNavigateToDetalle = { taskId -> navController.navigate(Routes.detalleTarea(taskId)) },
                     showTaskCreatedMessage = taskCreated,
                     onTaskCreatedMessageShown = {
                         currentBackStack?.savedStateHandle?.set("task_created", false)
@@ -256,6 +262,16 @@ fun AppNavigation() {
                     }
                 )
             }
+
+            composable(Routes.DETALLE_TAREA) { backStackEntry ->
+                val taskId = backStackEntry.arguments?.getString("taskId").orEmpty()
+                DetalleTareaScreen(
+                    taskId = taskId,
+                    viewModel = tareasViewModel,
+                    onBack = { navController.popBackStack() },
+                    innerPadding = innerPadding
+                )
+            }
         }
     }
 }
@@ -266,6 +282,7 @@ private fun AppBottomBar(navController: NavController, currentRoute: String?) {
     NavigationBar(containerColor = SurfaceField, tonalElevation = 0.dp) {
         bottomNavItems.forEach { item ->
             val selected = currentRoute == item.route
+                || (currentRoute == Routes.DETALLE_TAREA && item.route == Routes.TAREAS)
             NavigationBarItem(
                 selected = selected,
                 onClick = {

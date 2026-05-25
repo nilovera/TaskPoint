@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
+import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.domain.repository.TareaResult
 import com.example.apk_mock.domain.useCase.CrearTareaUseCase
 import com.example.apk_mock.domain.useCase.GetCategoriasUseCase
+import com.example.apk_mock.domain.useCase.GetOffersByCategoryUseCase
 import com.example.apk_mock.domain.useCase.GetTareasUseCase
 import com.example.apk_mock.domain.useCase.GetRutinasUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,7 +53,8 @@ class TareasViewModel(
     private val getTareas: GetTareasUseCase,
     private val crearTarea: CrearTareaUseCase,
     private val getRutinas: GetRutinasUseCase,
-    private val getCategorias: GetCategoriasUseCase
+    private val getCategorias: GetCategoriasUseCase,
+    private val getOffersByCategory: GetOffersByCategoryUseCase
 ) : ViewModel() {
 
     private val _listState = MutableStateFlow(TareasListUiState())
@@ -72,6 +75,21 @@ class TareasViewModel(
     fun tareasFiltradas(): List<Tarea> {
         val filtro = _listState.value.filtroDia ?: return _listState.value.tareas
         return _listState.value.tareas.filter { it.dia == filtro }
+    }
+
+    fun getTareaById(taskId: String): Tarea? {
+        return _listState.value.tareas.find { it.id == taskId }
+            ?: getTareas().find { it.id == taskId }
+    }
+
+    fun getRutinaForTarea(tarea: Tarea): Rutina? {
+        val rutinaId = tarea.rutinaId ?: return null
+        return getRutinas().find { it.id == rutinaId }
+    }
+
+    fun getOffersForTarea(tarea: Tarea): List<StoreOffer> {
+        if (!tarea.categoria.activatesOffers) return emptyList()
+        return getOffersByCategory(tarea.categoria.code)
     }
 
     fun loadFormData() {

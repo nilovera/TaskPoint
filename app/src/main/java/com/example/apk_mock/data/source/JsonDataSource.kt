@@ -5,6 +5,8 @@ import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.domain.model.Offer
+import com.example.apk_mock.domain.model.Store
 import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.domain.repository.User
 import org.json.JSONArray
@@ -65,6 +67,36 @@ class JsonDataSource(private val context: Context) {
         }
     }
 
+    fun loadStores(): List<Store> {
+        val json = context.assets.open("sandbox/stores.json").bufferedReader().use { it.readText() }
+        return JSONArray(json).toObjectList().map { row ->
+            Store(
+                id = row.getInt("id"),
+                name = row.getString("name"),
+                categoryCode = row.getString("categoryCode"),
+                address = row.getString("address"),
+                latitude = row.getDouble("latitude"),
+                longitude = row.getDouble("longitude"),
+                logo = row.getString("logo")
+            )
+        }
+    }
+
+    fun loadOffers(): List<Offer> {
+        val json = context.assets.open("sandbox/offers.json").bufferedReader().use { it.readText() }
+        return JSONArray(json).toObjectList().map { row ->
+            Offer(
+                id = row.getInt("id"),
+                storeId = row.getInt("storeId"),
+                categoryCode = row.getString("categoryCode"),
+                title = row.getString("title"),
+                description = row.getString("description"),
+                discount = row.getInt("discount"),
+                validUntil = row.getString("validUntil")
+            )
+        }
+    }
+
     fun loadTareas(rutinas: List<StoredRutina>): List<StoredTarea> {
         val rutinasById = rutinas.associateBy { it.rutina.id }
         val categoriasByCode = loadCategorias().associateBy { it.code }
@@ -108,7 +140,7 @@ private fun categoriaFallback(code: String): CategoriaTarea {
         name = name,
         code = code,
         description = "",
-        activatesOffers = false
+        activatesOffers = code in setOf("ESTUDIO", "INDUMENTARIA")
     )
 }
 

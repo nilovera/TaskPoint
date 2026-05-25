@@ -394,5 +394,131 @@
     "description": "Descuento en tratamientos de keratina, hidratación y botox capilar",
     "discount": 25,
     "validUntil": "2025-12-31"
+  },
+  {
+    "id": 45,
+    "storeId": 40,
+    "categoryCode": "TRABAJO",
+    "title": "15% en artículos de oficina",
+    "description": "Descuento en cuadernos, carpetas, lapiceras y accesorios de escritorio",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 46,
+    "storeId": 41,
+    "categoryCode": "TRABAJO",
+    "title": "Café ejecutivo con 2x1",
+    "description": "Dos por uno en café para llevar antes de la jornada laboral",
+    "discount": 50,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 47,
+    "storeId": 42,
+    "categoryCode": "FACULTAD",
+    "title": "10% en fotocopias y apuntes",
+    "description": "Descuento en fotocopias, anillados y material de cursada",
+    "discount": 10,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 48,
+    "storeId": 43,
+    "categoryCode": "FACULTAD",
+    "title": "20% en libros universitarios",
+    "description": "Descuento en bibliografía universitaria seleccionada",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 49,
+    "storeId": 44,
+    "categoryCode": "BANCO",
+    "title": "Bonificación en cuenta joven",
+    "description": "Beneficio promocional en mantenimiento de cuenta para nuevos clientes",
+    "discount": 100,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 50,
+    "storeId": 45,
+    "categoryCode": "BANCO",
+    "title": "Sin recargo en pago de servicios",
+    "description": "Promoción para pagos de servicios seleccionados en mostrador",
+    "discount": 10,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 51,
+    "storeId": 46,
+    "categoryCode": "ESCUELA",
+    "title": "15% en útiles escolares",
+    "description": "Descuento en mochilas, carpetas, cuadernos y cartucheras",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 52,
+    "storeId": 47,
+    "categoryCode": "ESCUELA",
+    "title": "10% en uniformes",
+    "description": "Descuento en prendas escolares y accesorios institucionales",
+    "discount": 10,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 53,
+    "storeId": 48,
+    "categoryCode": "TRANSPORTE",
+    "title": "Carga SUBE sin comisión",
+    "description": "Carga de saldo sin costo adicional en compras mayores a $3000",
+    "discount": 5,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 54,
+    "storeId": 49,
+    "categoryCode": "TRANSPORTE",
+    "title": "20% en service de bicicleta",
+    "description": "Descuento en revisión general, frenos y ajustes de transmisión",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 55,
+    "storeId": 51,
+    "categoryCode": "INDUMENTARIA",
+    "title": "25% en segunda prenda",
+    "description": "Comprando dos prendas, la segunda tiene 25% de descuento",
+    "discount": 25,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 56,
+    "storeId": 52,
+    "categoryCode": "INDUMENTARIA",
+    "title": "15% en calzado urbano",
+    "description": "Descuento en zapatillas y zapatos de temporada",
+    "discount": 15,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 57,
+    "storeId": 53,
+    "categoryCode": "ESTUDIO",
+    "title": "20% en material de estudio",
+    "description": "Descuento en resúmenes, guías prácticas y libros de consulta",
+    "discount": 20,
+    "validUntil": "2025-12-31"
+  },
+  {
+    "id": 58,
+    "storeId": 54,
+    "categoryCode": "ESTUDIO",
+    "title": "15% en impresión de apuntes",
+    "description": "Descuento en impresiones, fotocopias y anillados",
+    "discount": 15,
+    "validUntil": "2025-12-31"
   }
 ]

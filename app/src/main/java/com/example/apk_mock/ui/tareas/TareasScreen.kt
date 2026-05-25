@@ -2,6 +2,7 @@ package com.example.apk_mock.ui.tareas
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,6 +36,7 @@ fun TareasScreen(
     viewModel: TareasViewModel,
     userName: String,
     onNavigateToCrear: () -> Unit,
+    onNavigateToDetalle: (String) -> Unit = {},
     showTaskCreatedMessage: Boolean = false,
     onTaskCreatedMessageShown: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
@@ -167,7 +169,10 @@ fun TareasScreen(
                             )
                         }
                         items(tareasDelDia) { tarea ->
-                            TareaCard(tarea = tarea)
+                            TareaCard(
+                                tarea = tarea,
+                                onClick = { onNavigateToDetalle(tarea.id) }
+                            )
                             Spacer(Modifier.height(8.dp))
                         }
                     }
@@ -233,9 +238,18 @@ private fun LocalDate.toDiaSemana(): DiaSemana = when (dayOfWeek) {
 }
 
 @Composable
-fun TareaCard(tarea: Tarea) {
+fun TareaCard(
+    tarea: Tarea,
+    onClick: () -> Unit = {}
+) {
     val catColor = categoriaColor(tarea.categoria)
-    Surface(shape = RoundedCornerShape(14.dp), color = SurfaceField, modifier = Modifier.fillMaxWidth()) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = SurfaceField,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
         Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
