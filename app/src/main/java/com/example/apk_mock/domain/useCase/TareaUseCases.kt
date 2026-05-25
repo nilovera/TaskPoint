@@ -44,3 +44,24 @@ class EliminarTareaUseCase(private val repository: TareaRepository) {
         return repository.eliminarTarea(taskId)
     }
 }
+
+class EditarTareaUseCase(private val repository: TareaRepository) {
+    operator fun invoke(
+        taskId: String,
+        titulo: String,
+        categoria: CategoriaTarea?,
+        rutinaId: String?,
+        rutinaNombre: String?,
+        dia: DiaSemana?,
+        horario: String?,
+        notas: String
+    ): TareaResult {
+        if (taskId.isBlank()) return TareaResult.Error("No se encontro la tarea.")
+        if (titulo.isBlank()) return TareaResult.Error("El tÃ­tulo de la tarea es obligatorio.")
+        if (categoria == null) return TareaResult.Error("SeleccionÃ¡ una categorÃ­a.")
+        if (rutinaId == null) return TareaResult.Error("SeleccionÃ¡ una rutina asociada.")
+        if (dia == null) return TareaResult.Error("SeleccionÃ¡ un dÃ­a.")
+        if (horario.isNullOrBlank()) return TareaResult.Error("SeleccionÃ¡ un horario.")
+        return repository.editarTarea(taskId, titulo, categoria, rutinaId, rutinaNombre, dia, horario, notas)
+    }
+}

@@ -67,6 +67,7 @@ import com.example.apk_mock.ui.theme.PlaceholderGray
 import com.example.apk_mock.ui.theme.StrengthGreen
 import com.example.apk_mock.ui.theme.SubtitleGray
 import com.example.apk_mock.ui.theme.SurfaceField
+import kotlinx.coroutines.delay
 
 @Composable
 fun DetalleTareaScreen(
@@ -75,6 +76,8 @@ fun DetalleTareaScreen(
     onBack: () -> Unit,
     onEditTask: (String) -> Unit = {},
     onTaskDeleted: () -> Unit = {},
+    showTaskEditedMessage: Boolean = false,
+    onTaskEditedMessageShown: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
     LaunchedEffect(Unit) { viewModel.refreshTareas() }
@@ -83,6 +86,16 @@ fun DetalleTareaScreen(
     val rutina = tarea?.let { viewModel.getRutinaForTarea(it) }
     val offers = tarea?.let { viewModel.getOffersForTarea(it) }.orEmpty()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showSavedOverlay by remember { mutableStateOf(false) }
+
+    LaunchedEffect(showTaskEditedMessage) {
+        if (showTaskEditedMessage) {
+            showSavedOverlay = true
+            delay(3000)
+            showSavedOverlay = false
+            onTaskEditedMessageShown()
+        }
+    }
 
     if (tarea == null) {
         Box(
@@ -146,6 +159,35 @@ fun DetalleTareaScreen(
                 }
             }
         )
+    }
+
+    if (showSavedOverlay) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = innerPadding.calculateBottomPadding() + 24.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Surface(
+                color = StrengthGreen,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Box(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        "Cambios guardados correctamente.",
+                        color = Color.White,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        }
     }
 }
 

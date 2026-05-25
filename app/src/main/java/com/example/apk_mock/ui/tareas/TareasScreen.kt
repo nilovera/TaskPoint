@@ -168,7 +168,14 @@ fun TareasScreen(
                     }
                 }
             } else {
-                val agrupadas = tareas.groupBy { it.dia }
+                val agrupadas = tareas
+                    .groupBy { it.dia }
+                    .toList()
+                    .sortedWith(
+                        compareBy<Pair<DiaSemana?, List<Tarea>>> { (dia, _) ->
+                            dia?.daysFrom(today.toDiaSemana()) ?: Int.MAX_VALUE
+                        }.thenBy { (dia, _) -> dia?.ordinal ?: Int.MAX_VALUE }
+                    )
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     agrupadas.forEach { (dia, tareasDelDia) ->
                         item {
@@ -178,7 +185,7 @@ fun TareasScreen(
                                 modifier = Modifier.padding(top = 12.dp, bottom = 6.dp)
                             )
                         }
-                        items(tareasDelDia) { tarea ->
+                        items(tareasDelDia.sortedBy { it.horario ?: "" }) { tarea ->
                             TareaCard(
                                 tarea = tarea,
                                 onClick = { onNavigateToDetalle(tarea.id) }
@@ -224,16 +231,36 @@ fun TareasScreen(
 }
 
 private fun diaLabel(dia: DiaSemana?, today: LocalDate): String {
-    val monthName = today.month.getDisplayName(TextStyle.FULL, Locale("es", "AR"))
-    return when (dia) {
-        DiaSemana.LUN -> "Hoy · Lunes ${today.dayOfMonth} de $monthName"
-        DiaSemana.MAR -> "Mañana · Martes ${today.dayOfMonth + 1} de $monthName"
-        DiaSemana.MIE -> "Miércoles ${today.dayOfMonth + 2} de $monthName"
-        DiaSemana.JUE -> "Jueves ${today.dayOfMonth + 3} de $monthName"
-        DiaSemana.VIE -> "Viernes ${today.dayOfMonth + 4} de $monthName"
-        DiaSemana.SAB -> "Sábado ${today.dayOfMonth + 5} de $monthName"
-        DiaSemana.DOM -> "Domingo ${today.dayOfMonth + 6} de $monthName"
-        null -> "Sin día asignado"
+    if (dia == null) return "Sin día asignado"
+
+    val offset = dia.daysFrom(today.toDiaSemana())
+    val date = today.plusDays(offset.toLong())
+    val monthName = date.month.getDisplayName(TextStyle.FULL, Locale("es", "AR"))
+    val prefix = when (offset) {
+        0 -> "Hoy · "
+        1 -> "Mañana · "
+        else -> ""
+    }
+
+    return "$prefix${dia.fullLabel()} ${date.dayOfMonth} de $monthName"
+}
+
+private fun DiaSemana.daysFrom(today: DiaSemana): Int {
+    val days = DiaSemana.values()
+    val currentIndex = days.indexOf(today)
+    val targetIndex = days.indexOf(this)
+    return (targetIndex - currentIndex + days.size) % days.size
+}
+
+private fun DiaSemana.fullLabel(): String {
+    return when (this) {
+        DiaSemana.LUN -> "Lunes"
+        DiaSemana.MAR -> "Martes"
+        DiaSemana.MIE -> "Miércoles"
+        DiaSemana.JUE -> "Jueves"
+        DiaSemana.VIE -> "Viernes"
+        DiaSemana.SAB -> "Sábado"
+        DiaSemana.DOM -> "Domingo"
     }
 }
 

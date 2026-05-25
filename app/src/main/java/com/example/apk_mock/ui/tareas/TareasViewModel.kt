@@ -8,6 +8,7 @@ import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.domain.repository.TareaResult
 import com.example.apk_mock.domain.useCase.CrearTareaUseCase
+import com.example.apk_mock.domain.useCase.EditarTareaUseCase
 import com.example.apk_mock.domain.useCase.EliminarTareaUseCase
 import com.example.apk_mock.domain.useCase.GetCategoriasUseCase
 import com.example.apk_mock.domain.useCase.GetOffersByCategoryUseCase
@@ -54,6 +55,7 @@ class TareasViewModel(
     private val getTareas: GetTareasUseCase,
     private val crearTarea: CrearTareaUseCase,
     private val eliminarTarea: EliminarTareaUseCase,
+    private val editarTarea: EditarTareaUseCase,
     private val getRutinas: GetRutinasUseCase,
     private val getCategorias: GetCategoriasUseCase,
     private val getOffersByCategory: GetOffersByCategoryUseCase
@@ -113,6 +115,30 @@ class TareasViewModel(
         }
     }
 
+    fun loadEditFormData(taskId: String) {
+        val categorias = getCategorias()
+        val rutinas = getRutinas()
+        val tarea = getTareaById(taskId) ?: return
+        val rutina = rutinas.find { it.id == tarea.rutinaId }
+        val categoria = categorias.find { it.code == tarea.categoria.code } ?: tarea.categoria
+
+        _formState.update {
+            CrearTareaUiState(
+                titulo = tarea.titulo,
+                categoriaSeleccionada = categoria,
+                rutinaSeleccionadaId = rutina?.id ?: tarea.rutinaId,
+                rutinaSeleccionadaNombre = rutina?.nombre ?: tarea.rutinaNombre,
+                diaSeleccionado = tarea.dia,
+                horario = tarea.horario,
+                notas = tarea.notas,
+                categoriasDisponibles = categorias,
+                rutinasDisponibles = rutinas,
+                diasDisponibles = rutina?.diasSemana.orEmpty(),
+                horariosDisponibles = rutina?.horariosDisponibles().orEmpty()
+            )
+        }
+    }
+
     // Handlers formulario
     fun onTituloChange(v: String) = _formState.update { it.copy(titulo = v, tituloError = null) }
     fun onCategoriaSelect(c: CategoriaTarea) = _formState.update { it.copy(categoriaSeleccionada = c, categoriaError = null) }
@@ -145,6 +171,29 @@ class TareasViewModel(
         }
         when (val r = crearTarea(
             s.titulo, s.categoriaSeleccionada,
+            s.rutinaSeleccionadaId, s.rutinaSeleccionadaNombre,
+            s.diaSeleccionado, s.horario, s.notas
+        )) {
+            is TareaResult.Success -> {
+                refreshTareas()
+                _formState.update { CrearTareaUiState(isSuccess = true) }
+            }
+            is TareaResult.Error -> applyFieldError(r.message)
+        }
+    }
+
+    fun onEditarTarea(taskId: String) {
+        val s = _formState.value
+        if (s.diaSeleccionado != null && s.diaSeleccionado !in s.diasDisponibles) {
+            _formState.update { it.copy(diaError = "SeleccionÃ¡ un dÃ­a de la rutina asociada.") }
+            return
+        }
+        if (!s.horario.isNullOrBlank() && s.horario !in s.horariosDisponibles) {
+            _formState.update { it.copy(horarioError = "SeleccionÃ¡ un horario de la rutina asociada.") }
+            return
+        }
+        when (val r = editarTarea(
+            taskId, s.titulo, s.categoriaSeleccionada,
             s.rutinaSeleccionadaId, s.rutinaSeleccionadaNombre,
             s.diaSeleccionado, s.horario, s.notas
         )) {
