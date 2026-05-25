@@ -91,6 +91,7 @@ fun CrearTareaScreen(
             // ── Categoría ─────────────────────────────────────────────────────
             SectionLabel("Categoría", required = true)
             CategoriaSelector(
+                categorias = state.categoriasDisponibles,
                 seleccionada = state.categoriaSeleccionada,
                 onSelect = viewModel::onCategoriaSelect
             )
@@ -289,15 +290,12 @@ private fun SectionLabel(text: String, required: Boolean = false) {
 
 @Composable
 private fun CategoriaSelector(
+    categorias: List<CategoriaTarea>,
     seleccionada: CategoriaTarea?,
     onSelect: (CategoriaTarea) -> Unit
 ) {
-    val rows = listOf(
-        listOf(CategoriaTarea.PERSONAL, CategoriaTarea.SUPERMERCADO, CategoriaTarea.INDUMENTARIA),
-        listOf(CategoriaTarea.FACULTAD, CategoriaTarea.ESTUDIO)
-    )
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        rows.forEach { fila ->
+        categorias.chunked(3).forEach { fila ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 fila.forEach { cat ->
                     val selected = cat == seleccionada

@@ -7,6 +7,7 @@ import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.domain.repository.TareaResult
 import com.example.apk_mock.domain.useCase.CrearTareaUseCase
+import com.example.apk_mock.domain.useCase.GetCategoriasUseCase
 import com.example.apk_mock.domain.useCase.GetTareasUseCase
 import com.example.apk_mock.domain.useCase.GetRutinasUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +33,7 @@ data class CrearTareaUiState(
     val diaSeleccionado: DiaSemana? = null,
     val horario: String? = null,
     val notas: String = "",
+    val categoriasDisponibles: List<CategoriaTarea> = emptyList(),
     val rutinasDisponibles: List<Rutina> = emptyList(),
     val diasDisponibles: List<DiaSemana> = emptyList(),
     val horariosDisponibles: List<String> = emptyList(),
@@ -48,7 +50,8 @@ data class CrearTareaUiState(
 class TareasViewModel(
     private val getTareas: GetTareasUseCase,
     private val crearTarea: CrearTareaUseCase,
-    private val getRutinas: GetRutinasUseCase
+    private val getRutinas: GetRutinasUseCase,
+    private val getCategorias: GetCategoriasUseCase
 ) : ViewModel() {
 
     private val _listState = MutableStateFlow(TareasListUiState())
@@ -72,7 +75,12 @@ class TareasViewModel(
     }
 
     fun loadFormData() {
-        _formState.update { CrearTareaUiState(rutinasDisponibles = getRutinas()) }
+        _formState.update {
+            CrearTareaUiState(
+                categoriasDisponibles = getCategorias(),
+                rutinasDisponibles = getRutinas()
+            )
+        }
     }
 
     // Handlers formulario

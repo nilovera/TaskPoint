@@ -52,19 +52,34 @@ class JsonDataSource(private val context: Context) {
         }
     }
 
+    fun loadCategorias(): List<CategoriaTarea> {
+        val json = context.assets.open("sandbox/categories.json").bufferedReader().use { it.readText() }
+        return JSONArray(json).toObjectList().map { row ->
+            CategoriaTarea(
+                id = row.getInt("id"),
+                name = row.getString("name"),
+                code = row.getString("code"),
+                description = row.getString("description"),
+                activatesOffers = row.optBoolean("activatesOffers", false)
+            )
+        }
+    }
+
     fun loadTareas(rutinas: List<StoredRutina>): List<StoredTarea> {
         val rutinasById = rutinas.associateBy { it.rutina.id }
+        val categoriasByCode = loadCategorias().associateBy { it.code }
 
         return readRows("seed/tareas.json").map { row ->
             val rutinaId = row.optNullableString("rutinaId")
             val rutina = rutinaId?.let { rutinasById[it]?.rutina }
+            val categoriaCode = row.getString("categoria")
 
             StoredTarea(
                 userId = row.getString("userId"),
                 tarea = Tarea(
                     id = row.getString("id"),
                     titulo = row.getString("titulo"),
-                    categoria = CategoriaTarea.valueOf(row.getString("categoria")),
+                    categoria = categoriasByCode[categoriaCode] ?: categoriaFallback(categoriaCode),
                     rutinaId = rutinaId,
                     rutinaNombre = rutina?.nombre,
                     dia = row.optNullableString("dia")?.let { DiaSemana.valueOf(it) },
@@ -81,6 +96,20 @@ class JsonDataSource(private val context: Context) {
         val rows = JSONObject(json).getJSONArray("rows")
         return rows.toObjectList()
     }
+}
+
+private fun categoriaFallback(code: String): CategoriaTarea {
+    val name = code.lowercase()
+        .split("_")
+        .joinToString(" ") { word -> word.replaceFirstChar { it.uppercase() } }
+
+    return CategoriaTarea(
+        id = -1,
+        name = name,
+        code = code,
+        description = "",
+        activatesOffers = false
+    )
 }
 
 private fun JSONArray.toObjectList(): List<JSONObject> {

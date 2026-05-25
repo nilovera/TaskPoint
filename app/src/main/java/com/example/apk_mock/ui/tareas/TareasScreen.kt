@@ -258,10 +258,17 @@ fun TareaCard(tarea: Tarea) {
     }
 }
 
-private fun categoriaColor(cat: CategoriaTarea): Color = when (cat) {
-    CategoriaTarea.PERSONAL     -> Color(0xFF4D6BFE)
-    CategoriaTarea.SUPERMERCADO -> Color(0xFF34C759)
-    CategoriaTarea.INDUMENTARIA -> Color(0xFFFF9F0A)
-    CategoriaTarea.FACULTAD     -> Color(0xFF8B5CF6)
-    CategoriaTarea.ESTUDIO      -> Color(0xFF06B6D4)
+private fun categoriaColor(cat: CategoriaTarea): Color = when (cat.code) {
+    "PERSONAL" -> Color(0xFF4D6BFE)
+    "SUPERMERCADO" -> Color(0xFF34C759)
+    "INDUMENTARIA" -> Color(0xFFFF9F0A)
+    "FACULTAD" -> Color(0xFF8B5CF6)
+    "ESTUDIO" -> Color(0xFF06B6D4)
+    "FARMACIA", "MEDICO" -> Color(0xFFE85D75)
+    "GIMNASIO" -> Color(0xFF34C759)
+    "BANCO", "TRANSPORTE" -> Color(0xFF4D6BFE)
+    "ESCUELA", "LIBRERIA" -> Color(0xFF8B5CF6)
+    "VETERINARIA", "FERRETERIA", "PANADERIA", "PELUQUERIA" -> Color(0xFFFF9F0A)
+    "CASA" -> Color(0xFF06B6D4)
+    else -> SubtitleGray
 }

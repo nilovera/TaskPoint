@@ -2,11 +2,16 @@ package com.example.apk_mock.domain.useCase
 
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
+import com.example.apk_mock.domain.repository.CategoriaRepository
 import com.example.apk_mock.domain.repository.TareaRepository
 import com.example.apk_mock.domain.repository.TareaResult
 
 class GetTareasUseCase(private val repository: TareaRepository) {
     operator fun invoke() = repository.getTareas()
+}
+
+class GetCategoriasUseCase(private val repository: CategoriaRepository) {
+    operator fun invoke() = repository.getCategorias()
 }
 
 class CrearTareaUseCase(private val repository: TareaRepository) {

@@ -530,7 +530,7 @@ private fun HomeTaskRow(tarea: Tarea) {
             }
         }
 
-        if (tarea.categoria == CategoriaTarea.SUPERMERCADO) {
+        if (tarea.categoria.code == "SUPERMERCADO") {
             Box(
                 modifier = Modifier
                     .size(34.dp)
@@ -646,10 +646,17 @@ private fun LocalDate.toDiaSemana(): DiaSemana = when (dayOfWeek) {
     DayOfWeek.SUNDAY -> DiaSemana.DOM
 }
 
-private fun categoriaColor(cat: CategoriaTarea): Color = when (cat) {
-    CategoriaTarea.PERSONAL -> Color(0xFF5E7CFF)
-    CategoriaTarea.SUPERMERCADO -> Color(0xFF35D07F)
-    CategoriaTarea.INDUMENTARIA -> Color(0xFFE85D75)
-    CategoriaTarea.FACULTAD -> Color(0xFFD79728)
-    CategoriaTarea.ESTUDIO -> Color(0xFF31B7D7)
+private fun categoriaColor(cat: CategoriaTarea): Color = when (cat.code) {
+    "PERSONAL" -> Color(0xFF5E7CFF)
+    "SUPERMERCADO" -> Color(0xFF35D07F)
+    "INDUMENTARIA" -> Color(0xFFE85D75)
+    "FACULTAD" -> Color(0xFFD79728)
+    "ESTUDIO" -> Color(0xFF31B7D7)
+    "FARMACIA", "MEDICO" -> Color(0xFFE85D75)
+    "GIMNASIO" -> Color(0xFF35D07F)
+    "BANCO", "TRANSPORTE" -> Color(0xFF5E7CFF)
+    "ESCUELA", "LIBRERIA" -> Color(0xFFD79728)
+    "VETERINARIA", "FERRETERIA", "PANADERIA", "PELUQUERIA" -> Color(0xFFFF9F0A)
+    "CASA" -> Color(0xFF31B7D7)
+    else -> Color(0xFF8A8FA8)
 }

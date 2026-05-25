@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.apk_mock.data.repository.JsonAuthRepository
+import com.example.apk_mock.data.repository.JsonCategoriaRepository
 import com.example.apk_mock.data.repository.JsonRutinaRepository
 import com.example.apk_mock.data.repository.JsonTareaRepository
 import com.example.apk_mock.domain.useCase.*
@@ -65,6 +66,7 @@ fun AppNavigation() {
     val authRepository = remember(context) { JsonAuthRepository(context) }
     val rutinaRepository = remember(context, authRepository) { JsonRutinaRepository(context, authRepository) }
     val tareaRepository = remember(context, authRepository) { JsonTareaRepository(context, authRepository) }
+    val categoriaRepository = remember(context) { JsonCategoriaRepository(context) }
 
     val registerUseCase = remember(authRepository) { RegisterUseCase(authRepository) }
     val loginUseCase = remember(authRepository) { LoginUseCase(authRepository) }
@@ -75,6 +77,7 @@ fun AppNavigation() {
     val crearRutinaUseCase = remember(rutinaRepository) { CrearRutinaUseCase(rutinaRepository) }
     val getTareasUseCase = remember(tareaRepository) { GetTareasUseCase(tareaRepository) }
     val crearTareaUseCase = remember(tareaRepository) { CrearTareaUseCase(tareaRepository) }
+    val getCategoriasUseCase = remember(categoriaRepository) { GetCategoriasUseCase(categoriaRepository) }
 
     // Estado del nombre del usuario: se setea al hacer login y persiste
     var userName by remember { mutableStateOf("") }
@@ -84,7 +87,14 @@ fun AppNavigation() {
         factory = vmFactory { RutinasViewModel(getRutinasUseCase, crearRutinaUseCase) }
     )
     val tareasViewModel = viewModel<TareasViewModel>(
-        factory = vmFactory { TareasViewModel(getTareasUseCase, crearTareaUseCase, getRutinasUseCase) }
+        factory = vmFactory {
+            TareasViewModel(
+                getTareasUseCase,
+                crearTareaUseCase,
+                getRutinasUseCase,
+                getCategoriasUseCase
+            )
+        }
     )
 
     Scaffold(
