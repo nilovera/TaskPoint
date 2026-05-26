@@ -4,8 +4,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,6 +41,7 @@ import com.example.apk_mock.ui.theme.SubtitleGray
 
 private val ProfileLavender = Color(0xFFE4D4FF)
 private val MenuBackground = Color(0xFF0B1540)
+private val MenuDivider = Color(0xFF2E3D83)
 private val DialogCard = Color(0xFF14182A)
 private val DialogBorder = Color(0xFF252B44)
 private val DangerText = Color(0xFFFF6E82)
@@ -74,45 +77,51 @@ fun ProfileMenuButton(
         DropdownMenu(
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false },
-            containerColor = MenuBackground
+            modifier = Modifier.width(216.dp),
+            shape = RoundedCornerShape(18.dp),
+            containerColor = MenuBackground,
+            tonalElevation = 0.dp,
+            shadowElevation = 8.dp
         ) {
             Text(
                 text = displayName,
                 color = Color.White,
-                fontSize = 12.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
             )
-            HorizontalDivider(color = DialogBorder)
+            HorizontalDivider(color = MenuDivider)
             DropdownMenuItem(
-                text = { Text("Mi perfil", color = Color.White, fontSize = 12.sp) },
+                text = { Text("Mi perfil", color = Color.White, fontSize = 18.sp) },
                 leadingIcon = {
                     Icon(
                         Icons.Default.AccountCircle,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 },
                 onClick = {
                     menuExpanded = false
                     onProfile()
-                }
+                },
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
             )
             DropdownMenuItem(
-                text = { Text("Cerrar sesion", color = DangerText, fontSize = 12.sp) },
+                text = { Text("Cerrar sesion", color = DangerText, fontSize = 18.sp) },
                 leadingIcon = {
                     Icon(
                         Icons.AutoMirrored.Filled.Logout,
                         contentDescription = null,
                         tint = DangerText,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 },
                 onClick = {
                     menuExpanded = false
                     showLogoutDialog = true
-                }
+                },
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
             )
         }
     }

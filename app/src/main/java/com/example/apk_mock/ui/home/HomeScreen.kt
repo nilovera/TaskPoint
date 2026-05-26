@@ -9,7 +9,6 @@ import android.os.Looper
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,19 +23,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -67,6 +58,7 @@ import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.ui.components.CreateActionPill
+import com.example.apk_mock.ui.components.ProfileMenuButton
 import com.example.apk_mock.ui.rutinas.RutinasViewModel
 import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.AccentBlue
@@ -81,8 +73,6 @@ private val HomeBackground = Color(0xFF080B12)
 private val HomeCard = Color(0xFF14182A)
 private val HomeCardBorder = Color(0xFF252B44)
 private val HomeChip = Color(0xFF0C101D)
-private val MenuBackground = Color(0xFF0B1540)
-private val ProfileLavender = Color(0xFFE4D4FF)
 private val OfflineBackground = Color(0xFF551017)
 private val OfflineBorder = Color(0xFFA93244)
 private val OfflineText = Color(0xFFFF6E82)
@@ -192,9 +182,6 @@ private fun HomeHeader(
     onProfile: () -> Unit,
     onLogout: () -> Unit
 ) {
-    var menuExpanded by remember { mutableStateOf(false) }
-    var showLogoutDialog by remember { mutableStateOf(false) }
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -205,113 +192,10 @@ private fun HomeHeader(
             Text("Hoy", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
         }
 
-        Box {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(ProfileLavender)
-                    .clickable { menuExpanded = true },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = "Perfil de $userName",
-                    tint = HomeBackground,
-                    modifier = Modifier.size(30.dp)
-                )
-            }
-
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false },
-                containerColor = MenuBackground
-            ) {
-                Text(
-                    text = userName,
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
-                )
-                HorizontalDivider(color = HomeCardBorder)
-                DropdownMenuItem(
-                    text = { Text("Mi perfil", color = Color.White, fontSize = 12.sp) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.AccountCircle,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    },
-                    onClick = {
-                        menuExpanded = false
-                        onProfile()
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Cerrar sesion", color = OfflineText, fontSize = 12.sp) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Logout,
-                            contentDescription = null,
-                            tint = OfflineText,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    },
-                    onClick = {
-                        menuExpanded = false
-                        showLogoutDialog = true
-                    }
-                )
-            }
-        }
-    }
-
-    if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            containerColor = HomeCard,
-            shape = RoundedCornerShape(16.dp),
-            title = {
-                Text(
-                    "Cerrar sesion",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(
-                    "Estas seguro que deseas cerrar sesion?",
-                    color = SubtitleGray,
-                    fontSize = 14.sp,
-                    lineHeight = 19.sp
-                )
-            },
-            dismissButton = {
-                OutlinedButton(
-                    onClick = { showLogoutDialog = false },
-                    shape = RoundedCornerShape(9.dp),
-                    border = BorderStroke(1.dp, HomeCardBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
-                ) {
-                    Text("Cancelar", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showLogoutDialog = false
-                        onLogout()
-                    },
-                    shape = RoundedCornerShape(9.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
-                ) {
-                    Text("Confirmar", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                }
-            }
+        ProfileMenuButton(
+            userName = userName,
+            onProfile = onProfile,
+            onLogout = onLogout
         )
     }
 }
