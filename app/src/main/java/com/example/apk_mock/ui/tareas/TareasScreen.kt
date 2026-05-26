@@ -50,10 +50,10 @@ import com.example.apk_mock.ui.theme.StrengthGreen
 import com.example.apk_mock.ui.theme.SubtitleGray
 import com.example.apk_mock.ui.theme.SurfaceField
 import com.example.apk_mock.ui.theme.categoryColor
-import java.time.DayOfWeek
+import com.example.apk_mock.ui.utils.daysFrom
+import com.example.apk_mock.ui.utils.taskSectionLabel
+import com.example.apk_mock.ui.utils.toDiaSemana
 import java.time.LocalDate
-import java.time.format.TextStyle
-import java.util.Locale
 import kotlinx.coroutines.delay
 
 @Composable
@@ -160,9 +160,9 @@ fun TareasScreen(
                         agrupadas.forEach { (dia, tareasDelDia) ->
                             item {
                                 Text(
-                                    diaLabel(dia, today),
+                                    dia.taskSectionLabel(today),
                                     color = DateBlue,
-                                    fontSize = 13.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(top = 12.dp, bottom = 6.dp)
                                 )
@@ -255,48 +255,6 @@ private fun EmptyTasksBlock(
     }
 }
 
-private fun diaLabel(dia: DiaSemana?, today: LocalDate): String {
-    if (dia == null) return "Sin día asignado"
-
-    val offset = dia.daysFrom(today.toDiaSemana())
-    val date = today.plusDays(offset.toLong())
-    val monthName = date.month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-AR"))
-    val prefix = when (offset) {
-        0 -> "Hoy · "
-        1 -> "Mañana · "
-        else -> ""
-    }
-
-    return "$prefix${dia.displayName()} ${date.dayOfMonth} de $monthName"
-}
-
-private fun DiaSemana.daysFrom(today: DiaSemana): Int {
-    val days = DiaSemana.values()
-    val currentIndex = days.indexOf(today)
-    val targetIndex = days.indexOf(this)
-    return (targetIndex - currentIndex + days.size) % days.size
-}
-
-private fun LocalDate.toDiaSemana(): DiaSemana = when (dayOfWeek) {
-    DayOfWeek.MONDAY -> DiaSemana.LUN
-    DayOfWeek.TUESDAY -> DiaSemana.MAR
-    DayOfWeek.WEDNESDAY -> DiaSemana.MIE
-    DayOfWeek.THURSDAY -> DiaSemana.JUE
-    DayOfWeek.FRIDAY -> DiaSemana.VIE
-    DayOfWeek.SATURDAY -> DiaSemana.SAB
-    DayOfWeek.SUNDAY -> DiaSemana.DOM
-}
-
-private fun DiaSemana.displayName(): String = when (this) {
-    DiaSemana.LUN -> "Lunes"
-    DiaSemana.MAR -> "Martes"
-    DiaSemana.MIE -> "Miércoles"
-    DiaSemana.JUE -> "Jueves"
-    DiaSemana.VIE -> "Viernes"
-    DiaSemana.SAB -> "Sábado"
-    DiaSemana.DOM -> "Domingo"
-}
-
 @Composable
 fun TareaCard(
     tarea: Tarea,
@@ -323,7 +281,7 @@ fun TareaCard(
                 Text(
                     tarea.titulo,
                     color = Color.White,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -332,7 +290,7 @@ fun TareaCard(
                     Text(
                         listOfNotNull(tarea.horario, tarea.rutinaNombre).joinToString(" | "),
                         color = SubtitleGray,
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -342,7 +300,7 @@ fun TareaCard(
                 Text(
                     tarea.categoria.label,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                    fontSize = 10.sp,
+                    fontSize = 12.sp,
                     color = catColor,
                     fontWeight = FontWeight.ExtraBold
                 )

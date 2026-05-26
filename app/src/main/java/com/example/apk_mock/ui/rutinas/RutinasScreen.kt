@@ -224,10 +224,10 @@ fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
             }
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(rutina.nombre, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                Text("${rutina.horarioInicio} – ${rutina.horarioFin}", color = SubtitleGray, fontSize = 13.sp)
+                Text(rutina.nombre, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text("${rutina.horarioInicio} – ${rutina.horarioFin}", color = SubtitleGray, fontSize = 14.sp)
                 if (rutina.direccion.isNotBlank()) {
-                    Text(rutina.direccion, color = SubtitleGray, fontSize = 12.sp)
+                    Text(rutina.direccion, color = SubtitleGray, fontSize = 14.sp)
                 }
                 Spacer(Modifier.height(8.dp))
                 FlowRow(
@@ -240,7 +240,7 @@ fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
                             Text(
                                 dia.label,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 color = AccentBlue,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -253,7 +253,7 @@ fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
                     Text(
                         "${rutina.cantidadTareas} tareas",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        fontSize = 11.sp,
+                        fontSize = 14.sp,
                         color = SubtitleGray
                     )
                 }

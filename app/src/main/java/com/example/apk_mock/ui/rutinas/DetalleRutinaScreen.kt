@@ -55,6 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.ui.components.AppTopBar
+import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.AccentBlue
 import com.example.apk_mock.ui.theme.BackgroundDark
@@ -188,25 +190,13 @@ private fun DetailTopBar(
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier
-                .size(36.dp)
-                .background(SurfaceField, RoundedCornerShape(10.dp))
-        ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
-        }
-        Text(
-            "Detalle de rutina",
-            color = Color.White,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
-        )
+    AppTopBar(
+        title = "Detalle de rutina",
+        onBack = onBack,
+        size = AppTopBarSize.Detail,
+        titleFontWeight = FontWeight.Bold,
+        backIconTint = SubtitleGray,
+        actions = {
         Box {
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(Icons.Default.MoreVert, contentDescription = "Acciones", tint = Color.White)
@@ -238,7 +228,8 @@ private fun DetailTopBar(
                 )
             }
         }
-    }
+        }
+    )
 }
 
 @Composable
@@ -347,7 +338,7 @@ private fun TimeSection(rutina: Rutina) {
 @Composable
 private fun TimeValue(label: String, value: String, modifier: Modifier = Modifier) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, color = SubtitleGray, fontSize = 10.sp, modifier = Modifier.fillMaxWidth())
+        Text(label, color = SubtitleGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth())
         Text(value, color = SubtitleGray, fontSize = 16.sp)
     }
 }
@@ -358,7 +349,7 @@ private fun DescriptionSection(rutina: Rutina) {
         Text(
             rutina.descripcion.ifBlank { "Sin descripcion" },
             color = SubtitleGray,
-            fontSize = 13.sp,
+            fontSize = 14.sp,
             lineHeight = 18.sp,
             modifier = Modifier.height(48.dp)
         )
@@ -432,14 +423,14 @@ private fun AssociatedTaskRow(tarea: Tarea) {
             Text(
                 tarea.horario ?: "--:--",
                 color = SubtitleGray,
-                fontSize = 11.sp
+                fontSize = 12.sp
             )
         }
         Surface(shape = RoundedCornerShape(5.dp), color = catColor.copy(alpha = 0.22f)) {
             Text(
                 tarea.categoria.label,
                 color = catColor,
-                fontSize = 10.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
             )

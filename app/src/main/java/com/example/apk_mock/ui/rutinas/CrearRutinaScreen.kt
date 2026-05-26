@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.ui.components.AppTopBar
+import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.components.FormFieldLabel
 import com.example.apk_mock.ui.register.AppTextField
 import com.example.apk_mock.ui.theme.*
@@ -56,22 +56,11 @@ fun CrearRutinaScreen(
             Spacer(Modifier.height(16.dp))
 
             // ── Header ────────────────────────────────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(SurfaceField, RoundedCornerShape(10.dp))
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
-                }
-                Text("Nueva rutina", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.width(36.dp))
-            }
+            AppTopBar(
+                title = "Nueva rutina",
+                onBack = onBack,
+                size = AppTopBarSize.Compact
+            )
 
             Spacer(Modifier.height(24.dp))
 

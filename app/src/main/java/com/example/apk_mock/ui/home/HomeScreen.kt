@@ -64,10 +64,9 @@ import com.example.apk_mock.ui.theme.AccentBlue
 import com.example.apk_mock.ui.theme.BackgroundDark
 import com.example.apk_mock.ui.theme.SubtitleGray
 import com.example.apk_mock.ui.theme.categoryColor
-import java.time.DayOfWeek
+import com.example.apk_mock.ui.utils.homeDateLabel
+import com.example.apk_mock.ui.utils.toDiaSemana
 import java.time.LocalDate
-import java.time.format.TextStyle
-import java.util.Locale
 
 private val HomeBackground = Color(0xFF080B12)
 private val HomeCard = Color(0xFF14182A)
@@ -335,7 +334,7 @@ private fun HomeRoutineCard(section: HomeRoutineSection) {
                     Text(
                         section.subtitle,
                         color = SubtitleGray,
-                        fontSize = 10.sp,
+                        fontSize = 14.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -382,8 +381,8 @@ private fun HomeTaskRow(tarea: Tarea) {
         Text(
             text = tarea.horario ?: "--:--",
             color = SubtitleGray,
-            fontSize = 11.sp,
-            modifier = Modifier.width(38.dp)
+            fontSize = 14.sp,
+            modifier = Modifier.width(42.dp)
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -404,7 +403,7 @@ private fun HomeTaskRow(tarea: Tarea) {
                 Text(
                     tarea.categoria.label,
                     color = categoryColor,
-                    fontSize = 9.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.ExtraBold,
                     maxLines = 1
                 )
@@ -510,20 +509,5 @@ private fun Context.hasValidatedConnection(): Boolean {
     val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
     return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
         capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-}
-
-private fun LocalDate.homeDateLabel(): String {
-    val monthName = month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-AR"))
-    return "$dayOfMonth de $monthName · $year"
-}
-
-private fun LocalDate.toDiaSemana(): DiaSemana = when (dayOfWeek) {
-    DayOfWeek.MONDAY -> DiaSemana.LUN
-    DayOfWeek.TUESDAY -> DiaSemana.MAR
-    DayOfWeek.WEDNESDAY -> DiaSemana.MIE
-    DayOfWeek.THURSDAY -> DiaSemana.JUE
-    DayOfWeek.FRIDAY -> DiaSemana.VIE
-    DayOfWeek.SATURDAY -> DiaSemana.SAB
-    DayOfWeek.SUNDAY -> DiaSemana.DOM
 }
 

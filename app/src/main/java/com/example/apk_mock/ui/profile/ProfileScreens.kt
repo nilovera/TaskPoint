@@ -20,13 +20,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,6 +43,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.apk_mock.ui.components.AppTopBar
+import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.register.AppTextField
 import com.example.apk_mock.ui.theme.AccentBlue
 import com.example.apk_mock.ui.theme.BackgroundDark
@@ -275,29 +275,13 @@ fun ChangePasswordScreen(
 
 @Composable
 private fun ProfileTopBar(title: String, onBack: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(38.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .size(28.dp)
-                .clip(RoundedCornerShape(9.dp))
-                .background(SurfaceField.copy(alpha = 0.45f))
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Volver",
-                tint = SubtitleGray,
-                modifier = Modifier.size(16.dp)
-            )
-        }
-        Text(title, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-    }
+    AppTopBar(
+        title = title,
+        onBack = onBack,
+        modifier = Modifier.height(38.dp),
+        size = AppTopBarSize.Profile,
+        titleFontWeight = FontWeight.Bold
+    )
 }
 
 @Composable

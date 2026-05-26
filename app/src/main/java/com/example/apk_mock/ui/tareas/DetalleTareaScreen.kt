@@ -55,6 +55,8 @@ import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.ui.components.AppTopBar
+import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.theme.AccentBlue
 import com.example.apk_mock.ui.theme.BackgroundDark
 import com.example.apk_mock.ui.theme.CancelRed
@@ -66,6 +68,7 @@ import com.example.apk_mock.ui.theme.StrengthGreen
 import com.example.apk_mock.ui.theme.SubtitleGray
 import com.example.apk_mock.ui.theme.SurfaceField
 import com.example.apk_mock.ui.theme.categoryColor
+import com.example.apk_mock.ui.utils.displayName
 import kotlinx.coroutines.delay
 
 @Composable
@@ -199,28 +202,12 @@ private fun DetailHeader(
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(SurfaceField)
-                .border(1.dp, FieldBorder, RoundedCornerShape(14.dp))
-        ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = LabelGray)
-        }
-        Text(
-            "Detalle de tarea",
-            color = Color.White,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
-        )
+    AppTopBar(
+        title = "Detalle de tarea",
+        onBack = onBack,
+        size = AppTopBarSize.Detail,
+        titleFontWeight = FontWeight.Bold,
+        actions = {
         Box {
             IconButton(
                 onClick = { menuExpanded = true },
@@ -260,7 +247,8 @@ private fun DetailHeader(
                 )
             }
         }
-    }
+        }
+    )
 }
 
 @Composable
@@ -367,7 +355,7 @@ private fun TaskInfoCard(tarea: Tarea, rutina: Rutina?) {
             DividerLine()
             InfoRow(Icons.Default.LocationOn, "Dirección", rutina?.direccion ?: "Sin dirección")
             DividerLine()
-            InfoRow(Icons.Default.DateRange, "Día", tarea.dia?.fullLabel() ?: "Sin día")
+            InfoRow(Icons.Default.DateRange, "Día", tarea.dia?.displayName() ?: "Sin día")
             DividerLine()
             InfoRow(Icons.Default.AccessTime, "Horario", tarea.horario ?: "Sin horario")
         }
@@ -486,15 +474,5 @@ private fun String.displayStoreName(): String {
 
 private fun String.shortAddress(): String {
     return substringBefore(",")
-}
-
-private fun DiaSemana.fullLabel(): String = when (this) {
-    DiaSemana.LUN -> "Lunes"
-    DiaSemana.MAR -> "Martes"
-    DiaSemana.MIE -> "Miércoles"
-    DiaSemana.JUE -> "Jueves"
-    DiaSemana.VIE -> "Viernes"
-    DiaSemana.SAB -> "Sábado"
-    DiaSemana.DOM -> "Domingo"
 }
 

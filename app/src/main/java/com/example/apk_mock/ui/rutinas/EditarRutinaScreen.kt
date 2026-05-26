@@ -19,12 +19,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Snackbar
@@ -46,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.ui.components.AppTopBar
+import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.components.FormFieldLabel
 import com.example.apk_mock.ui.register.AppTextField
 import com.example.apk_mock.ui.theme.AccentBlue
@@ -100,22 +98,12 @@ fun EditarRutinaScreen(
         ) {
             Spacer(Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(SurfaceField, RoundedCornerShape(10.dp))
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
-                }
-                Text("Editar rutina", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(36.dp))
-            }
+            AppTopBar(
+                title = "Editar rutina",
+                onBack = onBack,
+                size = AppTopBarSize.Compact,
+                titleFontWeight = FontWeight.Bold
+            )
 
             Spacer(Modifier.height(24.dp))
 

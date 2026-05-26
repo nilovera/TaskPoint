@@ -8,7 +8,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -24,6 +23,8 @@ import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
+import com.example.apk_mock.ui.components.AppTopBar
+import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.components.FormFieldLabel
 import com.example.apk_mock.ui.register.AppTextField
 import com.example.apk_mock.ui.theme.*
@@ -61,23 +62,11 @@ fun CrearTareaScreen(
         ) {
             Spacer(Modifier.height(16.dp))
 
-            // ── Header ────────────────────────────────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(SurfaceField, RoundedCornerShape(10.dp))
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
-                }
-                Text("Nueva tarea", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.width(36.dp))
-            }
+            AppTopBar(
+                title = "Nueva tarea",
+                onBack = onBack,
+                size = AppTopBarSize.Compact
+            )
 
             Spacer(Modifier.height(24.dp))
 
@@ -362,28 +351,11 @@ private fun TareaFormContent(
         ) {
             Spacer(Modifier.height(20.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(SurfaceField)
-                        .border(1.dp, FieldBorder, RoundedCornerShape(14.dp))
-                ) {
-                    Icon(
-                        imageVector = if (backIcon == FormBackIcon.Arrow) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Close,
-                        contentDescription = if (backIcon == FormBackIcon.Arrow) "Volver" else "Cerrar",
-                        tint = SubtitleGray
-                    )
-                }
-                Text(title, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.width(48.dp))
-            }
+            AppTopBar(
+                title = title,
+                onBack = onBack,
+                size = AppTopBarSize.Regular
+            )
 
             Spacer(Modifier.height(24.dp))
 
