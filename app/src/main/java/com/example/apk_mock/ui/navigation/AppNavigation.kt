@@ -10,16 +10,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -75,8 +78,11 @@ private data class BottomNavItem(
 private val bottomNavItems = listOf(
     BottomNavItem(Routes.RUTINAS, "Rutinas", Icons.Default.DateRange),
     BottomNavItem(Routes.HOME,    "",        Icons.Default.Home),
-    BottomNavItem(Routes.TAREAS,  "Tareas",  Icons.Default.List)
+    BottomNavItem(Routes.TAREAS,  "Tareas",  Icons.AutoMirrored.Filled.List)
 )
+
+private val BottomBarBackground = Color(0xFF080B12)
+private val BottomBarDivider = Color(0xFF252B44)
 
 // ── Rutas donde se muestra el bottom bar ─────────────────────────────────────
 private val tabRoutes = setOf(Routes.HOME, Routes.RUTINAS, Routes.TAREAS)
@@ -469,7 +475,20 @@ private fun AppBottomBar(navController: NavController, currentRoute: String?) {
         else -> currentRoute
     }
 
-    NavigationBar(containerColor = SurfaceField, tonalElevation = 0.dp) {
+    NavigationBar(
+        containerColor = BottomBarBackground,
+        tonalElevation = 0.dp,
+        modifier = Modifier
+            .height(92.dp)
+            .drawBehind {
+                drawLine(
+                    color = BottomBarDivider,
+                    start = Offset.Zero,
+                    end = Offset(size.width, 0f),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+    ) {
         bottomNavItems.forEach { item ->
             val selected = selectedRoute == item.route
                 || (currentRoute == Routes.DETALLE_TAREA && item.route == Routes.TAREAS)
@@ -498,19 +517,18 @@ private fun RowScope.BottomNavButton(
     onClick: () -> Unit
 ) {
     val isHome = item.route == Routes.HOME
-    val itemShape = RoundedCornerShape(if (isHome) 24.dp else 18.dp)
+    val itemShape = if (isHome) CircleShape else RoundedCornerShape(18.dp)
     val iconSize = when {
-        isHome && selected -> 27.dp
-        isHome -> 23.dp
-        else -> 18.dp
+        isHome -> 28.dp
+        else -> 28.dp
     }
     val horizontalPadding = when {
-        isHome && selected -> 17.dp
+        isHome && selected -> 14.dp
         isHome -> 12.dp
         else -> 14.dp
     }
     val verticalPadding = when {
-        isHome && selected -> 10.dp
+        isHome && selected -> 14.dp
         isHome -> 7.dp
         else -> 6.dp
     }
@@ -518,7 +536,7 @@ private fun RowScope.BottomNavButton(
     Box(
         modifier = Modifier
             .weight(1f)
-            .height(64.dp)
+            .height(86.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -543,11 +561,11 @@ private fun RowScope.BottomNavButton(
                 modifier = Modifier.size(iconSize)
             )
             if (item.label.isNotBlank()) {
-                Spacer(Modifier.height(3.dp))
+                Spacer(Modifier.height(4.dp))
                 Text(
                     item.label,
                     color = if (selected) Color.White else SubtitleGray,
-                    fontSize = 10.sp,
+                    fontSize = 13.sp,
                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                 )
             }

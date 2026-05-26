@@ -18,8 +18,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -211,7 +211,7 @@ private fun DetailHeader(
                 .background(SurfaceField)
                 .border(1.dp, FieldBorder, RoundedCornerShape(14.dp))
         ) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = LabelGray)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = LabelGray)
         }
         Text(
             "Detalle de tarea",

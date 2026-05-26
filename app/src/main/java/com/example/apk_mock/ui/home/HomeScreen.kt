@@ -27,10 +27,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -66,6 +66,7 @@ import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.ui.components.CreateActionPill
 import com.example.apk_mock.ui.rutinas.RutinasViewModel
 import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.AccentBlue
@@ -125,22 +126,12 @@ fun HomeScreen(
     Scaffold(
         containerColor = HomeBackground,
         floatingActionButton = {
-            Box(
-                modifier = Modifier
-                    .padding(bottom = innerPadding.calculateBottomPadding())
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(if (canCreateTask) AccentBlue else Color(0xFF4E5562))
-                    .clickable(enabled = canCreateTask, onClick = onCrearTarea)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "Nueva tarea +",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            CreateActionPill(
+                text = "Nueva tarea +",
+                onClick = onCrearTarea,
+                enabled = canCreateTask,
+                modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+            )
         },
         floatingActionButtonPosition = FabPosition.End
     ) { selfPadding ->
@@ -263,7 +254,7 @@ private fun HomeHeader(
                     text = { Text("Cerrar sesion", color = OfflineText, fontSize = 12.sp) },
                     leadingIcon = {
                         Icon(
-                            Icons.Default.Logout,
+                            Icons.AutoMirrored.Filled.Logout,
                             contentDescription = null,
                             tint = OfflineText,
                             modifier = Modifier.size(16.dp)
@@ -638,7 +629,7 @@ private fun Context.hasValidatedConnection(): Boolean {
 }
 
 private fun LocalDate.homeDateLabel(): String {
-    val monthName = month.getDisplayName(TextStyle.FULL, Locale("es", "AR"))
+    val monthName = month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-AR"))
     return "$dayOfMonth de $monthName · $year"
 }
 

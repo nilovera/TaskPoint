@@ -8,7 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -18,15 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
+import com.example.apk_mock.ui.components.FormFieldLabel
 import com.example.apk_mock.ui.register.AppTextField
 import com.example.apk_mock.ui.theme.*
 
@@ -55,11 +53,12 @@ fun CrearTareaScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 100.dp)
         ) {
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
 
             // ── Header ────────────────────────────────────────────────────────
             Row(
@@ -67,17 +66,22 @@ fun CrearTareaScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = SubtitleGray)
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(SurfaceField, RoundedCornerShape(10.dp))
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
                 }
                 Text("Nueva tarea", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.width(48.dp))
+                Spacer(Modifier.width(36.dp))
             }
 
             Spacer(Modifier.height(24.dp))
 
             // ── Título ────────────────────────────────────────────────────────
-            SectionLabel("Título de la tarea", required = true)
+            FormFieldLabel("Título de la tarea", required = true)
             AppTextField(
                 label = "",
                 value = state.titulo,
@@ -90,7 +94,7 @@ fun CrearTareaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Categoría ─────────────────────────────────────────────────────
-            SectionLabel("Categoría", required = true)
+            FormFieldLabel("Categoría", required = true)
             CategoriaSelector(
                 categorias = state.categoriasDisponibles,
                 seleccionada = state.categoriaSeleccionada,
@@ -104,7 +108,7 @@ fun CrearTareaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Rutina asociada ───────────────────────────────────────────────
-            SectionLabel("Rutina asociada", required = true)
+            FormFieldLabel("Rutina asociada", required = true)
             DropdownField(
                 placeholder = "Seleccioná una rutina",
                 selectedText = state.rutinaSeleccionadaNombre,
@@ -135,7 +139,7 @@ fun CrearTareaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Día ───────────────────────────────────────────────────────────
-            SectionLabel("Día", required = true)
+            FormFieldLabel("Día", required = true)
             DropdownField(
                 placeholder = if (state.rutinaSeleccionadaId == null) {
                     "Seleccioná una rutina primero"
@@ -169,7 +173,7 @@ fun CrearTareaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Horario ───────────────────────────────────────────────────────
-            SectionLabel("Horario", required = true)
+            FormFieldLabel("Horario", required = true)
             DropdownField(
                 placeholder = if (state.rutinaSeleccionadaId == null) {
                     "Seleccioná una rutina primero"
@@ -203,7 +207,7 @@ fun CrearTareaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Foto (opcional) ───────────────────────────────────────────────
-            SectionLabel("Foto (opcional)")
+            FormFieldLabel("Foto (opcional)")
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = SurfaceField,
@@ -225,7 +229,7 @@ fun CrearTareaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Notas (opcional) ──────────────────────────────────────────────
-            SectionLabel("Notas (opcional)")
+            FormFieldLabel("Notas (opcional)")
             val maxNotas = 120
             OutlinedTextField(
                 value = state.notas,
@@ -370,7 +374,7 @@ private fun TareaFormContent(
                         .border(1.dp, FieldBorder, RoundedCornerShape(14.dp))
                 ) {
                     Icon(
-                        imageVector = if (backIcon == FormBackIcon.Arrow) Icons.Default.ArrowBack else Icons.Default.Close,
+                        imageVector = if (backIcon == FormBackIcon.Arrow) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Close,
                         contentDescription = if (backIcon == FormBackIcon.Arrow) "Volver" else "Cerrar",
                         tint = SubtitleGray
                     )
@@ -381,7 +385,7 @@ private fun TareaFormContent(
 
             Spacer(Modifier.height(24.dp))
 
-            SectionLabel("Título de la tarea", required = true)
+            FormFieldLabel("Título de la tarea", required = true)
             AppTextField(
                 label = "",
                 value = state.titulo,
@@ -393,7 +397,7 @@ private fun TareaFormContent(
 
             Spacer(Modifier.height(20.dp))
 
-            SectionLabel("Categoría", required = true)
+            FormFieldLabel("Categoría", required = true)
             CategoriaSelector(
                 categorias = state.categoriasDisponibles,
                 seleccionada = state.categoriaSeleccionada,
@@ -406,7 +410,7 @@ private fun TareaFormContent(
 
             Spacer(Modifier.height(20.dp))
 
-            SectionLabel("Rutina asociada", required = true)
+            FormFieldLabel("Rutina asociada", required = true)
             DropdownField(
                 placeholder = "Seleccioná una rutina",
                 selectedText = state.rutinaSeleccionadaNombre,
@@ -434,7 +438,7 @@ private fun TareaFormContent(
 
             Spacer(Modifier.height(20.dp))
 
-            SectionLabel("Día", required = true)
+            FormFieldLabel("Día", required = true)
             DropdownField(
                 placeholder = if (state.rutinaSeleccionadaId == null) {
                     "Seleccioná una rutina primero"
@@ -466,7 +470,7 @@ private fun TareaFormContent(
 
             Spacer(Modifier.height(20.dp))
 
-            SectionLabel("Horario", required = true)
+            FormFieldLabel("Horario", required = true)
             DropdownField(
                 placeholder = if (state.rutinaSeleccionadaId == null) {
                     "Seleccioná una rutina primero"
@@ -498,7 +502,7 @@ private fun TareaFormContent(
 
             Spacer(Modifier.height(20.dp))
 
-            SectionLabel("Foto (opcional)")
+            FormFieldLabel("Foto (opcional)")
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = SurfaceField,
@@ -535,7 +539,7 @@ private fun TareaFormContent(
 
             Spacer(Modifier.height(20.dp))
 
-            SectionLabel("Notas (opcional)")
+            FormFieldLabel("Notas (opcional)")
             OutlinedTextField(
                 value = state.notas,
                 onValueChange = { if (it.length <= maxNotas) onNotasChange(it) },
@@ -579,24 +583,6 @@ private fun TareaFormContent(
 // ── Componentes reutilizables ─────────────────────────────────────────────────
 
 @Composable
-private fun SectionLabel(text: String, required: Boolean = false) {
-    Text(
-        text = buildAnnotatedString {
-            append(text)
-            if (required) {
-                withStyle(SpanStyle(color = ErrorRed)) {
-                    append(" *")
-                }
-            }
-        },
-        color = LabelGray,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(bottom = 8.dp)
-    )
-}
-
-@Composable
 private fun CategoriaSelector(
     categorias: List<CategoriaTarea>,
     seleccionada: CategoriaTarea?,
@@ -611,7 +597,7 @@ private fun CategoriaSelector(
                         onClick = { onSelect(cat) },
                         shape = RoundedCornerShape(8.dp),
                         color = if (selected) AccentBlue else SurfaceField,
-                        border = if (selected) null else ButtonDefaults.outlinedButtonBorder
+                        border = if (selected) null else ButtonDefaults.outlinedButtonBorder(enabled = true)
                     ) {
                         Box(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
                             Text(
@@ -647,7 +633,9 @@ private fun DropdownField(
             value = selectedText ?: "",
             onValueChange = {},
             readOnly = true,
-            modifier = Modifier.fillMaxWidth().menuAnchor(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true),
             placeholder = { Text(placeholder, color = PlaceholderGray, fontSize = 14.sp) },
             trailingIcon = {
                 Icon(

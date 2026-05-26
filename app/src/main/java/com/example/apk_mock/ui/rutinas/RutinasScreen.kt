@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
+import com.example.apk_mock.ui.components.CreateActionPill
 import com.example.apk_mock.ui.components.ProfileMenuButton
 import com.example.apk_mock.ui.theme.*
 import java.time.LocalDate
@@ -55,22 +56,11 @@ fun RutinasScreen(
     Scaffold(
         containerColor = BackgroundDark,
         floatingActionButton = {
-            Box(
-                modifier = Modifier
-                    .padding(bottom = innerPadding.calculateBottomPadding())
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(AccentBlue)
-                    .clickable(onClick = onNavigateToCrear)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "Nueva rutina +",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            CreateActionPill(
+                text = "Nueva rutina +",
+                onClick = onNavigateToCrear,
+                modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+            )
         },
         floatingActionButtonPosition = FabPosition.End,
         snackbarHost = {

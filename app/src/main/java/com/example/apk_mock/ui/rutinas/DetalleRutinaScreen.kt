@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -199,7 +199,7 @@ private fun DetailTopBar(
                 .size(36.dp)
                 .background(SurfaceField, RoundedCornerShape(10.dp))
         ) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
         }
         Text(
             "Detalle de rutina",

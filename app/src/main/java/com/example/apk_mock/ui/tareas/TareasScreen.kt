@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.ui.components.CreateActionPill
 import com.example.apk_mock.ui.components.ProfileMenuButton
 import com.example.apk_mock.ui.rutinas.FiltrosDias
 import com.example.apk_mock.ui.theme.AccentBlue
@@ -97,24 +98,12 @@ fun TareasScreen(
         containerColor = BackgroundDark,
         floatingActionButton = {
             if (overlayMessage == null) {
-                Box(
-                    modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding() + 8.dp)
-                ) {
-                    Button(
-                        onClick = onNavigateToCrear,
-                        enabled = canCreateTask,
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = AccentBlue,
-                            contentColor = Color.White,
-                            disabledContainerColor = Color(0xFF4E5562),
-                            disabledContentColor = Color.White
-                        ),
-                        modifier = Modifier.height(48.dp)
-                    ) {
-                        Text("Nueva tarea +", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
+                CreateActionPill(
+                    text = "Nueva tarea +",
+                    onClick = onNavigateToCrear,
+                    enabled = canCreateTask,
+                    modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+                )
             }
         },
         floatingActionButtonPosition = FabPosition.End

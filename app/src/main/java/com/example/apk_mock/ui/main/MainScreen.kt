@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -64,7 +64,7 @@ fun MainScreen(
                 NavigationBarItem(
                     selected = selectedTab == MainTab.TAREAS,
                     onClick = { selectedTab = MainTab.TAREAS },
-                    icon = { Icon(Icons.Default.List, contentDescription = "Tareas") },
+                    icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Tareas") },
                     label = { Text("Tareas", fontSize = 11.sp) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.White,

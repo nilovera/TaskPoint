@@ -20,7 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -46,12 +46,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.ui.components.FormFieldLabel
 import com.example.apk_mock.ui.register.AppTextField
 import com.example.apk_mock.ui.theme.AccentBlue
 import com.example.apk_mock.ui.theme.BackgroundDark
 import com.example.apk_mock.ui.theme.ErrorRed
 import com.example.apk_mock.ui.theme.FieldBorder
-import com.example.apk_mock.ui.theme.LabelGray
 import com.example.apk_mock.ui.theme.PlaceholderGray
 import com.example.apk_mock.ui.theme.StrengthGreen
 import com.example.apk_mock.ui.theme.SubtitleGray
@@ -111,7 +111,7 @@ fun EditarRutinaScreen(
                         .size(36.dp)
                         .background(SurfaceField, RoundedCornerShape(10.dp))
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
                 }
                 Text("Editar rutina", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(36.dp))
@@ -119,7 +119,7 @@ fun EditarRutinaScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            RequiredLabel("Nombre de la rutina")
+            FormFieldLabel("Nombre de la rutina", required = true)
             AppTextField(
                 label = "",
                 value = state.nombre,
@@ -131,7 +131,7 @@ fun EditarRutinaScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            RequiredLabel("Ícono")
+            FormFieldLabel("Ícono", required = true)
             EditIconosGrid(
                 seleccionado = state.iconoSeleccionado,
                 onSelect = viewModel::onEditIconoChange
@@ -139,7 +139,7 @@ fun EditarRutinaScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            RequiredLabel("Dirección")
+            FormFieldLabel("Dirección", required = true)
             AppTextField(
                 label = "",
                 value = state.direccion,
@@ -151,7 +151,7 @@ fun EditarRutinaScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            RequiredLabel("Días de la semana")
+            FormFieldLabel("Días de la semana", required = true)
             EditDiasSelector(
                 seleccionados = state.diasSeleccionados,
                 onToggle = viewModel::onEditDiaToggle
@@ -163,7 +163,7 @@ fun EditarRutinaScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            RequiredLabel("Horario")
+            FormFieldLabel("Horario", required = true)
             Row(horizontalArrangement = Arrangement.spacedBy(46.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Inicio", color = SubtitleGray, fontSize = 11.sp)
@@ -195,7 +195,7 @@ fun EditarRutinaScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            RequiredLabel("Descripción")
+            FormFieldLabel("Descripción", required = true)
             val maxDesc = 120
             OutlinedTextField(
                 value = state.descripcion,
@@ -261,14 +261,6 @@ fun EditarRutinaScreen(
                 Text(data.visuals.message, fontSize = 13.sp)
             }
         }
-    }
-}
-
-@Composable
-private fun RequiredLabel(text: String) {
-    Row(modifier = Modifier.padding(bottom = 8.dp)) {
-        Text(text, color = LabelGray, fontSize = 13.sp)
-        Text("*", color = ErrorRed, fontSize = 13.sp, fontWeight = FontWeight.Bold)
     }
 }
 

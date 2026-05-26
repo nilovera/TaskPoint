@@ -9,7 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.ui.components.FormFieldLabel
 import com.example.apk_mock.ui.register.AppTextField
 import com.example.apk_mock.ui.theme.*
 
@@ -66,7 +67,7 @@ fun CrearRutinaScreen(
                         .size(36.dp)
                         .background(SurfaceField, RoundedCornerShape(10.dp))
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = SubtitleGray)
                 }
                 Text("Nueva rutina", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.width(36.dp))
@@ -75,7 +76,7 @@ fun CrearRutinaScreen(
             Spacer(Modifier.height(24.dp))
 
             // ── Nombre ────────────────────────────────────────────────────────
-            FieldLabel("Nombre de la rutina *")
+            FormFieldLabel("Nombre de la rutina", required = true)
             AppTextField(
                 label = "",
                 value = state.nombre,
@@ -88,7 +89,7 @@ fun CrearRutinaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Ícono ─────────────────────────────────────────────────────────
-            FieldLabel("Ícono *")
+            FormFieldLabel("Ícono", required = true)
             IconosGrid(
                 seleccionado = state.iconoSeleccionado,
                 onSelect = viewModel::onIconoChange
@@ -97,7 +98,7 @@ fun CrearRutinaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Dirección ─────────────────────────────────────────────────────
-            FieldLabel("Dirección *")
+            FormFieldLabel("Dirección", required = true)
             AppTextField(
                 label = "",
                 value = state.direccion,
@@ -110,7 +111,7 @@ fun CrearRutinaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Días de la semana ─────────────────────────────────────────────
-            FieldLabel("Días de la semana *")
+            FormFieldLabel("Días de la semana", required = true)
             DiasSelector(
                 seleccionados = state.diasSeleccionados,
                 onToggle = viewModel::onDiaToggle
@@ -123,7 +124,7 @@ fun CrearRutinaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Horario ───────────────────────────────────────────────────────
-            FieldLabel("Horario *")
+            FormFieldLabel("Horario", required = true)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Inicio", color = SubtitleGray, fontSize = 12.sp)
@@ -156,7 +157,7 @@ fun CrearRutinaScreen(
             Spacer(Modifier.height(20.dp))
 
             // ── Descripción ───────────────────────────────────────────────────
-            FieldLabel("Descripción *")
+            FormFieldLabel("Descripción", required = true)
             val maxDesc = 120
             OutlinedTextField(
                 value = state.descripcion,
@@ -210,11 +211,6 @@ fun CrearRutinaScreen(
 }
 
 // ── Componentes internos ──────────────────────────────────────────────────────
-
-@Composable
-private fun FieldLabel(text: String) {
-    Text(text, color = LabelGray, fontSize = 13.sp, modifier = Modifier.padding(bottom = 8.dp))
-}
 
 @Composable
 private fun IconosGrid(seleccionado: RutinaIcono, onSelect: (RutinaIcono) -> Unit) {
