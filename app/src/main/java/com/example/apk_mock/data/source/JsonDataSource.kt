@@ -136,19 +136,24 @@ class JsonDataSource(private val context: Context) {
 
     fun loadTareas(rutinas: List<StoredRutina>): List<StoredTarea> {
         val rutinasById = rutinas.associateBy { it.rutina.id }
-        val categoriasByCode = loadCategorias().associateBy { it.code }
+        val categorias = loadCategorias()
+        val categoriasByCode = categorias.associateBy { it.code }
+        val categoriasByName = categorias.associateBy { it.name.normalizeCategoryKey() }
 
         return readRows("seed/tareas.json").map { row ->
             val rutinaId = row.optNullableString("rutinaId")
             val rutina = rutinaId?.let { rutinasById[it]?.rutina }
-            val categoriaCode = row.getString("categoria")
+            val categoriaValue = row.getString("categoria")
+            val categoria = categoriasByCode[categoriaValue.uppercase()]
+                ?: categoriasByName[categoriaValue.normalizeCategoryKey()]
+                ?: categoriaFallback(categoriaValue.uppercase())
 
             StoredTarea(
                 userId = row.getString("userId"),
                 tarea = Tarea(
                     id = row.getString("id"),
                     titulo = row.getString("titulo"),
-                    categoria = categoriasByCode[categoriaCode] ?: categoriaFallback(categoriaCode),
+                    categoria = categoria,
                     rutinaId = rutinaId,
                     rutinaNombre = rutina?.nombre,
                     dia = row.optNullableString("dia")?.let { DiaSemana.valueOf(it) },
@@ -161,40 +166,7 @@ class JsonDataSource(private val context: Context) {
     }
 
     fun saveTareas(tareas: List<StoredTarea>) {
-        val rows = JSONArray()
-        val now = Instant.now().toString()
-
-        tareas.forEach { stored ->
-            val tarea = stored.tarea
-            rows.put(
-                JSONObject()
-                    .put("id", tarea.id)
-                    .put("userId", stored.userId)
-                    .put("rutinaId", tarea.rutinaId)
-                    .put("titulo", tarea.titulo)
-                    .put("categoria", tarea.categoria.name)
-                    .put("dia", tarea.dia?.name)
-                    .put("horario", tarea.horario)
-                    .put("notas", tarea.notas)
-                    .put("completada", tarea.completada)
-                    .put("createdAt", now)
-                    .put("updatedAt", now)
-            )
-        }
-
-        val json = JSONObject()
-            .put("schemaVersion", 1)
-            .put("table", "tareas")
-            .put("primaryKey", "id")
-            .put(
-                "foreignKeys",
-                JSONObject()
-                    .put("userId", "users.id")
-                    .put("rutinaId", "rutinas.id")
-            )
-            .put("rows", rows)
-
-        writableAssetCopy("seed/tareas.json").writeText(json.toString(2), Charsets.UTF_8)
+        // Las tareas son mock de sesion: se modifican en memoria y se resetean al reiniciar la app.
     }
 
     private fun readRows(assetPath: String): List<JSONObject> {
@@ -204,7 +176,11 @@ class JsonDataSource(private val context: Context) {
     }
 
     private fun readJson(assetPath: String): String {
-        if (assetPath == "seed/rutinas.json" || assetPath == "seed/tareas.json") {
+        if (assetPath == "seed/tareas.json") {
+            return context.assets.open(assetPath).bufferedReader().use { it.readText() }
+        }
+
+        if (assetPath == "seed/rutinas.json") {
             return writableAssetCopy(assetPath).readText(Charsets.UTF_8)
         }
 
@@ -235,6 +211,16 @@ private fun categoriaFallback(code: String): CategoriaTarea {
         description = "",
         activatesOffers = code in setOf("ESTUDIO", "INDUMENTARIA")
     )
+}
+
+private fun String.normalizeCategoryKey(): String {
+    return lowercase()
+        .replace("Ã©", "e")
+        .replace("é", "e")
+        .replace("Ã­a", "ia")
+        .replace("í", "i")
+        .replace("Ãº", "u")
+        .replace("ú", "u")
 }
 
 private fun JSONArray.toObjectList(): List<JSONObject> {

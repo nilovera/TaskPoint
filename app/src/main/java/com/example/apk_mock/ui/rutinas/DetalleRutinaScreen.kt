@@ -53,7 +53,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.ui.tareas.TareasViewModel
@@ -64,6 +63,7 @@ import com.example.apk_mock.ui.theme.FieldBorder
 import com.example.apk_mock.ui.theme.StrengthGreen
 import com.example.apk_mock.ui.theme.SubtitleGray
 import com.example.apk_mock.ui.theme.SurfaceField
+import com.example.apk_mock.ui.theme.categoryColor
 
 private val DetailCard = Color(0xFF171B2D)
 private val DetailBorder = Color(0xFF252B44)
@@ -403,7 +403,7 @@ private fun TasksSection(tareas: List<Tarea>) {
 
 @Composable
 private fun AssociatedTaskRow(tarea: Tarea) {
-    val catColor = categoriaColor(tarea.categoria)
+    val catColor = tarea.categoria.categoryColor()
 
     Row(
         modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -531,11 +531,3 @@ private fun DeleteRoutineDialog(
     )
 }
 
-private fun categoriaColor(cat: CategoriaTarea): Color = when (cat.code) {
-    "PERSONAL" -> Color(0xFF5E7CFF)
-    "SUPERMERCADO" -> Color(0xFF35D07F)
-    "INDUMENTARIA" -> Color(0xFFE85D75)
-    "FACULTAD" -> Color(0xFFD79728)
-    "ESTUDIO" -> Color(0xFF31B7D7)
-    else -> Color(0xFF8A8FA8)
-}

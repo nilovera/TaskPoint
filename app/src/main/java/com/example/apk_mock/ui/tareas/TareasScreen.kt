@@ -38,7 +38,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.ui.components.CreateActionPill
@@ -50,6 +49,7 @@ import com.example.apk_mock.ui.theme.DateBlue
 import com.example.apk_mock.ui.theme.StrengthGreen
 import com.example.apk_mock.ui.theme.SubtitleGray
 import com.example.apk_mock.ui.theme.SurfaceField
+import com.example.apk_mock.ui.theme.categoryColor
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -302,7 +302,7 @@ fun TareaCard(
     tarea: Tarea,
     onClick: () -> Unit = {}
 ) {
-    val catColor = categoriaColor(tarea.categoria)
+    val catColor = tarea.categoria.categoryColor()
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = SurfaceField,
@@ -351,17 +351,3 @@ fun TareaCard(
     }
 }
 
-private fun categoriaColor(cat: CategoriaTarea): Color = when (cat.code) {
-    "PERSONAL" -> Color(0xFF4D6BFE)
-    "SUPERMERCADO" -> Color(0xFF34C759)
-    "INDUMENTARIA" -> Color(0xFFFF9F0A)
-    "FACULTAD" -> Color(0xFF8B5CF6)
-    "ESTUDIO" -> Color(0xFF06B6D4)
-    "FARMACIA", "MEDICO" -> Color(0xFFE85D75)
-    "GIMNASIO" -> Color(0xFF34C759)
-    "BANCO", "TRANSPORTE" -> Color(0xFF4D6BFE)
-    "ESCUELA", "LIBRERIA" -> Color(0xFF8B5CF6)
-    "VETERINARIA", "FERRETERIA", "PANADERIA", "PELUQUERIA" -> Color(0xFFFF9F0A)
-    "CASA" -> Color(0xFF06B6D4)
-    else -> SubtitleGray
-}

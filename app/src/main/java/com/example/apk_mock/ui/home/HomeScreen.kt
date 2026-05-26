@@ -53,7 +53,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
@@ -64,6 +63,7 @@ import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.AccentBlue
 import com.example.apk_mock.ui.theme.BackgroundDark
 import com.example.apk_mock.ui.theme.SubtitleGray
+import com.example.apk_mock.ui.theme.categoryColor
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -131,7 +131,7 @@ fun HomeScreen(
                 .background(HomeBackground)
                 .padding(horizontal = 20.dp),
             contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding() + 34.dp,
+                top = innerPadding.calculateTopPadding() + 8.dp,
                 bottom = innerPadding.calculateBottomPadding() + selfPadding.calculateBottomPadding() + 86.dp
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -188,7 +188,7 @@ private fun HomeHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            Text(dateLabel, color = SubtitleGray, fontSize = 10.sp, fontWeight = FontWeight.Medium)
+            Text(dateLabel, color = SubtitleGray, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             Text("Hoy", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
         }
 
@@ -371,7 +371,7 @@ private fun CountChip(count: Int) {
 
 @Composable
 private fun HomeTaskRow(tarea: Tarea) {
-    val categoryColor = categoriaColor(tarea.categoria)
+    val categoryColor = tarea.categoria.categoryColor()
 
     Row(
         modifier = Modifier
@@ -527,17 +527,3 @@ private fun LocalDate.toDiaSemana(): DiaSemana = when (dayOfWeek) {
     DayOfWeek.SUNDAY -> DiaSemana.DOM
 }
 
-private fun categoriaColor(cat: CategoriaTarea): Color = when (cat.code) {
-    "PERSONAL" -> Color(0xFF5E7CFF)
-    "SUPERMERCADO" -> Color(0xFF35D07F)
-    "INDUMENTARIA" -> Color(0xFFE85D75)
-    "FACULTAD" -> Color(0xFFD79728)
-    "ESTUDIO" -> Color(0xFF31B7D7)
-    "FARMACIA", "MEDICO" -> Color(0xFFE85D75)
-    "GIMNASIO" -> Color(0xFF35D07F)
-    "BANCO", "TRANSPORTE" -> Color(0xFF5E7CFF)
-    "ESCUELA", "LIBRERIA" -> Color(0xFFD79728)
-    "VETERINARIA", "FERRETERIA", "PANADERIA", "PELUQUERIA" -> Color(0xFFFF9F0A)
-    "CASA" -> Color(0xFF31B7D7)
-    else -> Color(0xFF8A8FA8)
-}

@@ -51,7 +51,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.StoreOffer
@@ -66,6 +65,7 @@ import com.example.apk_mock.ui.theme.PlaceholderGray
 import com.example.apk_mock.ui.theme.StrengthGreen
 import com.example.apk_mock.ui.theme.SubtitleGray
 import com.example.apk_mock.ui.theme.SurfaceField
+import com.example.apk_mock.ui.theme.categoryColor
 import kotlinx.coroutines.delay
 
 @Composable
@@ -332,7 +332,7 @@ private fun BottomDeleteTaskDialog(
 
 @Composable
 private fun DetailTitle(tarea: Tarea) {
-    val categoryColor = categoriaColor(tarea.categoria)
+    val categoryColor = tarea.categoria.categoryColor()
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             tarea.titulo,
@@ -498,17 +498,3 @@ private fun DiaSemana.fullLabel(): String = when (this) {
     DiaSemana.DOM -> "Domingo"
 }
 
-private fun categoriaColor(cat: CategoriaTarea): Color = when (cat.code) {
-    "PERSONAL" -> Color(0xFF4D6BFE)
-    "SUPERMERCADO" -> Color(0xFF34C759)
-    "INDUMENTARIA" -> Color(0xFFFF9F0A)
-    "FACULTAD" -> Color(0xFFD79728)
-    "ESTUDIO" -> Color(0xFF06B6D4)
-    "FARMACIA", "MEDICO" -> Color(0xFFE85D75)
-    "GIMNASIO" -> Color(0xFF34C759)
-    "BANCO", "TRANSPORTE" -> Color(0xFF4D6BFE)
-    "ESCUELA", "LIBRERIA" -> Color(0xFFD79728)
-    "VETERINARIA", "FERRETERIA", "PANADERIA", "PELUQUERIA" -> Color(0xFFFF9F0A)
-    "CASA" -> Color(0xFF06B6D4)
-    else -> SubtitleGray
-}

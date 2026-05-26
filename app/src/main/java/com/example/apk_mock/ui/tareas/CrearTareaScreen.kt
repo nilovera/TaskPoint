@@ -27,6 +27,7 @@ import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.ui.components.FormFieldLabel
 import com.example.apk_mock.ui.register.AppTextField
 import com.example.apk_mock.ui.theme.*
+import com.example.apk_mock.ui.theme.categoryColor
 
 @Composable
 fun CrearTareaScreen(
@@ -354,6 +355,7 @@ private fun TareaFormContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 100.dp)
@@ -593,17 +595,21 @@ private fun CategoriaSelector(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 fila.forEach { cat ->
                     val selected = cat == seleccionada
+                    val categoryColor = cat.categoryColor()
                     Surface(
                         onClick = { onSelect(cat) },
                         shape = RoundedCornerShape(8.dp),
-                        color = if (selected) AccentBlue else SurfaceField,
-                        border = if (selected) null else ButtonDefaults.outlinedButtonBorder(enabled = true)
+                        color = categoryColor.copy(alpha = if (selected) 0.95f else 0.18f),
+                        border = if (selected) null else androidx.compose.foundation.BorderStroke(
+                            width = 1.dp,
+                            color = categoryColor.copy(alpha = 0.52f)
+                        )
                     ) {
                         Box(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
                             Text(
                                 cat.label,
                                 fontSize = 12.sp,
-                                color = if (selected) Color.White else SubtitleGray,
+                                color = if (selected) Color.White else categoryColor,
                                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                             )
                         }
