@@ -26,6 +26,7 @@ import com.example.apk_mock.ui.theme.*
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 @Composable
 fun RutinasScreen(
@@ -38,13 +39,15 @@ fun RutinasScreen(
     innerPadding: PaddingValues = PaddingValues()
 ) {
     val listState by viewModel.listState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
+    var overlayMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) { viewModel.refreshRutinas() }
 
     LaunchedEffect(listState.snackbarMessage) {
-        listState.snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
+        listState.snackbarMessage?.let { message ->
+            overlayMessage = message
+            delay(3000)
+            overlayMessage = null
             viewModel.consumeSnackbar()
         }
     }
@@ -56,38 +59,29 @@ fun RutinasScreen(
     Scaffold(
         containerColor = BackgroundDark,
         floatingActionButton = {
-            CreateActionPill(
-                text = "Nueva rutina +",
-                onClick = onNavigateToCrear,
-                modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
-            )
-        },
-        floatingActionButtonPosition = FabPosition.End,
-        snackbarHost = {
-            SnackbarHost(snackbarHostState) { data ->
-                Snackbar(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    containerColor = StrengthGreen,
-                    contentColor = Color.White,
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(data.visuals.message, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                }
-            }
-        }
-    ) { selfPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    // top: padding del Scaffold externo + margen visual
-                    top = innerPadding.calculateTopPadding() + 8.dp,
-                    // bottom: el Scaffold propio calcula el espacio del snackbar/FAB
-                    bottom = selfPadding.calculateBottomPadding(),
-                    start = 20.dp,
-                    end = 20.dp
+            if (overlayMessage == null) {
+                CreateActionPill(
+                    text = "Nueva rutina +",
+                    onClick = onNavigateToCrear,
+                    modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
                 )
-        ) {
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End
+    ) { selfPadding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                    // top: padding del Scaffold externo + margen visual
+                        top = innerPadding.calculateTopPadding() + 8.dp,
+                    // bottom: el Scaffold propio calcula el espacio del FAB
+                        bottom = innerPadding.calculateBottomPadding() + selfPadding.calculateBottomPadding(),
+                        start = 20.dp,
+                        end = 20.dp
+                    )
+            ) {
             // ── Header ────────────────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -165,6 +159,36 @@ fun RutinasScreen(
             }
 
             Spacer(Modifier.height(16.dp))
+        }
+
+            overlayMessage?.let { message ->
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = StrengthGreen,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(
+                            start = 20.dp,
+                            end = 20.dp,
+                            bottom = innerPadding.calculateBottomPadding() + 16.dp
+                        )
+                        .height(48.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Text(
+                            message,
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
         }
     }
 }

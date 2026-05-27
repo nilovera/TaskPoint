@@ -1,7 +1,6 @@
 package com.example.apk_mock.ui.tareas
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -22,10 +20,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,10 +41,10 @@ import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.ui.components.AppDeleteConfirmDialog
 import com.example.apk_mock.ui.components.DetailActionTopBar
 import com.example.apk_mock.ui.theme.AccentBlue
 import com.example.apk_mock.ui.theme.BackgroundDark
-import com.example.apk_mock.ui.theme.CancelRed
 import com.example.apk_mock.ui.theme.DateBlue
 import com.example.apk_mock.ui.theme.FieldBorder
 import com.example.apk_mock.ui.theme.LabelGray
@@ -142,7 +137,9 @@ fun DetalleTareaScreen(
     }
 
     if (showDeleteDialog) {
-        BottomDeleteTaskDialog(
+        AppDeleteConfirmDialog(
+            title = "Eliminar tarea",
+            message = "Estas seguro que queres eliminar esta tarea?",
             onDismiss = { showDeleteDialog = false },
             onConfirm = {
                 if (viewModel.onEliminarTarea(tarea.id)) {
@@ -195,77 +192,9 @@ private fun DetailHeader(
         onBack = onBack,
         editLabel = "Editar tarea",
         deleteLabel = "Eliminar tarea",
-        deleteColor = CancelRed,
         onEdit = { onEditTask(taskId) },
         onDelete = onDeleteClick
     )
-}
-
-@Composable
-private fun BottomDeleteTaskDialog(
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.62f))
-            .padding(horizontal = 28.dp)
-            .padding(top = 92.dp, bottom = 128.dp),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Surface(
-            color = SurfaceField,
-            shape = RoundedCornerShape(18.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, FieldBorder),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(22.dp)) {
-                Text("Eliminar tarea", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(18.dp))
-                Text(
-                    "¿Estás seguro que querés eliminar esta tarea?",
-                    color = LabelGray,
-                    fontSize = 15.sp,
-                    lineHeight = 20.sp
-                )
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    "Esta acción no se puede deshacer.",
-                    color = SubtitleGray,
-                    fontSize = 15.sp
-                )
-                Spacer(Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = LabelGray),
-                        modifier = Modifier
-                            .height(48.dp)
-                            .weight(1f)
-                    ) {
-                        Text("Cancelar", fontWeight = FontWeight.SemiBold)
-                    }
-                    Spacer(Modifier.width(52.dp))
-                    Button(
-                        onClick = onConfirm,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = CancelRed, contentColor = Color.White),
-                        modifier = Modifier
-                            .height(48.dp)
-                            .weight(1f)
-                    ) {
-                        Text("Eliminar", fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        }
-    }
 }
 
 @Composable

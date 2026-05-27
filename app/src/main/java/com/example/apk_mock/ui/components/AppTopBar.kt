@@ -39,7 +39,7 @@ enum class AppTopBarSize(
     Compact(36.dp, 24.dp, 22.sp, 10.dp, false),
     Regular(48.dp, 24.dp, 20.sp, 14.dp, true),
     Detail(48.dp, 24.dp, 22.sp, 14.dp, true),
-    Profile(28.dp, 16.dp, 18.sp, 9.dp, false)
+    Profile(34.dp, 20.dp, 20.sp, 10.dp, false)
 }
 
 @Composable

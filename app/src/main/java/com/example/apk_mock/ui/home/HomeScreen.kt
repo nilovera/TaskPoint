@@ -104,7 +104,7 @@ fun HomeScreen(
     val displayName = userName.ifBlank { "Nicolas Perez" }
     val rutinas = rutinasState.rutinas
     val todayTasks = tareasState.tareas.filter { it.dia == todayDia || it.dia == null }
-    val canCreateTask = rutinas.isNotEmpty() || tareasState.tareas.isNotEmpty()
+    val canCreateTask = rutinas.isNotEmpty()
     val sections = remember(rutinas, todayTasks) { buildHomeSections(rutinas, todayTasks) }
 
     LaunchedEffect(Unit) {
@@ -265,8 +265,8 @@ private fun NoRoutinesPanel(onCrearRutina: () -> Unit) {
             onClick = onCrearRutina,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(28.dp),
-            shape = RoundedCornerShape(7.dp),
+                .height(42.dp),
+            shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
         ) {
             Text("Carga tu rutina", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
