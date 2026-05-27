@@ -68,8 +68,6 @@ import com.example.apk_mock.ui.theme.categoryColor
 import com.example.apk_mock.ui.utils.homeDateLabel
 import com.example.apk_mock.ui.utils.toDiaSemana
 import java.time.LocalDate
-
-private val HomeBackground = Color(0xFF080B12)
 private val HomeCard = Color(0xFF161929)
 private val HomeCardBorder = Color(0xFF252B44)
 private val HomeChip = Color(0xFF0C101D)
@@ -115,7 +113,7 @@ fun HomeScreen(
     }
 
     Scaffold(
-        containerColor = HomeBackground,
+        containerColor = BackgroundDark,
         floatingActionButton = {
             CreateActionPill(
                 text = "Nueva tarea +",
@@ -129,7 +127,7 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(HomeBackground)
+                .background(BackgroundDark)
                 .padding(horizontal = 20.dp),
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding() + 8.dp,

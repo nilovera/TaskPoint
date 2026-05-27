@@ -3,7 +3,7 @@ package com.example.apk_mock.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Backgrounds
-val BackgroundDark = Color(0xFF12141C)
+val BackgroundDark = Color(0xFF080B12)
 val SurfaceField   = Color(0xFF1E2130)
 
 // Borders
