@@ -17,6 +17,7 @@ data class RegisterUiState(
     val emailError: String? = null,
     val passwordError: String? = null,
     val confirmPasswordError: String? = null,
+    val generalError: String? = null,
     val isSuccess: Boolean = false
 )
 
@@ -25,23 +26,88 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
-    fun onNameChange(v: String) = _uiState.update { it.copy(name = v, nameError = null) }
-    fun onEmailChange(v: String) = _uiState.update { it.copy(email = v, emailError = null) }
-    fun onPasswordChange(v: String) = _uiState.update { it.copy(password = v, passwordError = null) }
-    fun onConfirmPasswordChange(v: String) = _uiState.update { it.copy(confirmPassword = v, confirmPasswordError = null) }
+    fun onNameChange(value: String) = _uiState.update {
+        it.copy(name = value, nameError = null, generalError = null)
+    }
+
+    fun onEmailChange(value: String) = _uiState.update {
+        it.copy(email = value, emailError = null, generalError = null)
+    }
+
+    fun onPasswordChange(value: String) = _uiState.update {
+        it.copy(password = value, passwordError = null, generalError = null)
+    }
+
+    fun onConfirmPasswordChange(value: String) = _uiState.update {
+        it.copy(confirmPassword = value, confirmPasswordError = null, generalError = null)
+    }
 
     fun onRegisterClick() {
-        val s = _uiState.value
-        // Validación local antes de delegar al use case
-        if (s.confirmPassword != s.password) {
-            _uiState.update { it.copy(confirmPasswordError = "Las contraseñas no coinciden.") }
+        val state = _uiState.value
+
+        validateFirstError(state)?.let { error ->
+            _uiState.update {
+                it.copy(
+                    nameError = if (error.field == RegisterField.Name) error.message else null,
+                    emailError = if (error.field == RegisterField.Email) error.message else null,
+                    passwordError = if (error.field == RegisterField.Password) error.message else null,
+                    confirmPasswordError = if (error.field == RegisterField.ConfirmPassword) error.message else null,
+                    generalError = error.message
+                )
+            }
             return
         }
-        when (val r = registerUseCase(s.name, s.email, s.password)) {
+
+        when (val result = registerUseCase(state.name, state.email, state.password)) {
             is AuthResult.Success -> _uiState.update { it.copy(isSuccess = true) }
-            is AuthResult.Error   -> _uiState.update { it.copy(emailError = r.message) }
+            is AuthResult.Error -> _uiState.update {
+                it.copy(
+                    nameError = null,
+                    emailError = result.message,
+                    passwordError = null,
+                    confirmPasswordError = null,
+                    generalError = result.message
+                )
+            }
         }
     }
 
     fun onSuccessConsumed() = _uiState.update { it.copy(isSuccess = false) }
+
+    private fun validateFirstError(state: RegisterUiState): RegisterValidationError? {
+        if (state.name.isBlank()) {
+            return RegisterValidationError(RegisterField.Name, "Ingresá tu nombre completo.")
+        }
+        if (state.email.isBlank()) {
+            return RegisterValidationError(RegisterField.Email, "Ingresá tu correo electrónico.")
+        }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(state.email).matches()) {
+            return RegisterValidationError(RegisterField.Email, "Ingresá un correo válido.")
+        }
+        if (state.password.isBlank()) {
+            return RegisterValidationError(RegisterField.Password, "Ingresá una contraseña.")
+        }
+        if (state.password.length < 6) {
+            return RegisterValidationError(RegisterField.Password, "La contraseña debe tener al menos 6 caracteres.")
+        }
+        if (state.confirmPassword.isBlank()) {
+            return RegisterValidationError(RegisterField.ConfirmPassword, "Confirmá tu contraseña.")
+        }
+        if (state.confirmPassword != state.password) {
+            return RegisterValidationError(RegisterField.ConfirmPassword, "Las contraseñas no coinciden.")
+        }
+        return null
+    }
 }
+
+private enum class RegisterField {
+    Name,
+    Email,
+    Password,
+    ConfirmPassword
+}
+
+private data class RegisterValidationError(
+    val field: RegisterField,
+    val message: String
+)

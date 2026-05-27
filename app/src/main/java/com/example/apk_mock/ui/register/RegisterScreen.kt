@@ -1,6 +1,7 @@
 package com.example.apk_mock.ui.register
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -49,14 +50,14 @@ fun RegisterScreen(
         ) {
             Text(
                 text = "Crear cuenta",
-                fontSize = 32.sp,
+                fontSize = 34.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 text = "Empezá a organizar tus tareas en segundos.",
-                fontSize = 14.sp,
+                fontSize = 18.sp,
                 color = SubtitleGray,
                 lineHeight = 20.sp
             )
@@ -68,8 +69,7 @@ fun RegisterScreen(
                 value = state.name,
                 onValueChange = viewModel::onNameChange,
                 placeholder = "Nicolás Perez",
-                isError = state.nameError != null,
-                errorMessage = state.nameError
+                isError = state.nameError != null
             )
             Spacer(Modifier.height(16.dp))
 
@@ -80,8 +80,7 @@ fun RegisterScreen(
                 onValueChange = viewModel::onEmailChange,
                 placeholder = "nico@ejemplo.com",
                 keyboardType = KeyboardType.Email,
-                isError = state.emailError != null,
-                errorMessage = state.emailError
+                isError = state.emailError != null
             )
             Spacer(Modifier.height(16.dp))
 
@@ -91,8 +90,7 @@ fun RegisterScreen(
                 value = state.password,
                 onValueChange = viewModel::onPasswordChange,
                 isPassword = true,
-                isError = state.passwordError != null,
-                errorMessage = state.passwordError
+                isError = state.passwordError != null
             )
             Spacer(Modifier.height(16.dp))
 
@@ -102,27 +100,33 @@ fun RegisterScreen(
                 value = state.confirmPassword,
                 onValueChange = viewModel::onConfirmPasswordChange,
                 isPassword = true,
-                isError = state.confirmPasswordError != null,
-                errorMessage = state.confirmPasswordError
+                isError = state.confirmPasswordError != null
             )
             Spacer(Modifier.height(12.dp))
 
             // Password strength bar
             PasswordStrengthBar(password = state.password)
-            Spacer(Modifier.height(28.dp))
+            val generalError = state.generalError
+            if (generalError != null) {
+                Spacer(Modifier.height(14.dp))
+                RegisterErrorBanner(message = generalError)
+                Spacer(Modifier.height(14.dp))
+            } else {
+                Spacer(Modifier.height(28.dp))
+            }
 
             // Crear cuenta button
             Button(
                 onClick = viewModel::onRegisterClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp),
+                    .height(65.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
             ) {
                 Text(
                     text = "Crear cuenta ↗",
-                    fontSize = 16.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
                 )
@@ -133,15 +137,33 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text("¿Ya tenés cuenta? ", color = SubtitleGray, fontSize = 14.sp)
+                Text("¿Ya tenés cuenta? ", color = SubtitleGray, fontSize = 17.sp)
                 Text(
                     text = "Iniciá sesión",
-                    color = AccentBlue,
-                    fontSize = 14.sp,
+                    color = loginAndRegisterBlue,
+                    fontSize = 17.sp,
                     modifier = Modifier.clickable { onNavigateToLogin() }
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun RegisterErrorBanner(message: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        color = ErrorFieldBg,
+        border = BorderStroke(1.dp, ErrorRed.copy(alpha = 0.55f))
+    ) {
+        Text(
+            text = message,
+            color = ErrorRed,
+            fontSize = 17.sp,
+            lineHeight = 18.sp,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
+        )
     }
 }
 
@@ -181,7 +203,7 @@ fun PasswordStrengthBar(password: String) {
         }
         if (label.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
-            Text(label, color = activeColor, fontSize = 12.sp)
+            Text(label, color = activeColor, fontSize = 17.sp)
         }
     }
 }

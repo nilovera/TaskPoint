@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -36,7 +37,7 @@ import com.example.apk_mock.ui.theme.SurfaceField
 fun appTextFieldColors(
     focusedContainerColor: Color = SurfaceField,
     unfocusedContainerColor: Color = SurfaceField,
-    errorContainerColor: Color = ErrorFieldBg,
+    errorContainerColor: Color = SurfaceField,
     focusedBorderColor: Color = AccentBlue,
     unfocusedBorderColor: Color = FieldBorder,
     errorBorderColor: Color = ErrorRed,
@@ -72,24 +73,28 @@ fun AppTextField(
         Text(
             text = label,
             color = LabelGray,
-            fontSize = 13.sp,
+            fontSize = 17.sp,
             modifier = Modifier.padding(bottom = 6.dp)
         )
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(placeholder, color = PlaceholderGray) },
+            placeholder = { Text(placeholder, color = PlaceholderGray, fontSize = 17.sp) },
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             isError = isError,
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
-            colors = appTextFieldColors()
+            colors = appTextFieldColors(),
+            textStyle = LocalTextStyle.current.copy(
+                fontSize = 20.sp,
+                color = Color.White
+            )
         )
         if (isError && errorMessage != null) {
             Spacer(Modifier.height(4.dp))
-            Text(errorMessage, color = ErrorRed, fontSize = 12.sp)
+            Text(errorMessage, color = ErrorRed, fontSize = 17.sp)
         }
     }
 }
@@ -115,7 +120,11 @@ fun AppTextArea(
         placeholder = { Text(placeholder, color = PlaceholderGray, fontSize = 14.sp) },
         isError = isError,
         shape = RoundedCornerShape(12.dp),
-        colors = appTextFieldColors()
+        colors = appTextFieldColors(),
+        textStyle = LocalTextStyle.current.copy(
+            fontSize = 18.sp,
+            color = Color.White
+        )
     )
 
     if ((isError && errorMessage != null) || maxLength != null) {
