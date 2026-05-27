@@ -151,7 +151,7 @@ fun EditarRutinaScreen(
             FormFieldLabel("Horario", required = true)
             Row(horizontalArrangement = Arrangement.spacedBy(46.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Inicio", color = SubtitleGray, fontSize = 11.sp)
+                    Text("Inicio", color = SubtitleGray, fontSize = 16.sp)
                     Spacer(Modifier.height(4.dp))
                     RutinaHorarioField(
                         value = state.horarioInicio,
@@ -165,7 +165,7 @@ fun EditarRutinaScreen(
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Fin", color = SubtitleGray, fontSize = 11.sp)
+                    Text("Fin", color = SubtitleGray, fontSize = 16.sp)
                     Spacer(Modifier.height(4.dp))
                     RutinaHorarioField(
                         value = state.horarioFin,
@@ -194,7 +194,7 @@ fun EditarRutinaScreen(
                 isError = state.descripcionError != null,
                 errorMessage = state.descripcionError,
                 maxLength = maxDesc,
-                counterFontSize = 11.sp
+                counterFontSize = 16.sp
             )
 
             Spacer(Modifier.height(28.dp))

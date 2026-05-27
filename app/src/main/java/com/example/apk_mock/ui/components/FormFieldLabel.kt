@@ -29,8 +29,8 @@ fun FormFieldLabel(
             }
         },
         color = LabelGray,
-        fontSize = 13.sp,
+        fontSize = 18.sp,
         fontWeight = FontWeight.SemiBold,
-        modifier = modifier.padding(bottom = 8.dp)
+        modifier = modifier.padding(bottom = 4.dp)
     )
 }

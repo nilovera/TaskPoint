@@ -1,5 +1,6 @@
 package com.example.apk_mock.ui.rutinas
 
+import android.widget.Space
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -58,6 +60,7 @@ import com.example.apk_mock.ui.theme.SurfaceField
 import com.example.apk_mock.ui.theme.categoryColor
 
 private val DetailCard = Color(0xFF171B2D)
+private val DetailContent = Color(0xFF111629)
 private val DetailBorder = Color(0xFF252B44)
 private val DetailMenu = Color(0xFF0B1540)
 
@@ -226,13 +229,15 @@ private fun RoutineHero(rutina: Rutina) {
             overflow = TextOverflow.Ellipsis
         )
         if (rutina.direccion.isNotBlank()) {
+            Spacer(Modifier.height(10.dp))
             Text(
                 rutina.direccion,
                 color = SubtitleGray,
-                fontSize = 14.sp,
+                fontSize = 18.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            Spacer(Modifier.height(10.dp))
         }
     }
 }
@@ -241,24 +246,31 @@ private fun RoutineHero(rutina: Rutina) {
 private fun DetailSection(
     title: String,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
     content: @Composable () -> Unit
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
-        color = DetailCard,
+        color = DetailContent,
         border = BorderStroke(1.dp, DetailBorder)
     ) {
         Column {
-            Text(
-                title,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(DetailCard)
+                    .padding(horizontal = 14.dp, vertical = 11.dp)
+            ) {
+                Text(
+                    title,
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
             HorizontalDivider(color = DetailBorder)
-            Box(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+            Box(Modifier.padding(contentPadding)) {
                 content()
             }
         }
@@ -279,7 +291,7 @@ private fun DaysSection(rutina: Rutina) {
                     Text(
                         dia.label,
                         color = Color(0xFF9EB0FF),
-                        fontSize = 10.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
                     )
@@ -291,13 +303,17 @@ private fun DaysSection(rutina: Rutina) {
 
 @Composable
 private fun TimeSection(rutina: Rutina) {
-    DetailSection(title = "Horario") {
-        Row(modifier = Modifier.fillMaxWidth()) {
+    DetailSection(title = "Horario", contentPadding = PaddingValues(0.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+        ) {
             TimeValue(label = "Inicio", value = rutina.horarioInicio, modifier = Modifier.weight(1f))
             Box(
                 modifier = Modifier
                     .width(1.dp)
-                    .height(34.dp)
+                    .fillMaxHeight()
                     .background(DetailBorder)
             )
             TimeValue(label = "Fin", value = rutina.horarioFin, modifier = Modifier.weight(1f))
@@ -307,8 +323,11 @@ private fun TimeSection(rutina: Rutina) {
 
 @Composable
 private fun TimeValue(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, color = SubtitleGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth())
+    Column(
+        modifier = modifier.padding(horizontal = 6.dp, vertical = 5.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(label, color = SubtitleGray, fontSize = 16.sp, modifier = Modifier.fillMaxWidth())
         Text(value, color = SubtitleGray, fontSize = 16.sp)
     }
 }
@@ -319,7 +338,7 @@ private fun DescriptionSection(rutina: Rutina) {
         Text(
             rutina.descripcion.ifBlank { "Sin descripcion" },
             color = SubtitleGray,
-            fontSize = 14.sp,
+            fontSize = 18.sp,
             lineHeight = 18.sp,
             modifier = Modifier.height(48.dp)
         )
@@ -328,29 +347,16 @@ private fun DescriptionSection(rutina: Rutina) {
 
 @Composable
 private fun TasksSection(tareas: List<Tarea>) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        color = DetailCard,
-        border = BorderStroke(1.dp, DetailBorder)
-    ) {
-        Column {
+    DetailSection(title = "Tareas asociadas", contentPadding = PaddingValues(0.dp)) {
+        if (tareas.isEmpty()) {
             Text(
-                "Tareas asociadas",
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp)
+                "No hay tareas asociadas.",
+                color = SubtitleGray,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
             )
-            HorizontalDivider(color = DetailBorder)
-            if (tareas.isEmpty()) {
-                Text(
-                    "No hay tareas asociadas.",
-                    color = SubtitleGray,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
-                )
-            } else {
+        } else {
+            Column {
                 tareas.forEachIndexed { index, tarea ->
                     AssociatedTaskRow(tarea = tarea)
                     if (index < tareas.lastIndex) {
@@ -385,15 +391,10 @@ private fun AssociatedTaskRow(tarea: Tarea) {
             Text(
                 tarea.titulo,
                 color = Color.White,
-                fontSize = 13.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                tarea.horario ?: "--:--",
-                color = SubtitleGray,
-                fontSize = 12.sp
             )
         }
         Surface(shape = RoundedCornerShape(5.dp), color = catColor.copy(alpha = 0.22f)) {

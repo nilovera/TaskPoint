@@ -70,12 +70,14 @@ fun AppTextField(
     errorMessage: String? = null
 ) {
     Column {
-        Text(
-            text = label,
-            color = LabelGray,
-            fontSize = 17.sp,
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
+        if (label.isNotBlank()) {
+            Text(
+                text = label,
+                color = LabelGray,
+                fontSize = 17.sp,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+        }
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
