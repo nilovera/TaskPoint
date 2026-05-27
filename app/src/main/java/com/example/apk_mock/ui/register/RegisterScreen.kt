@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,10 +15,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.apk_mock.ui.components.AppTextField
 import com.example.apk_mock.ui.theme.*
 
 @Composable
@@ -188,56 +186,3 @@ fun PasswordStrengthBar(password: String) {
     }
 }
 
-@Composable
-fun AppTextField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String = "",
-    keyboardType: KeyboardType = KeyboardType.Text,
-    isPassword: Boolean = false,
-    isError: Boolean = false,
-    errorMessage: String? = null
-) {
-    val borderColor = when {
-        isError -> ErrorRed
-        value.isNotEmpty() -> AccentBlue
-        else -> FieldBorder
-    }
-
-    Column {
-        Text(
-            text = label,
-            color = LabelGray,
-            fontSize = 13.sp,
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(placeholder, color = PlaceholderGray) },
-            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            isError = isError,
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = SurfaceField,
-                unfocusedContainerColor = SurfaceField,
-                errorContainerColor = ErrorFieldBg,
-                focusedBorderColor = AccentBlue,
-                unfocusedBorderColor = FieldBorder,
-                errorBorderColor = ErrorRed,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                errorTextColor = Color.White,
-                cursorColor = AccentBlue
-            )
-        )
-        if (isError && errorMessage != null) {
-            Spacer(Modifier.height(4.dp))
-            Text(errorMessage, color = ErrorRed, fontSize = 12.sp)
-        }
-    }
-}

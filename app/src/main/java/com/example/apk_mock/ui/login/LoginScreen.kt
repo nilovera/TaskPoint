@@ -14,7 +14,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.ui.register.AppTextField
+import com.example.apk_mock.ui.components.AppTextField
 import com.example.apk_mock.ui.theme.*
 
 @Composable

@@ -1,8 +1,6 @@
 package com.example.apk_mock.ui.tareas
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,10 +21,12 @@ import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
+import com.example.apk_mock.ui.components.AppTextArea
+import com.example.apk_mock.ui.components.AppTextField
 import com.example.apk_mock.ui.components.AppTopBar
 import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.components.FormFieldLabel
-import com.example.apk_mock.ui.register.AppTextField
+import com.example.apk_mock.ui.components.appTextFieldColors
 import com.example.apk_mock.ui.theme.*
 import com.example.apk_mock.ui.theme.categoryColor
 
@@ -36,231 +36,18 @@ fun CrearTareaScreen(
     onBack: () -> Unit,
     onTaskCreated: () -> Unit = onBack
 ) {
-    val state by viewModel.formState.collectAsState()
-
-    LaunchedEffect(Unit) { viewModel.loadFormData() }
-
-    LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess) {
-            viewModel.consumeSuccess()
-            onTaskCreated()
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BackgroundDark)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 100.dp)
-        ) {
-            Spacer(Modifier.height(16.dp))
-
-            AppTopBar(
-                title = "Nueva tarea",
-                onBack = onBack,
-                size = AppTopBarSize.Compact
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            // ── Título ────────────────────────────────────────────────────────
-            FormFieldLabel("Título de la tarea", required = true)
-            AppTextField(
-                label = "",
-                value = state.titulo,
-                onValueChange = viewModel::onTituloChange,
-                placeholder = "Comprar comida",
-                isError = state.tituloError != null,
-                errorMessage = state.tituloError
-            )
-
-            Spacer(Modifier.height(20.dp))
-
-            // ── Categoría ─────────────────────────────────────────────────────
-            FormFieldLabel("Categoría", required = true)
-            CategoriaSelector(
-                categorias = state.categoriasDisponibles,
-                seleccionada = state.categoriaSeleccionada,
-                onSelect = viewModel::onCategoriaSelect
-            )
-            if (state.categoriaError != null) {
-                Spacer(Modifier.height(4.dp))
-                Text(state.categoriaError!!, color = ErrorRed, fontSize = 12.sp)
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            // ── Rutina asociada ───────────────────────────────────────────────
-            FormFieldLabel("Rutina asociada", required = true)
-            DropdownField(
-                placeholder = "Seleccioná una rutina",
-                selectedText = state.rutinaSeleccionadaNombre,
-                isError = state.rutinaError != null,
-                errorMessage = state.rutinaError
-            ) { dismissMenu ->
-                state.rutinasDisponibles.forEach { rutina ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(rutina.nombre, color = Color.White, fontSize = 14.sp)
-                        },
-                        onClick = {
-                            viewModel.onRutinaSelect(rutina)
-                            dismissMenu()
-                        },
-                        modifier = Modifier.background(SurfaceField)
-                    )
-                }
-                if (state.rutinasDisponibles.isEmpty()) {
-                    DropdownMenuItem(
-                        text = { Text("No hay rutinas creadas", color = SubtitleGray, fontSize = 14.sp) },
-                        onClick = {},
-                        modifier = Modifier.background(SurfaceField)
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            // ── Día ───────────────────────────────────────────────────────────
-            FormFieldLabel("Día", required = true)
-            DropdownField(
-                placeholder = if (state.rutinaSeleccionadaId == null) {
-                    "Seleccioná una rutina primero"
-                } else {
-                    "Seleccioná un día"
-                },
-                selectedText = state.diaSeleccionado?.label,
-                isError = state.diaError != null,
-                errorMessage = state.diaError
-            ) { dismissMenu ->
-                val dias = state.diasDisponibles
-                dias.forEach { dia ->
-                    DropdownMenuItem(
-                        text = { Text(dia.label, color = Color.White, fontSize = 14.sp) },
-                        onClick = {
-                            viewModel.onDiaSelect(dia)
-                            dismissMenu()
-                        },
-                        modifier = Modifier.background(SurfaceField)
-                    )
-                }
-                if (dias.isEmpty()) {
-                    DropdownMenuItem(
-                        text = { Text("Seleccioná una rutina para ver los días", color = SubtitleGray, fontSize = 14.sp) },
-                        onClick = {},
-                        modifier = Modifier.background(SurfaceField)
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            // ── Horario ───────────────────────────────────────────────────────
-            FormFieldLabel("Horario", required = true)
-            DropdownField(
-                placeholder = if (state.rutinaSeleccionadaId == null) {
-                    "Seleccioná una rutina primero"
-                } else {
-                    "Seleccioná un horario"
-                },
-                selectedText = state.horario,
-                isError = state.horarioError != null,
-                errorMessage = state.horarioError
-            ) { dismissMenu ->
-                val horarios = state.horariosDisponibles
-                horarios.forEach { h ->
-                    DropdownMenuItem(
-                        text = { Text(h, color = Color.White, fontSize = 14.sp) },
-                        onClick = {
-                            viewModel.onHorarioChange(h)
-                            dismissMenu()
-                        },
-                        modifier = Modifier.background(SurfaceField)
-                    )
-                }
-                if (horarios.isEmpty()) {
-                    DropdownMenuItem(
-                        text = { Text("Seleccioná una rutina para ver los horarios", color = SubtitleGray, fontSize = 14.sp) },
-                        onClick = {},
-                        modifier = Modifier.background(SurfaceField)
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            // ── Foto (opcional) ───────────────────────────────────────────────
-            FormFieldLabel("Foto (opcional)")
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = SurfaceField,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.Image, contentDescription = null, tint = SubtitleGray, modifier = Modifier.size(28.dp))
-                    Spacer(Modifier.width(12.dp))
-                    Column {
-                        Text("Agregar foto", color = Color.White, fontSize = 14.sp)
-                        Text("Desde cámara o galería", color = SubtitleGray, fontSize = 12.sp)
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            // ── Notas (opcional) ──────────────────────────────────────────────
-            FormFieldLabel("Notas (opcional)")
-            val maxNotas = 120
-            OutlinedTextField(
-                value = state.notas,
-                onValueChange = { if (it.length <= maxNotas) viewModel.onNotasChange(it) },
-                modifier = Modifier.fillMaxWidth().height(100.dp),
-                placeholder = { Text("Agregá una nota...", color = PlaceholderGray, fontSize = 14.sp) },
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = SurfaceField,
-                    unfocusedContainerColor = SurfaceField,
-                    focusedBorderColor = AccentBlue,
-                    unfocusedBorderColor = FieldBorder,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = AccentBlue
-                )
-            )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Text("${state.notas.length}/$maxNotas", color = SubtitleGray, fontSize = 11.sp)
-            }
-
-            Spacer(Modifier.height(28.dp))
-        }
-
-        // ── Botón fijo abajo ──────────────────────────────────────────────────
-        Button(
-            onClick = viewModel::onCrearTarea,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 20.dp)
-                .height(54.dp),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = StrengthGreen)
-        ) {
-            Text(
-                text = if (state.rutinasDisponibles.isEmpty()) "Crear tarea" else "Guardar cambios",
-                fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White
-            )
-        }
-    }
+    TareaFormScreen(
+        title = "Nueva tarea",
+        isEditing = false,
+        topBarSize = AppTopBarSize.Compact,
+        submitButtonText = "Crear tarea",
+        notesCounterFontSize = 11.sp,
+        viewModel = viewModel,
+        loadData = viewModel::loadFormData,
+        onBack = onBack,
+        onSuccess = onTaskCreated,
+        onSubmit = viewModel::onCrearTarea
+    )
 }
 
 @Composable
@@ -272,7 +59,10 @@ fun EditarTareaScreen(
 ) {
     TareaFormScreen(
         title = "Editar tarea",
-        backIcon = FormBackIcon.Arrow,
+        isEditing = true,
+        topBarSize = AppTopBarSize.Regular,
+        submitButtonText = "Guardar cambios",
+        notesCounterFontSize = 13.sp,
         viewModel = viewModel,
         loadData = { viewModel.loadEditFormData(taskId) },
         onBack = onBack,
@@ -284,7 +74,10 @@ fun EditarTareaScreen(
 @Composable
 private fun TareaFormScreen(
     title: String,
-    backIcon: FormBackIcon,
+    isEditing: Boolean,
+    topBarSize: AppTopBarSize,
+    submitButtonText: String,
+    notesCounterFontSize: androidx.compose.ui.unit.TextUnit,
     viewModel: TareasViewModel,
     loadData: () -> Unit,
     onBack: () -> Unit,
@@ -304,7 +97,10 @@ private fun TareaFormScreen(
 
     TareaFormContent(
         title = title,
-        backIcon = backIcon,
+        isEditing = isEditing,
+        topBarSize = topBarSize,
+        submitButtonText = submitButtonText,
+        notesCounterFontSize = notesCounterFontSize,
         state = state,
         onBack = onBack,
         onTituloChange = viewModel::onTituloChange,
@@ -317,12 +113,13 @@ private fun TareaFormScreen(
     )
 }
 
-private enum class FormBackIcon { Close, Arrow }
-
 @Composable
 private fun TareaFormContent(
     title: String,
-    backIcon: FormBackIcon,
+    isEditing: Boolean,
+    topBarSize: AppTopBarSize,
+    submitButtonText: String,
+    notesCounterFontSize: androidx.compose.ui.unit.TextUnit,
     state: CrearTareaUiState,
     onBack: () -> Unit,
     onTituloChange: (String) -> Unit,
@@ -333,7 +130,6 @@ private fun TareaFormContent(
     onNotasChange: (String) -> Unit,
     onSubmit: () -> Unit
 ) {
-    val isEditing = title == "Editar tarea"
     val maxNotas = 120
 
     Box(
@@ -354,7 +150,7 @@ private fun TareaFormContent(
             AppTopBar(
                 title = title,
                 onBack = onBack,
-                size = AppTopBarSize.Regular
+                size = topBarSize
             )
 
             Spacer(Modifier.height(24.dp))
@@ -514,27 +310,16 @@ private fun TareaFormContent(
             Spacer(Modifier.height(20.dp))
 
             FormFieldLabel("Notas (opcional)")
-            OutlinedTextField(
+            AppTextArea(
                 value = state.notas,
-                onValueChange = { if (it.length <= maxNotas) onNotasChange(it) },
+                onValueChange = onNotasChange,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp),
-                placeholder = { Text("Agregá una nota...", color = PlaceholderGray, fontSize = 14.sp) },
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = SurfaceField,
-                    unfocusedContainerColor = SurfaceField,
-                    focusedBorderColor = AccentBlue,
-                    unfocusedBorderColor = FieldBorder,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = AccentBlue
-                )
+                placeholder = "Agregá una nota...",
+                maxLength = maxNotas,
+                counterFontSize = notesCounterFontSize
             )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Text("${state.notas.length}/$maxNotas", color = SubtitleGray, fontSize = 13.sp)
-            }
 
             Spacer(Modifier.height(28.dp))
         }
@@ -549,12 +334,12 @@ private fun TareaFormContent(
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = StrengthGreen)
         ) {
-            Text("Guardar cambios", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+            Text(submitButtonText, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
         }
     }
 }
 
-// ── Componentes reutilizables ─────────────────────────────────────────────────
+// Componentes reutilizables
 
 @Composable
 private fun CategoriaSelector(
@@ -625,18 +410,7 @@ private fun DropdownField(
             isError = isError,
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = SurfaceField,
-                unfocusedContainerColor = SurfaceField,
-                errorContainerColor = Color(0xFF2A1515),
-                focusedBorderColor = AccentBlue,
-                unfocusedBorderColor = FieldBorder,
-                errorBorderColor = ErrorRed,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                errorTextColor = Color.White,
-                cursorColor = AccentBlue
-            )
+            colors = appTextFieldColors()
         )
         ExposedDropdownMenu(
             expanded = expanded,

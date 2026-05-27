@@ -1,7 +1,6 @@
 package com.example.apk_mock.ui.tareas
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,21 +17,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,15 +40,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.model.Tarea
-import com.example.apk_mock.ui.components.AppTopBar
-import com.example.apk_mock.ui.components.AppTopBarSize
+import com.example.apk_mock.ui.components.DetailActionTopBar
 import com.example.apk_mock.ui.theme.AccentBlue
 import com.example.apk_mock.ui.theme.BackgroundDark
 import com.example.apk_mock.ui.theme.CancelRed
@@ -200,54 +190,14 @@ private fun DetailHeader(
     onEditTask: (String) -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    var menuExpanded by remember { mutableStateOf(false) }
-
-    AppTopBar(
+    DetailActionTopBar(
         title = "Detalle de tarea",
         onBack = onBack,
-        size = AppTopBarSize.Detail,
-        titleFontWeight = FontWeight.Bold,
-        actions = {
-        Box {
-            IconButton(
-                onClick = { menuExpanded = true },
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(Color.Transparent)
-            ) {
-                Icon(Icons.Default.MoreVert, contentDescription = "Más opciones", tint = LabelGray)
-            }
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false },
-                modifier = Modifier
-                    .background(Color(0xFF0F1450))
-                    .border(1.dp, Color(0xFF161D68), RoundedCornerShape(12.dp))
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Editar tarea", color = Color.White, fontSize = 14.sp) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                    },
-                    onClick = {
-                        menuExpanded = false
-                        onEditTask(taskId)
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Eliminar tarea", color = CancelRed, fontSize = 14.sp) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Delete, contentDescription = null, tint = CancelRed, modifier = Modifier.size(18.dp))
-                    },
-                    onClick = {
-                        menuExpanded = false
-                        onDeleteClick()
-                    }
-                )
-            }
-        }
-        }
+        editLabel = "Editar tarea",
+        deleteLabel = "Eliminar tarea",
+        deleteColor = CancelRed,
+        onEdit = { onEditTask(taskId) },
+        onDelete = onDeleteClick
     )
 }
 

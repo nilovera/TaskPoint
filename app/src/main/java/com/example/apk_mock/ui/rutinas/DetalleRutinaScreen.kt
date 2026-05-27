@@ -19,20 +19,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -55,13 +46,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
-import com.example.apk_mock.ui.components.AppTopBar
-import com.example.apk_mock.ui.components.AppTopBarSize
+import com.example.apk_mock.ui.components.AppConfirmDialog
+import com.example.apk_mock.ui.components.DetailActionTopBar
 import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.AccentBlue
 import com.example.apk_mock.ui.theme.BackgroundDark
 import com.example.apk_mock.ui.theme.ErrorRed
-import com.example.apk_mock.ui.theme.FieldBorder
 import com.example.apk_mock.ui.theme.StrengthGreen
 import com.example.apk_mock.ui.theme.SubtitleGray
 import com.example.apk_mock.ui.theme.SurfaceField
@@ -170,8 +160,15 @@ fun DetalleRutinaScreen(
     }
 
     if (showDeleteDialog && rutina != null) {
-        DeleteRoutineDialog(
-            routineName = rutina.nombre,
+        AppConfirmDialog(
+            title = "Eliminar rutina",
+            message = "Estas seguro que queres eliminar \"${rutina.nombre}\"? Esta accion tambien elimina sus tareas asociadas y no se puede deshacer.",
+            confirmText = "Eliminar",
+            confirmColor = ErrorRed,
+            containerColor = DetailCard,
+            messageColor = SubtitleGray,
+            supportColor = SubtitleGray,
+            dismissContainerColor = Color.Transparent,
             onDismiss = { showDeleteDialog = false },
             onConfirm = {
                 showDeleteDialog = false
@@ -188,47 +185,20 @@ private fun DetailTopBar(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
-    var menuExpanded by remember { mutableStateOf(false) }
-
-    AppTopBar(
+    DetailActionTopBar(
         title = "Detalle de rutina",
         onBack = onBack,
-        size = AppTopBarSize.Detail,
-        titleFontWeight = FontWeight.Bold,
         backIconTint = SubtitleGray,
-        actions = {
-        Box {
-            IconButton(onClick = { menuExpanded = true }) {
-                Icon(Icons.Default.MoreVert, contentDescription = "Acciones", tint = Color.White)
-            }
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false },
-                containerColor = DetailMenu
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Editar rutina", color = Color.White, fontSize = 12.sp) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    },
-                    onClick = {
-                        menuExpanded = false
-                        onEdit()
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Eliminar rutina", color = ErrorRed, fontSize = 12.sp) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Delete, contentDescription = null, tint = ErrorRed, modifier = Modifier.size(16.dp))
-                    },
-                    onClick = {
-                        menuExpanded = false
-                        onDelete()
-                    }
-                )
-            }
-        }
-        }
+        actionIconTint = Color.White,
+        menuContainerColor = DetailMenu,
+        menuBorderColor = null,
+        editLabel = "Editar rutina",
+        deleteLabel = "Eliminar rutina",
+        deleteColor = ErrorRed,
+        itemFontSize = 12.sp,
+        itemIconSize = 16.dp,
+        onEdit = onEdit,
+        onDelete = onDelete
     )
 }
 
@@ -472,53 +442,5 @@ private fun MissingRoutineState(onBack: () -> Unit) {
             }
         }
     }
-}
-
-@Composable
-private fun DeleteRoutineDialog(
-    routineName: String,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = DetailCard,
-        shape = RoundedCornerShape(16.dp),
-        title = {
-            Text(
-                "Eliminar rutina",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Text(
-                "Estas seguro que queres eliminar \"$routineName\"? Esta accion tambien elimina sus tareas asociadas y no se puede deshacer.",
-                color = SubtitleGray,
-                fontSize = 14.sp,
-                lineHeight = 19.sp
-            )
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                shape = RoundedCornerShape(9.dp),
-                border = BorderStroke(1.dp, FieldBorder),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
-            ) {
-                Text("Cancelar", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                shape = RoundedCornerShape(9.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = ErrorRed)
-            ) {
-                Text("Eliminar", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            }
-        }
-    )
 }
 

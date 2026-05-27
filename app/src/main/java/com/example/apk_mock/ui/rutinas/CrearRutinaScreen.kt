@@ -1,9 +1,6 @@
 package com.example.apk_mock.ui.rutinas
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,18 +9,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.domain.model.DiaSemana
-import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.ui.components.AppTextArea
+import com.example.apk_mock.ui.components.AppTextField
 import com.example.apk_mock.ui.components.AppTopBar
 import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.components.FormFieldLabel
-import com.example.apk_mock.ui.register.AppTextField
 import com.example.apk_mock.ui.theme.*
 
 @Composable
@@ -79,7 +73,7 @@ fun CrearRutinaScreen(
 
             // ── Ícono ─────────────────────────────────────────────────────────
             FormFieldLabel("Ícono", required = true)
-            IconosGrid(
+            RutinaIconosGrid(
                 seleccionado = state.iconoSeleccionado,
                 onSelect = viewModel::onIconoChange
             )
@@ -101,7 +95,7 @@ fun CrearRutinaScreen(
 
             // ── Días de la semana ─────────────────────────────────────────────
             FormFieldLabel("Días de la semana", required = true)
-            DiasSelector(
+            RutinaDiasSelector(
                 seleccionados = state.diasSeleccionados,
                 onToggle = viewModel::onDiaToggle
             )
@@ -118,7 +112,7 @@ fun CrearRutinaScreen(
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Inicio", color = SubtitleGray, fontSize = 12.sp)
                     Spacer(Modifier.height(4.dp))
-                    HorarioField(
+                    RutinaHorarioField(
                         value = state.horarioInicio,
                         onValueChange = viewModel::onHorarioInicioChange,
                         placeholder = "18:00",
@@ -131,7 +125,7 @@ fun CrearRutinaScreen(
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Fin", color = SubtitleGray, fontSize = 12.sp)
                     Spacer(Modifier.height(4.dp))
-                    HorarioField(
+                    RutinaHorarioField(
                         value = state.horarioFin,
                         onValueChange = viewModel::onHorarioFinChange,
                         placeholder = "19:00",
@@ -148,37 +142,18 @@ fun CrearRutinaScreen(
             // ── Descripción ───────────────────────────────────────────────────
             FormFieldLabel("Descripción", required = true)
             val maxDesc = 120
-            OutlinedTextField(
+            AppTextArea(
                 value = state.descripcion,
-                onValueChange = { if (it.length <= maxDesc) viewModel.onDescripcionChange(it) },
+                onValueChange = viewModel::onDescripcionChange,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(110.dp),
-                placeholder = { Text("Agrega una descripcion...", color = PlaceholderGray, fontSize = 14.sp) },
+                placeholder = "Agrega una descripcion...",
                 isError = state.descripcionError != null,
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = SurfaceField,
-                    unfocusedContainerColor = SurfaceField,
-                    errorContainerColor = Color(0xFF2A1515),
-                    focusedBorderColor = AccentBlue,
-                    unfocusedBorderColor = FieldBorder,
-                    errorBorderColor = ErrorRed,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    errorTextColor = Color.White,
-                    cursorColor = AccentBlue
-                )
+                errorMessage = state.descripcionError,
+                maxLength = maxDesc,
+                counterFontSize = 11.sp
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                if (state.descripcionError != null)
-                    Text(state.descripcionError!!, color = ErrorRed, fontSize = 12.sp)
-                else Spacer(Modifier.width(1.dp))
-                Text("${state.descripcion.length}/$maxDesc", color = SubtitleGray, fontSize = 11.sp)
-            }
 
             Spacer(Modifier.height(28.dp))
         }
@@ -201,85 +176,3 @@ fun CrearRutinaScreen(
 
 // ── Componentes internos ──────────────────────────────────────────────────────
 
-@Composable
-private fun IconosGrid(seleccionado: RutinaIcono, onSelect: (RutinaIcono) -> Unit) {
-    val iconos = RutinaIcono.values()
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        iconos.forEach { icono ->
-            val isSelected = icono == seleccionado
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(icono.colorHex))
-                    .then(
-                        if (isSelected) Modifier.border(2.dp, Color.White, RoundedCornerShape(12.dp))
-                        else Modifier
-                    )
-                    .clickable { onSelect(icono) },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(icono.emoji, fontSize = 22.sp)
-            }
-        }
-        Spacer(Modifier.width(24.dp))
-    }
-}
-
-@Composable
-private fun DiasSelector(seleccionados: Set<DiaSemana>, onToggle: (DiaSemana) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        DiaSemana.values().forEach { dia ->
-            val selected = seleccionados.contains(dia)
-            Surface(
-                onClick = { onToggle(dia) },
-                shape = RoundedCornerShape(20.dp),
-                color = if (selected) AccentBlue else SurfaceField,
-                modifier = Modifier.height(32.dp)
-            ) {
-                Box(Modifier.padding(horizontal = 10.dp), contentAlignment = Alignment.Center) {
-                    Text(
-                        dia.label,
-                        fontSize = 12.sp,
-                        color = if (selected) Color.White else SubtitleGray,
-                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun HorarioField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    isError: Boolean
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text(placeholder, color = PlaceholderGray) },
-        singleLine = true,
-        isError = isError,
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = SurfaceField,
-            unfocusedContainerColor = SurfaceField,
-            errorContainerColor = Color(0xFF2A1515),
-            focusedBorderColor = AccentBlue,
-            unfocusedBorderColor = FieldBorder,
-            errorBorderColor = ErrorRed,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            cursorColor = AccentBlue
-        )
-    )
-}

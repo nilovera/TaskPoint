@@ -18,7 +18,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.ui.register.AppTextField
+import com.example.apk_mock.ui.components.AppTextField
+import com.example.apk_mock.ui.components.appTextFieldColors
 import com.example.apk_mock.ui.register.PasswordStrengthBar
 import com.example.apk_mock.ui.theme.*
 
@@ -259,13 +260,9 @@ fun OtpInputRow(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = SurfaceField,
-                    unfocusedContainerColor = SurfaceField,
+                colors = appTextFieldColors(
                     focusedBorderColor = if (isError) ErrorRed else AccentBlue,
-                    unfocusedBorderColor = if (digit.isNotEmpty()) AccentBlue else FieldBorder,
-                    errorBorderColor = ErrorRed,
-                    cursorColor = AccentBlue
+                    unfocusedBorderColor = if (digit.isNotEmpty()) AccentBlue else FieldBorder
                 )
             )
         }

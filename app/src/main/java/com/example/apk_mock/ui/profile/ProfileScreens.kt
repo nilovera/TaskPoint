@@ -1,14 +1,10 @@
 package com.example.apk_mock.ui.profile
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,11 +17,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,16 +37,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.apk_mock.ui.components.AppConfirmDialog
 import com.example.apk_mock.ui.components.AppTopBar
 import com.example.apk_mock.ui.components.AppTopBarSize
-import com.example.apk_mock.ui.register.AppTextField
+import com.example.apk_mock.ui.components.AppTextField
 import com.example.apk_mock.ui.theme.AccentBlue
-import com.example.apk_mock.ui.theme.BackgroundDark
 import com.example.apk_mock.ui.theme.FieldBorder
 import com.example.apk_mock.ui.theme.LabelGray
 import com.example.apk_mock.ui.theme.PlaceholderGray
-import com.example.apk_mock.ui.theme.SubtitleGray
-import com.example.apk_mock.ui.theme.SurfaceField
 
 private val ProfileBackground = Color(0xFF090A13)
 private val ProfileDialog = Color(0xFF181C2D)
@@ -158,13 +150,20 @@ fun ProfileScreen(
     }
 
     if (showDeleteDialog) {
-        ProfileConfirmDialog(
+        AppConfirmDialog(
             title = "Eliminar cuenta",
             message = "Estas seguro que queres eliminar tu cuenta?",
             support = "Esta accion no se puede deshacer.",
             confirmText = "Eliminar",
             confirmColor = DangerRed,
-            onCancel = { showDeleteDialog = false },
+            containerColor = ProfileDialog,
+            messageColor = LabelGray,
+            supportColor = LabelGray,
+            buttonCornerRadius = 8.dp,
+            titleFontSize = 17.sp,
+            bodyFontSize = 13.sp,
+            bodyLineHeight = 18.sp,
+            onDismiss = { showDeleteDialog = false },
             onConfirm = {
                 showDeleteDialog = false
                 viewModel.onDeleteAccountConfirmed()
@@ -173,13 +172,20 @@ fun ProfileScreen(
     }
 
     if (showLogoutDialog) {
-        ProfileConfirmDialog(
+        AppConfirmDialog(
             title = "Cerrar sesion",
             message = "Estas seguro que deseas cerrar sesion?",
             support = null,
             confirmText = "Confirmar",
             confirmColor = AccentBlue,
-            onCancel = { showLogoutDialog = false },
+            containerColor = ProfileDialog,
+            messageColor = LabelGray,
+            supportColor = LabelGray,
+            buttonCornerRadius = 8.dp,
+            titleFontSize = 17.sp,
+            bodyFontSize = 13.sp,
+            bodyLineHeight = 18.sp,
+            onDismiss = { showLogoutDialog = false },
             onConfirm = {
                 showLogoutDialog = false
                 viewModel.onLogoutConfirmed()
@@ -386,52 +392,3 @@ private fun PasswordErrorBanner(text: String) {
     }
 }
 
-@Composable
-private fun ProfileConfirmDialog(
-    title: String,
-    message: String,
-    support: String?,
-    confirmText: String,
-    confirmColor: Color,
-    onCancel: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onCancel,
-        containerColor = ProfileDialog,
-        shape = RoundedCornerShape(16.dp),
-        title = {
-            Text(title, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(message, color = LabelGray, fontSize = 13.sp, lineHeight = 18.sp)
-                if (support != null) {
-                    Text(support, color = LabelGray, fontSize = 13.sp, lineHeight = 18.sp)
-                }
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = onCancel,
-                shape = RoundedCornerShape(8.dp),
-                border = BorderStroke(1.dp, FieldBorder),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = BackgroundDark,
-                    contentColor = Color.White
-                )
-            ) {
-                Text("Cancelar", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = confirmColor)
-            ) {
-                Text(confirmText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-    )
-}

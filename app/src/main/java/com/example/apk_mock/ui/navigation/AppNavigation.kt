@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -77,7 +76,7 @@ private data class BottomNavItem(
 
 private val bottomNavItems = listOf(
     BottomNavItem(Routes.RUTINAS, "Rutinas", Icons.Default.DateRange),
-    BottomNavItem(Routes.HOME,    "",        Icons.Default.Home),
+    BottomNavItem(Routes.HOME,    "Inicio",  Icons.Default.Home),
     BottomNavItem(Routes.TAREAS,  "Tareas",  Icons.AutoMirrored.Filled.List)
 )
 
@@ -516,22 +515,8 @@ private fun RowScope.BottomNavButton(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val isHome = item.route == Routes.HOME
-    val itemShape = if (isHome) CircleShape else RoundedCornerShape(18.dp)
-    val iconSize = when {
-        isHome -> 28.dp
-        else -> 28.dp
-    }
-    val horizontalPadding = when {
-        isHome && selected -> 14.dp
-        isHome -> 12.dp
-        else -> 14.dp
-    }
-    val verticalPadding = when {
-        isHome && selected -> 14.dp
-        isHome -> 7.dp
-        else -> 6.dp
-    }
+    val itemShape = RoundedCornerShape(18.dp)
+    val iconSize = 28.dp
 
     Box(
         modifier = Modifier
@@ -549,26 +534,24 @@ private fun RowScope.BottomNavButton(
                 .clip(itemShape)
                 .background(if (selected) AccentBlue else Color.Transparent)
                 .padding(
-                    horizontal = horizontalPadding,
-                    vertical = verticalPadding
+                    horizontal = 14.dp,
+                    vertical = 6.dp
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
                 item.icon,
-                contentDescription = item.label.ifBlank { "Inicio" },
+                contentDescription = item.label,
                 tint = if (selected) Color.White else SubtitleGray,
                 modifier = Modifier.size(iconSize)
             )
-            if (item.label.isNotBlank()) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    item.label,
-                    color = if (selected) Color.White else SubtitleGray,
-                    fontSize = 13.sp,
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-                )
-            }
+            Spacer(Modifier.height(4.dp))
+            Text(
+                item.label,
+                color = if (selected) Color.White else SubtitleGray,
+                fontSize = 13.sp,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+            )
         }
     }
 }
