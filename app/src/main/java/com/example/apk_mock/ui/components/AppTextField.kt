@@ -80,7 +80,7 @@ fun AppTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(placeholder, color = PlaceholderGray, fontSize = 17.sp) },
+            placeholder = { Text(placeholder, color = PlaceholderGray, fontSize = 18.sp) },
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             isError = isError,
@@ -88,7 +88,7 @@ fun AppTextField(
             shape = RoundedCornerShape(12.dp),
             colors = appTextFieldColors(),
             textStyle = LocalTextStyle.current.copy(
-                fontSize = 20.sp,
+                fontSize = 19.sp,
                 color = Color.White
             )
         )

@@ -2,20 +2,34 @@ package com.example.apk_mock.ui.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.ui.components.AppTextField
-import com.example.apk_mock.ui.theme.*
+import com.example.apk_mock.ui.components.AuthBottomLink
+import com.example.apk_mock.ui.components.AuthErrorBanner
+import com.example.apk_mock.ui.components.AuthHeader
+import com.example.apk_mock.ui.components.AuthPrimaryButton
+import com.example.apk_mock.ui.theme.BackgroundDark
+import com.example.apk_mock.ui.theme.loginAndRegisterBlue
 
 @Composable
 fun LoginScreen(
@@ -25,7 +39,8 @@ fun LoginScreen(
     onNavigateToForgotPassword: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    val hasError = state.errorMessage != null
+    val errorMessage = state.errorMessage
+    val hasError = errorMessage != null
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
@@ -43,23 +58,14 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 48.dp, bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(top = 80.dp, bottom = 32.dp)
         ) {
-            Text(
-                text = "Bienvenido de\nnuevo",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                lineHeight = 38.sp
+            AuthHeader(
+                title = "Bienvenido de\nnuevo",
+                subtitle = "Ingresá a tu cuenta para ver tus recordatorios."
             )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = "Ingresá a tu cuenta para ver tus recordatorios.",
-                fontSize = 14.sp,
-                color = SubtitleGray,
-                lineHeight = 20.sp
-            )
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(34.dp))
 
             AppTextField(
                 label = "Correo electrónico",
@@ -79,61 +85,39 @@ fun LoginScreen(
                 isError = hasError
             )
 
-            if (hasError) {
-                Spacer(Modifier.height(8.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(ErrorBg, RoundedCornerShape(10.dp))
-                        .padding(horizontal = 14.dp, vertical = 10.dp)
-                ) {
-                    Text(state.errorMessage ?: "", color = ErrorRed, fontSize = 13.sp, lineHeight = 18.sp)
-                }
+            if (errorMessage != null) {
+                Spacer(Modifier.height(14.dp))
+                AuthErrorBanner(message = errorMessage)
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "¿Olvidaste tu contraseña?",
-                    color = AccentBlue,
-                    fontSize = 13.sp,
+                    color = loginAndRegisterBlue,
+                    fontSize = 17.sp,
                     modifier = Modifier.clickable { onNavigateToForgotPassword() }
                 )
             }
 
             Spacer(Modifier.height(20.dp))
 
-            Button(
-                onClick = viewModel::onLoginClick,
-                modifier = Modifier.fillMaxWidth().height(54.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
-            ) {
-                Text(
-                    text = if (hasError) "Intentar de nuevo" else "Iniciar sesión ↗",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White
-                )
-            }
+            AuthPrimaryButton(
+                text = "Iniciar sesión ↗",
+                onClick = viewModel::onLoginClick
+            )
 
             Spacer(Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("¿No tenés cuenta? ", color = SubtitleGray, fontSize = 14.sp)
-                Text(
-                    text = "Registrate",
-                    color = AccentBlue,
-                    fontSize = 14.sp,
-                    modifier = Modifier.clickable { onNavigateToRegister() }
-                )
-            }
+            AuthBottomLink(
+                text = "¿No tenés cuenta? ",
+                actionText = "Registrate",
+                onClick = onNavigateToRegister
+            )
         }
     }
 }
