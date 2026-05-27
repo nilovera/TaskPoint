@@ -37,7 +37,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.ui.components.AppConfirmDialog
+import com.example.apk_mock.ui.components.AppDeleteConfirmDialog
+import com.example.apk_mock.ui.components.AppLogoutConfirmDialog
 import com.example.apk_mock.ui.components.AppTopBar
 import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.components.AppTextField
@@ -47,7 +48,6 @@ import com.example.apk_mock.ui.theme.LabelGray
 import com.example.apk_mock.ui.theme.PlaceholderGray
 
 private val ProfileBackground = Color(0xFF090A13)
-private val ProfileDialog = Color(0xFF181C2D)
 private val ProfileLavender = Color(0xFFE5D6FF)
 private val ProfileInk = Color(0xFF1E274F)
 private val DangerRed = Color(0xFFE9364B)
@@ -56,6 +56,13 @@ private val ErrorBannerBorder = Color(0xFF9E2635)
 private val ErrorBannerText = Color(0xFFFF6975)
 private val SaveGreen = Color(0xFF41B37F)
 private val FieldFill = Color(0xFF191C30)
+private val ProfileFieldHeight = 56.dp
+private val ProfileButtonHeight = 65.dp
+private val ProfileMessageHeight = 50.dp
+private val ProfileLabelSize = 17.sp
+private val ProfileValueSize = 19.sp
+private val ProfileActionSize = 20.sp
+private val ProfileMessageSize = 17.sp
 
 @Composable
 fun ProfileScreen(
@@ -111,8 +118,8 @@ fun ProfileScreen(
             ProfileReadOnlyField(label = "Email", value = state.email)
             Spacer(Modifier.height(13.dp))
 
-            Text("Contraseña", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(5.dp))
+            ProfileSectionLabel("Contraseña")
+            Spacer(Modifier.height(6.dp))
             ProfileActionButton(
                 text = "Cambiar contraseña",
                 color = AccentBlue,
@@ -123,7 +130,7 @@ fun ProfileScreen(
             )
 
             Spacer(Modifier.height(12.dp))
-            Text("Cuenta", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            ProfileSectionLabel("Cuenta")
             Spacer(Modifier.height(6.dp))
             ProfileActionButton(
                 text = "Cerrar sesion",
@@ -150,19 +157,10 @@ fun ProfileScreen(
     }
 
     if (showDeleteDialog) {
-        AppConfirmDialog(
+        AppDeleteConfirmDialog(
             title = "Eliminar cuenta",
             message = "Estas seguro que queres eliminar tu cuenta?",
             support = "Esta accion no se puede deshacer.",
-            confirmText = "Eliminar",
-            confirmColor = DangerRed,
-            containerColor = ProfileDialog,
-            messageColor = LabelGray,
-            supportColor = LabelGray,
-            buttonCornerRadius = 8.dp,
-            titleFontSize = 17.sp,
-            bodyFontSize = 13.sp,
-            bodyLineHeight = 18.sp,
             onDismiss = { showDeleteDialog = false },
             onConfirm = {
                 showDeleteDialog = false
@@ -172,19 +170,7 @@ fun ProfileScreen(
     }
 
     if (showLogoutDialog) {
-        AppConfirmDialog(
-            title = "Cerrar sesion",
-            message = "Estas seguro que deseas cerrar sesion?",
-            support = null,
-            confirmText = "Confirmar",
-            confirmColor = AccentBlue,
-            containerColor = ProfileDialog,
-            messageColor = LabelGray,
-            supportColor = LabelGray,
-            buttonCornerRadius = 8.dp,
-            titleFontSize = 17.sp,
-            bodyFontSize = 13.sp,
-            bodyLineHeight = 18.sp,
+        AppLogoutConfirmDialog(
             onDismiss = { showLogoutDialog = false },
             onConfirm = {
                 showLogoutDialog = false
@@ -284,7 +270,7 @@ private fun ProfileTopBar(title: String, onBack: () -> Unit) {
     AppTopBar(
         title = title,
         onBack = onBack,
-        modifier = Modifier.height(38.dp),
+        modifier = Modifier.height(44.dp),
         size = AppTopBarSize.Profile,
         titleFontWeight = FontWeight.Bold
     )
@@ -308,21 +294,39 @@ private fun ProfileAvatar(modifier: Modifier = Modifier) {
 }
 
 @Composable
+private fun ProfileSectionLabel(text: String) {
+    Text(
+        text = text,
+        color = Color.White,
+        fontSize = ProfileLabelSize,
+        fontWeight = FontWeight.Bold
+    )
+}
+
+@Composable
 private fun ProfileReadOnlyField(label: String, value: String) {
     Column {
-        Text(label, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text(
+            text = label,
+            color = LabelGray,
+            fontSize = ProfileLabelSize
+        )
         Spacer(Modifier.height(6.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(40.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .height(ProfileFieldHeight)
+                .clip(RoundedCornerShape(12.dp))
                 .background(FieldFill)
-                .border(1.dp, FieldBorder.copy(alpha = 0.55f), RoundedCornerShape(10.dp))
+                .border(1.dp, FieldBorder.copy(alpha = 0.55f), RoundedCornerShape(12.dp))
                 .padding(horizontal = 14.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(value, color = PlaceholderGray, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = value,
+                color = PlaceholderGray,
+                fontSize = ProfileValueSize
+            )
         }
     }
 }
@@ -337,16 +341,16 @@ private fun ProfileActionButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(36.dp),
-        shape = RoundedCornerShape(7.dp),
+            .height(ProfileButtonHeight),
+        shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(containerColor = color),
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
     ) {
         Text(
             text = text,
             color = Color.White,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = ProfileActionSize,
+            fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center
         )
     }
@@ -357,15 +361,15 @@ private fun MessageBanner(text: String, color: Color) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(31.dp)
-            .clip(RoundedCornerShape(7.dp))
+            .height(ProfileMessageHeight)
+            .clip(RoundedCornerShape(10.dp))
             .background(color),
         contentAlignment = Alignment.CenterStart
     ) {
         Text(
             text = text,
             color = Color.White,
-            fontSize = 12.sp,
+            fontSize = ProfileMessageSize,
             modifier = Modifier.padding(horizontal = 14.dp)
         )
     }
@@ -376,17 +380,17 @@ private fun PasswordErrorBanner(text: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(if (text.length > 44) 50.dp else 39.dp)
-            .clip(RoundedCornerShape(9.dp))
+            .height(if (text.length > 44) 60.dp else ProfileMessageHeight)
+            .clip(RoundedCornerShape(10.dp))
             .background(ErrorBannerBackground)
-            .border(1.dp, ErrorBannerBorder, RoundedCornerShape(9.dp))
+            .border(1.dp, ErrorBannerBorder, RoundedCornerShape(10.dp))
             .padding(horizontal = 14.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         Text(
             text = text,
             color = ErrorBannerText,
-            fontSize = 13.sp,
+            fontSize = ProfileMessageSize,
             lineHeight = 18.sp
         )
     }

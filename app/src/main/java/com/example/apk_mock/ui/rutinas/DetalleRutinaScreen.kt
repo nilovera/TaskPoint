@@ -48,12 +48,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
-import com.example.apk_mock.ui.components.AppConfirmDialog
+import com.example.apk_mock.ui.components.AppDeleteConfirmDialog
 import com.example.apk_mock.ui.components.DetailActionTopBar
 import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.AccentBlue
 import com.example.apk_mock.ui.theme.BackgroundDark
-import com.example.apk_mock.ui.theme.ErrorRed
 import com.example.apk_mock.ui.theme.StrengthGreen
 import com.example.apk_mock.ui.theme.SubtitleGray
 import com.example.apk_mock.ui.theme.SurfaceField
@@ -62,7 +61,6 @@ import com.example.apk_mock.ui.theme.categoryColor
 private val DetailCard = Color(0xFF171B2D)
 private val DetailContent = Color(0xFF111629)
 private val DetailBorder = Color(0xFF252B44)
-private val DetailMenu = Color(0xFF0B1540)
 
 @Composable
 fun DetalleRutinaScreen(
@@ -163,15 +161,10 @@ fun DetalleRutinaScreen(
     }
 
     if (showDeleteDialog && rutina != null) {
-        AppConfirmDialog(
+        AppDeleteConfirmDialog(
             title = "Eliminar rutina",
-            message = "Estas seguro que queres eliminar \"${rutina.nombre}\"? Esta accion tambien elimina sus tareas asociadas y no se puede deshacer.",
-            confirmText = "Eliminar",
-            confirmColor = ErrorRed,
-            containerColor = DetailCard,
-            messageColor = SubtitleGray,
-            supportColor = SubtitleGray,
-            dismissContainerColor = Color.Transparent,
+            message = "Estas seguro que queres eliminar \"${rutina.nombre}\"?",
+            support = "Esta accion tambien elimina sus tareas asociadas y no se puede deshacer.",
             onDismiss = { showDeleteDialog = false },
             onConfirm = {
                 showDeleteDialog = false
@@ -193,13 +186,8 @@ private fun DetailTopBar(
         onBack = onBack,
         backIconTint = SubtitleGray,
         actionIconTint = Color.White,
-        menuContainerColor = DetailMenu,
-        menuBorderColor = null,
         editLabel = "Editar rutina",
         deleteLabel = "Eliminar rutina",
-        deleteColor = ErrorRed,
-        itemFontSize = 12.sp,
-        itemIconSize = 16.dp,
         onEdit = onEdit,
         onDelete = onDelete
     )
