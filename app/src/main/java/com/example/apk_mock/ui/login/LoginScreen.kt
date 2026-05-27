@@ -108,7 +108,7 @@ fun LoginScreen(
             Spacer(Modifier.height(20.dp))
 
             AuthPrimaryButton(
-                text = "Iniciar sesión ↗",
+                text = if(errorMessage != null) "Intente de nuevo" else "Iniciar sesión ↗",
                 onClick = viewModel::onLoginClick
             )
 

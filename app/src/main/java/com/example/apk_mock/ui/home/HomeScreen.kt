@@ -1,5 +1,6 @@
 package com.example.apk_mock.ui.home
 
+import android.R
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
@@ -69,12 +70,13 @@ import com.example.apk_mock.ui.utils.toDiaSemana
 import java.time.LocalDate
 
 private val HomeBackground = Color(0xFF080B12)
-private val HomeCard = Color(0xFF14182A)
+private val HomeCard = Color(0xFF161929)
 private val HomeCardBorder = Color(0xFF252B44)
 private val HomeChip = Color(0xFF0C101D)
 private val OfflineBackground = Color(0xFF551017)
 private val OfflineBorder = Color(0xFFA93244)
 private val OfflineText = Color(0xFFFF6E82)
+private val TaskCard = Color(0xFF111420)
 
 private data class HomeRoutineSection(
     val rutina: Rutina?,
@@ -188,7 +190,7 @@ private fun HomeHeader(
     ) {
         Column {
             Text(dateLabel, color = SubtitleGray, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-            Text("Hoy", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+            Text("Hoy", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold)
         }
 
         ProfileMenuButton(
@@ -326,7 +328,7 @@ private fun HomeRoutineCard(section: HomeRoutineSection) {
                     Text(
                         section.title,
                         color = Color.White,
-                        fontSize = 14.sp,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -358,10 +360,10 @@ private fun HomeRoutineCard(section: HomeRoutineSection) {
 private fun CountChip(count: Int) {
     Box(
         modifier = Modifier
+            .size(30.dp)
             .clip(RoundedCornerShape(6.dp))
             .background(HomeChip)
-            .border(1.dp, HomeCardBorder, RoundedCornerShape(6.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .border(1.dp, HomeCardBorder, RoundedCornerShape(6.dp)),
         contentAlignment = Alignment.Center
     ) {
         Text("$count", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
@@ -375,20 +377,22 @@ private fun HomeTaskRow(tarea: Tarea) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(color = TaskCard)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = tarea.horario ?: "--:--",
             color = SubtitleGray,
-            fontSize = 14.sp,
+            fontSize = 15.sp,
             modifier = Modifier.width(42.dp)
         )
+        Spacer(Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 tarea.titulo,
                 color = Color.White,
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -403,7 +407,7 @@ private fun HomeTaskRow(tarea: Tarea) {
                 Text(
                     tarea.categoria.label,
                     color = categoryColor,
-                    fontSize = 12.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.ExtraBold,
                     maxLines = 1
                 )
