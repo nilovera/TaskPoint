@@ -57,38 +57,7 @@ class JsonDataSource(private val context: Context) {
     }
 
     fun saveRutinas(rutinas: List<StoredRutina>) {
-        val rows = JSONArray()
-        val now = Instant.now().toString()
-
-        rutinas.forEach { stored ->
-            val rutina = stored.rutina
-            rows.put(
-                JSONObject()
-                    .put("id", rutina.id)
-                    .put("userId", stored.userId)
-                    .put("nombre", rutina.nombre)
-                    .put("icono", rutina.icono.name)
-                    .put("direccion", rutina.direccion)
-                    .put("diasSemana", JSONArray().apply {
-                        rutina.diasSemana.forEach { put(it.name) }
-                    })
-                    .put("horarioInicio", rutina.horarioInicio)
-                    .put("horarioFin", rutina.horarioFin)
-                    .put("descripcion", rutina.descripcion)
-                    .put("cantidadTareas", rutina.cantidadTareas)
-                    .put("createdAt", now)
-                    .put("updatedAt", now)
-            )
-        }
-
-        val json = JSONObject()
-            .put("schemaVersion", 1)
-            .put("table", "rutinas")
-            .put("primaryKey", "id")
-            .put("foreignKeys", JSONObject().put("userId", "users.id"))
-            .put("rows", rows)
-
-        writableAssetCopy("seed/rutinas.json").writeText(json.toString(2), Charsets.UTF_8)
+        // Las rutinas son mock de sesion: se modifican en memoria y se resetean al reiniciar la app.
     }
 
     fun loadCategorias(): List<CategoriaTarea> {
@@ -178,10 +147,6 @@ class JsonDataSource(private val context: Context) {
     private fun readJson(assetPath: String): String {
         if (assetPath == "seed/tareas.json") {
             return context.assets.open(assetPath).bufferedReader().use { it.readText() }
-        }
-
-        if (assetPath == "seed/rutinas.json") {
-            return writableAssetCopy(assetPath).readText(Charsets.UTF_8)
         }
 
         return context.assets.open(assetPath).bufferedReader().use { it.readText() }

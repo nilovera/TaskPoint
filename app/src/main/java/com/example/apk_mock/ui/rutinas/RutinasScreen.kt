@@ -189,7 +189,7 @@ fun FiltrosDias(seleccionado: DiaSemana?, onSelect: (DiaSemana?) -> Unit) {
                 Box(Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
                     Text(
                         text = dia?.label ?: "Todas",
-                        fontSize = 13.sp,
+                        fontSize = 16.sp,
                         color = if (isSelected) Color.White else SubtitleGray,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                     )
@@ -204,30 +204,30 @@ fun FiltrosDias(seleccionado: DiaSemana?, onSelect: (DiaSemana?) -> Unit) {
 fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = SurfaceField,
+        color = BackgroundDarkRutineCard,
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp),
+            verticalAlignment = Alignment.Top
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(52.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(rutina.icono.colorHex)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(rutina.icono.emoji, fontSize = 22.sp)
+                Text(rutina.icono.emoji, fontSize = 24.sp)
             }
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(rutina.nombre, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(rutina.nombre, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                 Text("${rutina.horarioInicio} – ${rutina.horarioFin}", color = SubtitleGray, fontSize = 14.sp)
                 if (rutina.direccion.isNotBlank()) {
-                    Text(rutina.direccion, color = SubtitleGray, fontSize = 14.sp)
+                    Text(rutina.direccion, color = SubtitleGray, fontSize = 16.sp)
                 }
                 Spacer(Modifier.height(8.dp))
                 FlowRow(
@@ -239,8 +239,8 @@ fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
                         Surface(shape = RoundedCornerShape(6.dp), color = AccentBlue.copy(alpha = 0.18f)) {
                             Text(
                                 dia.label,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                fontSize = 12.sp,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                fontSize = 14.sp,
                                 color = AccentBlue,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -249,12 +249,13 @@ fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
                 }
             }
             if (rutina.cantidadTareas > 0) {
-                Surface(shape = RoundedCornerShape(8.dp), color = SurfaceField) {
+                Spacer(Modifier.width(5.dp))
+                Surface(shape = RoundedCornerShape(50), color = Color(0xFF30364F)) {
                     Text(
                         "${rutina.cantidadTareas} tareas",
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                         fontSize = 14.sp,
-                        color = SubtitleGray
+                        color = Color.White
                     )
                 }
             }

@@ -6,6 +6,9 @@ import androidx.compose.ui.graphics.Color
 val BackgroundDark = Color(0xFF080B12)
 val SurfaceField   = Color(0xFF1E2130)
 
+// Background card rutina
+val BackgroundDarkRutineCard = Color(0xFF171A2B)
+
 // Borders
 val FieldBorder     = Color(0xFF2A2D3E)
 
