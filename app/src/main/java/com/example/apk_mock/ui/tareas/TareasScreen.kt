@@ -1,6 +1,5 @@
 package com.example.apk_mock.ui.tareas
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -31,22 +28,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.ui.components.AppEmptyStateCard
+import com.example.apk_mock.ui.components.BottomStatusMessage
 import com.example.apk_mock.ui.components.CreateActionPill
-import com.example.apk_mock.ui.components.ProfileMenuButton
+import com.example.apk_mock.ui.components.MainScreenHeader
 import com.example.apk_mock.ui.rutinas.FiltrosDias
-import com.example.apk_mock.ui.theme.AccentBlue
 import com.example.apk_mock.ui.theme.BackgroundDark
 import com.example.apk_mock.ui.theme.DateBlue
-import com.example.apk_mock.ui.theme.StrengthGreen
 import com.example.apk_mock.ui.theme.SubtitleGray
 import com.example.apk_mock.ui.theme.SurfaceField
 import com.example.apk_mock.ui.theme.categoryColor
@@ -119,23 +114,12 @@ fun TareasScreen(
                         end = 20.dp
                     )
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Mis tareas",
-                        color = Color.White,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    ProfileMenuButton(
-                        userName = userName,
-                        onProfile = onProfile,
-                        onLogout = onLogout
-                    )
-                }
+                MainScreenHeader(
+                    title = "Mis tareas",
+                    userName = userName,
+                    onProfile = onProfile,
+                    onLogout = onLogout
+                )
 
                 Spacer(Modifier.height(16.dp))
                 FiltrosDias(seleccionado = listState.filtroDia, onSelect = { viewModel.onFiltroDia(it) })
@@ -180,33 +164,11 @@ fun TareasScreen(
                 }
             }
 
-            if (overlayMessage != null) {
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = StrengthGreen,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .padding(
-                            start = 20.dp,
-                            end = 20.dp,
-                            bottom = innerPadding.calculateBottomPadding() + 16.dp
-                        )
-                        .height(48.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Text(
-                            overlayMessage.orEmpty(),
-                            color = Color.White,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
+            overlayMessage?.let { message ->
+                BottomStatusMessage(
+                    message = message,
+                    bottomPadding = innerPadding.calculateBottomPadding() + 16.dp
+                )
             }
         }
     }
@@ -217,42 +179,12 @@ private fun EmptyTasksBlock(
     canCreateTask: Boolean,
     onNavigateToCrear: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(SurfaceField)
-            .padding(vertical = 48.dp, horizontal = 24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "No tenes tareas\ncargadas.",
-                color = SubtitleGray,
-                fontSize = 15.sp,
-                lineHeight = 22.sp,
-                textAlign = TextAlign.Center
-            )
-            Spacer(Modifier.height(20.dp))
-            Button(
-                onClick = onNavigateToCrear,
-                enabled = canCreateTask,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentBlue.copy(alpha = 0.25f),
-                    disabledContainerColor = Color(0xFF59606E),
-                    disabledContentColor = Color.White
-                )
-            ) {
-                Text(
-                    "Crear tarea ↗",
-                    color = if (canCreateTask) AccentBlue else Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
-    }
+    AppEmptyStateCard(
+        message = "No tenes tareas\ncargadas.",
+        actionText = "Crear tarea \u2197",
+        onAction = onNavigateToCrear,
+        actionEnabled = canCreateTask
+    )
 }
 
 @Composable

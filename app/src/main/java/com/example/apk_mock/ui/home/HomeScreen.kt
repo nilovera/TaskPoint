@@ -1,6 +1,5 @@
 package com.example.apk_mock.ui.home
 
-import android.R
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
@@ -27,12 +26,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,15 +46,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.ui.components.AppEmptyStateCard
 import com.example.apk_mock.ui.components.CreateActionPill
-import com.example.apk_mock.ui.components.ProfileMenuButton
+import com.example.apk_mock.ui.components.MainScreenHeader
+import com.example.apk_mock.ui.components.RequirementActionPanel
 import com.example.apk_mock.ui.rutinas.RutinasViewModel
 import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.AccentBlue
@@ -136,8 +133,9 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                HomeHeader(
-                    dateLabel = today.homeDateLabel(),
+                MainScreenHeader(
+                    title = "Hoy",
+                    subtitle = today.homeDateLabel(),
                     userName = displayName,
                     onProfile = onProfile,
                     onLogout = onLogout
@@ -175,103 +173,24 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeHeader(
-    dateLabel: String,
-    userName: String,
-    onProfile: () -> Unit,
-    onLogout: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
-            Text(dateLabel, color = SubtitleGray, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-            Text("Hoy", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold)
-        }
-
-        ProfileMenuButton(
-            userName = userName,
-            onProfile = onProfile,
-            onLogout = onLogout
-        )
-    }
-}
-
-@Composable
 private fun EmptyTasksCard(
     showCreateButton: Boolean,
     onCrearTarea: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(if (showCreateButton) 158.dp else 156.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(HomeCard)
-            .border(1.dp, HomeCardBorder, RoundedCornerShape(10.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "No tenes tareas\nel dia de hoy.",
-                color = SubtitleGray.copy(alpha = 0.72f),
-                fontSize = 14.sp,
-                lineHeight = 17.sp,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Medium
-            )
-
-            if (showCreateButton) {
-                Spacer(Modifier.height(26.dp))
-                OutlinedButton(
-                    onClick = onCrearTarea,
-                    shape = RoundedCornerShape(10.dp),
-                    border = BorderStroke(1.dp, AccentBlue.copy(alpha = 0.65f)),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = AccentBlue.copy(alpha = 0.18f),
-                        contentColor = AccentBlue
-                    )
-                ) {
-                    Text("Crear tarea \u2197", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                }
-            }
-        }
-    }
+    AppEmptyStateCard(
+        message = "No tenes tareas\nel dia de hoy.",
+        actionText = if (showCreateButton) "Crear tarea \u2197" else null,
+        onAction = onCrearTarea
+    )
 }
 
 @Composable
 private fun NoRoutinesPanel(onCrearRutina: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(26.dp)
-                .clip(RoundedCornerShape(7.dp))
-                .background(OfflineBackground)
-                .border(1.dp, OfflineBorder, RoundedCornerShape(7.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                "No tenes rutinas creadas.",
-                color = OfflineText,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
-        Button(
-            onClick = onCrearRutina,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(42.dp),
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
-        ) {
-            Text("Carga tu rutina", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-        }
-    }
+    RequirementActionPanel(
+        message = "No tenes rutinas creadas.",
+        actionText = "Carga tu rutina",
+        onAction = onCrearRutina
+    )
 }
 
 @Composable

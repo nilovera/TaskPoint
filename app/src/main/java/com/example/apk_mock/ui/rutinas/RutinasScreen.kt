@@ -20,8 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
+import com.example.apk_mock.ui.components.AppEmptyStateCard
+import com.example.apk_mock.ui.components.BottomStatusMessage
 import com.example.apk_mock.ui.components.CreateActionPill
-import com.example.apk_mock.ui.components.ProfileMenuButton
+import com.example.apk_mock.ui.components.MainScreenHeader
 import com.example.apk_mock.ui.theme.*
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -83,60 +85,21 @@ fun RutinasScreen(
                     )
             ) {
             // ── Header ────────────────────────────────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Mis rutinas",
-                    color = Color.White,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                ProfileMenuButton(
-                    userName = userName,
-                    onProfile = onProfile,
-                    onLogout = onLogout
-                )
-            }
+            MainScreenHeader(
+                title = "Mis rutinas",
+                userName = userName,
+                onProfile = onProfile,
+                onLogout = onLogout
+            )
 
             if (rutinas.isEmpty()) {
                 // ── Empty state ────────────────────────────────────────────────
                 Spacer(Modifier.height(12.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(SurfaceField)
-                        .padding(vertical = 48.dp, horizontal = 24.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "No tenés rutinas\ncreadas.",
-                            color = SubtitleGray,
-                            fontSize = 15.sp,
-                            lineHeight = 22.sp,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(Modifier.height(20.dp))
-                        Button(
-                            onClick = onNavigateToCrear,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = AccentBlue.copy(alpha = 0.25f)
-                            )
-                        ) {
-                            Text(
-                                "Crear rutina ↗",
-                                color = AccentBlue,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-                }
+                AppEmptyStateCard(
+                    message = "No tenes rutinas\ncreadas.",
+                    actionText = "Crear rutina \u2197",
+                    onAction = onNavigateToCrear
+                )
             } else {
                 // ── Filtros días ───────────────────────────────────────────────
                 Spacer(Modifier.height(12.dp))
@@ -162,32 +125,10 @@ fun RutinasScreen(
         }
 
             overlayMessage?.let { message ->
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = StrengthGreen,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .padding(
-                            start = 20.dp,
-                            end = 20.dp,
-                            bottom = innerPadding.calculateBottomPadding() + 16.dp
-                        )
-                        .height(48.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Text(
-                            message,
-                            color = Color.White,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
+                BottomStatusMessage(
+                    message = message,
+                    bottomPadding = innerPadding.calculateBottomPadding() + 16.dp
+                )
             }
         }
     }
