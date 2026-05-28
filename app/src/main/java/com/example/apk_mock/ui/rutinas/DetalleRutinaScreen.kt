@@ -51,16 +51,8 @@ import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.ui.components.AppDeleteConfirmDialog
 import com.example.apk_mock.ui.components.DetailActionTopBar
 import com.example.apk_mock.ui.tareas.TareasViewModel
-import com.example.apk_mock.ui.theme.AccentBlue
-import com.example.apk_mock.ui.theme.BackgroundDark
-import com.example.apk_mock.ui.theme.StrengthGreen
-import com.example.apk_mock.ui.theme.SubtitleGray
-import com.example.apk_mock.ui.theme.SurfaceField
-import com.example.apk_mock.ui.theme.categoryColor
-
-private val DetailCard = Color(0xFF171B2D)
-private val DetailContent = Color(0xFF111629)
-private val DetailBorder = Color(0xFF252B44)
+import com.example.apk_mock.ui.theme.TaskPointTheme
+import com.example.apk_mock.ui.theme.categoryChipColors
 
 @Composable
 fun DetalleRutinaScreen(
@@ -76,6 +68,7 @@ fun DetalleRutinaScreen(
     val tareasState by tareasViewModel.listState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val colors = TaskPointTheme.colors
 
     LaunchedEffect(rutinaId) {
         rutinasViewModel.loadDetalleRutina(rutinaId)
@@ -112,7 +105,7 @@ fun DetalleRutinaScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = colors.background,
         snackbarHost = {
             SnackbarHost(
                 hostState = snackbarHostState,
@@ -120,7 +113,7 @@ fun DetalleRutinaScreen(
             ) { data ->
                 Snackbar(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    containerColor = StrengthGreen,
+                    containerColor = colors.success,
                     contentColor = Color.White,
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -132,7 +125,7 @@ fun DetalleRutinaScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BackgroundDark)
+                .background(colors.background)
                 .padding(horizontal = 24.dp),
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding() + 28.dp,
@@ -181,11 +174,13 @@ private fun DetailTopBar(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val colors = TaskPointTheme.colors
+
     DetailActionTopBar(
         title = "Detalle de rutina",
         onBack = onBack,
-        backIconTint = SubtitleGray,
-        actionIconTint = Color.White,
+        backIconTint = colors.textSecondary,
+        actionIconTint = colors.textPrimary,
         editLabel = "Editar rutina",
         deleteLabel = "Eliminar rutina",
         onEdit = onEdit,
@@ -195,6 +190,8 @@ private fun DetailTopBar(
 
 @Composable
 private fun RoutineHero(rutina: Rutina) {
+    val colors = TaskPointTheme.colors
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -210,7 +207,7 @@ private fun RoutineHero(rutina: Rutina) {
         Spacer(Modifier.height(10.dp))
         Text(
             rutina.nombre,
-            color = Color.White,
+            color = colors.textPrimary,
             fontSize = 21.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
@@ -220,7 +217,7 @@ private fun RoutineHero(rutina: Rutina) {
             Spacer(Modifier.height(10.dp))
             Text(
                 rutina.direccion,
-                color = SubtitleGray,
+                color = colors.textSecondary,
                 fontSize = 18.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -237,27 +234,29 @@ private fun DetailSection(
     contentPadding: PaddingValues = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
     content: @Composable () -> Unit
 ) {
+    val colors = TaskPointTheme.colors
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
-        color = DetailContent,
-        border = BorderStroke(1.dp, DetailBorder)
+        color = colors.subTaskCard,
+        border = BorderStroke(1.dp, colors.border)
     ) {
         Column {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(DetailCard)
+                    .background(colors.surfaceAlt)
                     .padding(horizontal = 14.dp, vertical = 11.dp)
             ) {
                 Text(
                     title,
-                    color = Color.White,
+                    color = colors.textPrimary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold
                 )
             }
-            HorizontalDivider(color = DetailBorder)
+            HorizontalDivider(color = colors.border)
             Box(Modifier.padding(contentPadding)) {
                 content()
             }
@@ -268,6 +267,8 @@ private fun DetailSection(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DaysSection(rutina: Rutina) {
+    val colors = TaskPointTheme.colors
+
     DetailSection(title = "Dias de la semana") {
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
@@ -275,10 +276,10 @@ private fun DaysSection(rutina: Rutina) {
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             rutina.diasSemana.distinct().sortedBy { it.ordinal }.forEach { dia ->
-                Surface(shape = RoundedCornerShape(5.dp), color = AccentBlue.copy(alpha = 0.35f)) {
+                Surface(shape = RoundedCornerShape(5.dp), color = colors.primary.copy(alpha = 0.18f)) {
                     Text(
                         dia.label,
-                        color = Color(0xFF9EB0FF),
+                        color = colors.primary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
@@ -291,6 +292,8 @@ private fun DaysSection(rutina: Rutina) {
 
 @Composable
 private fun TimeSection(rutina: Rutina) {
+    val colors = TaskPointTheme.colors
+
     DetailSection(title = "Horario", contentPadding = PaddingValues(0.dp)) {
         Row(
             modifier = Modifier
@@ -302,7 +305,7 @@ private fun TimeSection(rutina: Rutina) {
                 modifier = Modifier
                     .width(1.dp)
                     .fillMaxHeight()
-                    .background(DetailBorder)
+                    .background(colors.border)
             )
             TimeValue(label = "Fin", value = rutina.horarioFin, modifier = Modifier.weight(1f))
         }
@@ -311,21 +314,25 @@ private fun TimeSection(rutina: Rutina) {
 
 @Composable
 private fun TimeValue(label: String, value: String, modifier: Modifier = Modifier) {
+    val colors = TaskPointTheme.colors
+
     Column(
         modifier = modifier.padding(horizontal = 6.dp, vertical = 5.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(label, color = SubtitleGray, fontSize = 16.sp, modifier = Modifier.fillMaxWidth())
-        Text(value, color = SubtitleGray, fontSize = 16.sp)
+        Text(label, color = colors.textSecondary, fontSize = 16.sp, modifier = Modifier.fillMaxWidth())
+        Text(value, color = colors.textSecondary, fontSize = 16.sp)
     }
 }
 
 @Composable
 private fun DescriptionSection(rutina: Rutina) {
+    val colors = TaskPointTheme.colors
+
     DetailSection(title = "Descripcion") {
         Text(
             rutina.descripcion.ifBlank { "Sin descripcion" },
-            color = SubtitleGray,
+            color = colors.textSecondary,
             fontSize = 18.sp,
             lineHeight = 18.sp,
             modifier = Modifier.height(48.dp)
@@ -335,11 +342,13 @@ private fun DescriptionSection(rutina: Rutina) {
 
 @Composable
 private fun TasksSection(tareas: List<Tarea>) {
+    val colors = TaskPointTheme.colors
+
     DetailSection(title = "Tareas asociadas", contentPadding = PaddingValues(0.dp)) {
         if (tareas.isEmpty()) {
             Text(
                 "No hay tareas asociadas.",
-                color = SubtitleGray,
+                color = colors.textSecondary,
                 fontSize = 18.sp,
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
             )
@@ -348,7 +357,7 @@ private fun TasksSection(tareas: List<Tarea>) {
                 tareas.forEachIndexed { index, tarea ->
                     AssociatedTaskRow(tarea = tarea)
                     if (index < tareas.lastIndex) {
-                        HorizontalDivider(color = DetailBorder)
+                        HorizontalDivider(color = colors.border)
                     }
                 }
             }
@@ -358,7 +367,8 @@ private fun TasksSection(tareas: List<Tarea>) {
 
 @Composable
 private fun AssociatedTaskRow(tarea: Tarea) {
-    val catColor = tarea.categoria.categoryColor()
+    val categoryColors = tarea.categoria.categoryChipColors()
+    val colors = TaskPointTheme.colors
 
     Row(
         modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -367,7 +377,7 @@ private fun AssociatedTaskRow(tarea: Tarea) {
         Icon(
             Icons.Default.DateRange,
             contentDescription = null,
-            tint = SubtitleGray,
+            tint = colors.textSecondary,
             modifier = Modifier.size(18.dp)
         )
         Spacer(Modifier.width(8.dp))
@@ -378,17 +388,17 @@ private fun AssociatedTaskRow(tarea: Tarea) {
         ) {
             Text(
                 tarea.titulo,
-                color = Color.White,
+                color = colors.textPrimary,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }
-        Surface(shape = RoundedCornerShape(5.dp), color = catColor.copy(alpha = 0.22f)) {
+        Surface(shape = RoundedCornerShape(5.dp), color = categoryColors.container) {
             Text(
                 tarea.categoria.label,
-                color = catColor,
+                color = categoryColors.content,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -399,11 +409,13 @@ private fun AssociatedTaskRow(tarea: Tarea) {
 
 @Composable
 private fun MissingRoutineState(onBack: () -> Unit) {
+    val colors = TaskPointTheme.colors
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = DetailCard,
-        border = BorderStroke(1.dp, DetailBorder)
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.border)
     ) {
         Column(
             modifier = Modifier.padding(18.dp),
@@ -411,21 +423,21 @@ private fun MissingRoutineState(onBack: () -> Unit) {
         ) {
             Text(
                 "No se encontro esta rutina.",
-                color = Color.White,
+                color = colors.textPrimary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(8.dp))
             Text(
                 "Puede haber sido eliminada o no pertenecer a tu cuenta.",
-                color = SubtitleGray,
+                color = colors.textSecondary,
                 fontSize = 13.sp
             )
             Spacer(Modifier.height(16.dp))
             Button(
                 onClick = onBack,
                 shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
+                colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
             ) {
                 Text("Volver", color = Color.White, fontWeight = FontWeight.SemiBold)
             }

@@ -20,13 +20,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 object AppDropdownMenuDefaults {
     val Width = 216.dp
     val Shape = RoundedCornerShape(18.dp)
-    val ContainerColor = Color(0xFF0B1540)
-    val DividerColor = Color(0xFF2E3D83)
-    val DangerText = Color(0xFFFF6E82)
     val HeaderPadding = PaddingValues(horizontal = 14.dp, vertical = 14.dp)
     val ItemPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
     val HeaderFontSize = 18.sp
@@ -42,12 +40,14 @@ fun AppDropdownMenu(
     width: Dp = AppDropdownMenuDefaults.Width,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val colors = TaskPointTheme.colors
+
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
         modifier = modifier.width(width),
         shape = AppDropdownMenuDefaults.Shape,
-        containerColor = AppDropdownMenuDefaults.ContainerColor,
+        containerColor = colors.surface,
         tonalElevation = 0.dp,
         shadowElevation = 8.dp,
         content = content
@@ -56,9 +56,11 @@ fun AppDropdownMenu(
 
 @Composable
 fun AppDropdownMenuHeader(text: String) {
+    val colors = TaskPointTheme.colors
+
     Text(
         text = text,
-        color = Color.White,
+        color = colors.textPrimary,
         fontSize = AppDropdownMenuDefaults.HeaderFontSize,
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier.padding(AppDropdownMenuDefaults.HeaderPadding)
@@ -67,7 +69,7 @@ fun AppDropdownMenuHeader(text: String) {
 
 @Composable
 fun AppDropdownMenuDivider() {
-    HorizontalDivider(color = AppDropdownMenuDefaults.DividerColor)
+    HorizontalDivider(color = TaskPointTheme.colors.border)
 }
 
 @Composable
@@ -76,17 +78,19 @@ fun AppDropdownMenuItem(
     icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    color: Color = Color.White,
+    color: Color? = null,
     fontSize: TextUnit = AppDropdownMenuDefaults.ItemFontSize,
     iconSize: Dp = AppDropdownMenuDefaults.ItemIconSize
 ) {
+    val resolvedColor = color ?: TaskPointTheme.colors.textPrimary
+
     DropdownMenuItem(
-        text = { Text(text, color = color, fontSize = fontSize) },
+        text = { Text(text, color = resolvedColor, fontSize = fontSize) },
         leadingIcon = {
             Icon(
                 icon,
                 contentDescription = null,
-                tint = color,
+                tint = resolvedColor,
                 modifier = Modifier.size(iconSize)
             )
         },

@@ -28,10 +28,7 @@ import com.example.apk_mock.ui.components.AuthBottomLink
 import com.example.apk_mock.ui.components.AuthErrorBanner
 import com.example.apk_mock.ui.components.AuthHeader
 import com.example.apk_mock.ui.components.AuthPrimaryButton
-import com.example.apk_mock.ui.theme.BackgroundDark
-import com.example.apk_mock.ui.theme.StrengthGreen
-import com.example.apk_mock.ui.theme.StrengthRed
-import com.example.apk_mock.ui.theme.SurfaceField
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 @Composable
 fun RegisterScreen(
@@ -39,6 +36,7 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    val colors = TaskPointTheme.colors
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
@@ -50,7 +48,7 @@ fun RegisterScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark)
+            .background(colors.background)
             .padding(horizontal = 24.dp)
     ) {
         Column(
@@ -130,6 +128,7 @@ fun RegisterScreen(
 
 @Composable
 fun PasswordStrengthBar(password: String) {
+    val colors = TaskPointTheme.colors
     val strength = when {
         password.length >= 10 && password.any { it.isDigit() } && password.any { it.isUpperCase() } -> 3
         password.length >= 6 -> 2
@@ -142,8 +141,8 @@ fun PasswordStrengthBar(password: String) {
         else -> ""
     }
     val activeColor = when (strength) {
-        1 -> StrengthRed
-        else -> StrengthGreen
+        1 -> colors.destructive
+        else -> colors.success
     }
 
     Column {
@@ -158,7 +157,7 @@ fun PasswordStrengthBar(password: String) {
                         .weight(1f)
                         .height(5.dp)
                         .clip(RoundedCornerShape(50))
-                        .background(if (filled) activeColor else SurfaceField)
+                        .background(if (filled) activeColor else colors.border)
                 )
             }
         }

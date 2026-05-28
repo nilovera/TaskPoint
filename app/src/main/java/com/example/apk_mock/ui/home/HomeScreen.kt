@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,20 +59,11 @@ import com.example.apk_mock.ui.components.MainScreenHeader
 import com.example.apk_mock.ui.components.RequirementActionPanel
 import com.example.apk_mock.ui.rutinas.RutinasViewModel
 import com.example.apk_mock.ui.tareas.TareasViewModel
-import com.example.apk_mock.ui.theme.AccentBlue
-import com.example.apk_mock.ui.theme.BackgroundDark
-import com.example.apk_mock.ui.theme.SubtitleGray
-import com.example.apk_mock.ui.theme.categoryColor
+import com.example.apk_mock.ui.theme.TaskPointTheme
+import com.example.apk_mock.ui.theme.categoryChipColors
 import com.example.apk_mock.ui.utils.homeDateLabel
 import com.example.apk_mock.ui.utils.toDiaSemana
 import java.time.LocalDate
-private val HomeCard = Color(0xFF161929)
-private val HomeCardBorder = Color(0xFF252B44)
-private val HomeChip = Color(0xFF0C101D)
-private val OfflineBackground = Color(0xFF551017)
-private val OfflineBorder = Color(0xFFA93244)
-private val OfflineText = Color(0xFFFF6E82)
-private val TaskCard = Color(0xFF111420)
 
 private data class HomeRoutineSection(
     val rutina: Rutina?,
@@ -102,7 +94,10 @@ fun HomeScreen(
     val rutinas = rutinasState.rutinas
     val todayTasks = tareasState.tareas.filter { it.dia == todayDia || it.dia == null }
     val canCreateTask = rutinas.isNotEmpty()
-    val sections = remember(rutinas, todayTasks) { buildHomeSections(rutinas, todayTasks) }
+    val colors = TaskPointTheme.colors
+    val sections = remember(rutinas, todayTasks, colors.primary) {
+        buildHomeSections(rutinas, todayTasks, colors.primary)
+    }
 
     LaunchedEffect(Unit) {
         rutinasViewModel.refreshRutinas()
@@ -110,7 +105,7 @@ fun HomeScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = colors.background,
         floatingActionButton = {
             CreateActionPill(
                 text = "Nueva tarea +",
@@ -124,7 +119,7 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BackgroundDark)
+                .background(colors.background)
                 .padding(horizontal = 20.dp),
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding() + 8.dp,
@@ -195,23 +190,25 @@ private fun NoRoutinesPanel(onCrearRutina: () -> Unit) {
 
 @Composable
 private fun OfflineBanner() {
+    val colors = TaskPointTheme.colors
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(OfflineBackground)
-            .border(1.dp, OfflineBorder, RoundedCornerShape(8.dp))
+            .background(colors.warningBackground)
+            .border(1.dp, colors.warningText, RoundedCornerShape(8.dp))
             .padding(horizontal = 14.dp, vertical = 9.dp)
     ) {
         Text(
             "NO TENES INTERNET",
-            color = OfflineText,
+            color = colors.warningText,
             fontSize = 13.sp,
             fontWeight = FontWeight.ExtraBold
         )
         Text(
             "Recupera tu conexion para guardar tus cambios",
-            color = OfflineText,
+            color = colors.warningText,
             fontSize = 13.sp,
             lineHeight = 16.sp
         )
@@ -220,11 +217,13 @@ private fun OfflineBanner() {
 
 @Composable
 private fun HomeRoutineCard(section: HomeRoutineSection) {
+    val colors = TaskPointTheme.colors
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
-        color = HomeCard,
-        border = BorderStroke(1.dp, HomeCardBorder)
+        color = colors.routineCard,
+        border = BorderStroke(1.dp, colors.border)
     ) {
         Column {
             Row(
@@ -244,7 +243,7 @@ private fun HomeRoutineCard(section: HomeRoutineSection) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         section.title,
-                        color = Color.White,
+                        color = colors.textPrimary,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -252,7 +251,7 @@ private fun HomeRoutineCard(section: HomeRoutineSection) {
                     )
                     Text(
                         section.subtitle,
-                        color = SubtitleGray,
+                        color = colors.textSecondary,
                         fontSize = 14.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -261,12 +260,12 @@ private fun HomeRoutineCard(section: HomeRoutineSection) {
                 CountChip(section.tareas.size)
             }
 
-            HorizontalDivider(color = HomeCardBorder)
+            HorizontalDivider(color = colors.border)
 
             section.tareas.forEachIndexed { index, tarea ->
                 HomeTaskRow(tarea = tarea)
                 if (index < section.tareas.lastIndex) {
-                    HorizontalDivider(color = HomeCardBorder.copy(alpha = 0.7f))
+                    HorizontalDivider(color = colors.border.copy(alpha = 0.7f))
                 }
             }
         }
@@ -275,12 +274,17 @@ private fun HomeRoutineCard(section: HomeRoutineSection) {
 
 @Composable
 private fun CountChip(count: Int) {
+    val colors = TaskPointTheme.colors
+    val isLight = colors.background.luminance() > 0.5f
+    val container = if (isLight) colors.primary else colors.subTaskCard
+    val border = if (isLight) colors.primary else colors.border
+
     Box(
         modifier = Modifier
             .size(30.dp)
             .clip(RoundedCornerShape(6.dp))
-            .background(HomeChip)
-            .border(1.dp, HomeCardBorder, RoundedCornerShape(6.dp)),
+            .background(container)
+            .border(1.dp, border, RoundedCornerShape(6.dp)),
         contentAlignment = Alignment.Center
     ) {
         Text("$count", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
@@ -289,18 +293,19 @@ private fun CountChip(count: Int) {
 
 @Composable
 private fun HomeTaskRow(tarea: Tarea) {
-    val categoryColor = tarea.categoria.categoryColor()
+    val categoryColors = tarea.categoria.categoryChipColors()
+    val colors = TaskPointTheme.colors
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = TaskCard)
+            .background(color = colors.subTaskCard)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = tarea.horario ?: "--:--",
-            color = SubtitleGray,
+            color = colors.textSecondary,
             fontSize = 15.sp,
             modifier = Modifier.width(42.dp)
         )
@@ -308,7 +313,7 @@ private fun HomeTaskRow(tarea: Tarea) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 tarea.titulo,
-                color = Color.White,
+                color = colors.textPrimary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -318,12 +323,12 @@ private fun HomeTaskRow(tarea: Tarea) {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(3.dp))
-                    .background(categoryColor.copy(alpha = 0.28f))
+                    .background(categoryColors.container)
                     .padding(horizontal = 8.dp, vertical = 2.dp)
             ) {
                 Text(
                     tarea.categoria.label,
-                    color = categoryColor,
+                    color = categoryColors.content,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.ExtraBold,
                     maxLines = 1
@@ -336,7 +341,7 @@ private fun HomeTaskRow(tarea: Tarea) {
                 modifier = Modifier
                     .size(34.dp)
                     .clip(RoundedCornerShape(7.dp))
-                    .background(AccentBlue.copy(alpha = 0.28f)),
+                    .background(colors.primary.copy(alpha = 0.28f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -352,7 +357,8 @@ private fun HomeTaskRow(tarea: Tarea) {
 
 private fun buildHomeSections(
     rutinas: List<Rutina>,
-    tareas: List<Tarea>
+    tareas: List<Tarea>,
+    fallbackIconColor: Color
 ): List<HomeRoutineSection> {
     val routineSections = rutinas.mapNotNull { rutina ->
         val routineTasks = tareas.filter { it.rutinaId == rutina.id || it.rutinaNombre == rutina.nombre }
@@ -382,7 +388,7 @@ private fun buildHomeSections(
                 title = "Tareas de hoy",
                 subtitle = "Sin rutina asignada",
                 icon = "+",
-                iconColor = AccentBlue,
+                iconColor = fallbackIconColor,
                 tareas = unassignedTasks.sortedBy { it.horario ?: "" }
             )
         )

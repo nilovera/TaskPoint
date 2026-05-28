@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.ui.theme.AccentBlue
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 @Composable
 fun CreateActionPill(
@@ -21,6 +21,8 @@ fun CreateActionPill(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
+    val colors = TaskPointTheme.colors
+
     Button(
         onClick = onClick,
         enabled = enabled,
@@ -29,10 +31,10 @@ fun CreateActionPill(
             .height(48.dp),
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = AccentBlue,
+            containerColor = colors.primary,
             contentColor = Color.White,
-            disabledContainerColor = Color(0xFF4E5562),
-            disabledContentColor = Color.White
+            disabledContainerColor = colors.border,
+            disabledContentColor = colors.textSecondary
         )
     ) {
         Text(

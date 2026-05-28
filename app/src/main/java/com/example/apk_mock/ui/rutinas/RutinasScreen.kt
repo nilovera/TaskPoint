@@ -1,5 +1,6 @@
 package com.example.apk_mock.ui.rutinas
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,6 +43,7 @@ fun RutinasScreen(
     innerPadding: PaddingValues = PaddingValues()
 ) {
     val listState by viewModel.listState.collectAsState()
+    val colors = TaskPointTheme.colors
     var overlayMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) { viewModel.refreshRutinas() }
@@ -59,7 +62,7 @@ fun RutinasScreen(
     // Scaffold propio: maneja snackbar y FAB
     // Recibe innerPadding del Scaffold externo (bottom bar) sin duplicar
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = colors.background,
         floatingActionButton = {
             if (overlayMessage == null) {
                 CreateActionPill(
@@ -139,6 +142,8 @@ fun RutinasScreen(
 @Composable
 fun FiltrosDias(seleccionado: DiaSemana?, onSelect: (DiaSemana?) -> Unit) {
     val opciones: List<DiaSemana?> = listOf(null) + DiaSemana.values().toList()
+    val colors = TaskPointTheme.colors
+
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.horizontalScroll(rememberScrollState())
@@ -148,14 +153,15 @@ fun FiltrosDias(seleccionado: DiaSemana?, onSelect: (DiaSemana?) -> Unit) {
             Surface(
                 onClick = { onSelect(dia) },
                 shape = RoundedCornerShape(20.dp),
-                color = if (isSelected) AccentBlue else SurfaceField,
+                color = if (isSelected) colors.primary else colors.surface,
+                border = if (isSelected) null else BorderStroke(1.dp, colors.border),
                 modifier = Modifier.height(32.dp)
             ) {
                 Box(Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
                     Text(
                         text = dia?.label ?: "Todas",
                         fontSize = 16.sp,
-                        color = if (isSelected) Color.White else SubtitleGray,
+                        color = if (isSelected) Color.White else colors.textSecondary,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                     )
                 }
@@ -167,9 +173,15 @@ fun FiltrosDias(seleccionado: DiaSemana?, onSelect: (DiaSemana?) -> Unit) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
+    val colors = TaskPointTheme.colors
+    val isLight = colors.background.luminance() > 0.5f
+    val dayChipContainer = colors.primary.copy(alpha = if (isLight) 0.16f else 0.18f)
+    val countChipContainer = if (isLight) colors.primary else colors.primary.copy(alpha = 0.28f)
+
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = BackgroundDarkRutineCard,
+        color = colors.routineCard,
+        border = BorderStroke(1.dp, colors.border),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
@@ -189,10 +201,10 @@ fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
             }
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(rutina.nombre, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
-                Text("${rutina.horarioInicio} – ${rutina.horarioFin}", color = SubtitleGray, fontSize = 14.sp)
+                Text(rutina.nombre, color = colors.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                Text("${rutina.horarioInicio} – ${rutina.horarioFin}", color = colors.textSecondary, fontSize = 14.sp)
                 if (rutina.direccion.isNotBlank()) {
-                    Text(rutina.direccion, color = SubtitleGray, fontSize = 16.sp)
+                    Text(rutina.direccion, color = colors.textSecondary, fontSize = 16.sp)
                 }
                 Spacer(Modifier.height(8.dp))
                 FlowRow(
@@ -201,12 +213,12 @@ fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     rutina.diasSemana.distinct().sortedBy { it.ordinal }.forEach { dia ->
-                        Surface(shape = RoundedCornerShape(6.dp), color = AccentBlue.copy(alpha = 0.18f)) {
+                        Surface(shape = RoundedCornerShape(6.dp), color = dayChipContainer) {
                             Text(
                                 dia.label,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                                 fontSize = 14.sp,
-                                color = AccentBlue,
+                                color = colors.primary,
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
@@ -215,7 +227,7 @@ fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
             }
             if (rutina.cantidadTareas > 0) {
                 Spacer(Modifier.width(5.dp))
-                Surface(shape = RoundedCornerShape(50), color = Color(0xFF30364F)) {
+                Surface(shape = RoundedCornerShape(50), color = countChipContainer) {
                     Text(
                         "${rutina.cantidadTareas} tareas",
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),

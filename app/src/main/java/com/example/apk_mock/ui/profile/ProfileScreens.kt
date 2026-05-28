@@ -42,20 +42,8 @@ import com.example.apk_mock.ui.components.AppLogoutConfirmDialog
 import com.example.apk_mock.ui.components.AppTopBar
 import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.components.AppTextField
-import com.example.apk_mock.ui.theme.AccentBlue
-import com.example.apk_mock.ui.theme.FieldBorder
-import com.example.apk_mock.ui.theme.LabelGray
-import com.example.apk_mock.ui.theme.PlaceholderGray
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
-private val ProfileBackground = Color(0xFF090A13)
-private val ProfileLavender = Color(0xFFE5D6FF)
-private val ProfileInk = Color(0xFF1E274F)
-private val DangerRed = Color(0xFFE9364B)
-private val ErrorBannerBackground = Color(0xFF421118)
-private val ErrorBannerBorder = Color(0xFF9E2635)
-private val ErrorBannerText = Color(0xFFFF6975)
-private val SaveGreen = Color(0xFF41B37F)
-private val FieldFill = Color(0xFF191C30)
 private val ProfileFieldHeight = 56.dp
 private val ProfileButtonHeight = 65.dp
 private val ProfileMessageHeight = 50.dp
@@ -76,6 +64,7 @@ fun ProfileScreen(
     val state by viewModel.uiState.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    val colors = TaskPointTheme.colors
 
     LaunchedEffect(userName) {
         viewModel.refreshUser(userName)
@@ -91,7 +80,7 @@ fun ProfileScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(ProfileBackground)
+            .background(colors.background)
             .padding(horizontal = 27.dp)
     ) {
         Column(
@@ -122,7 +111,7 @@ fun ProfileScreen(
             Spacer(Modifier.height(6.dp))
             ProfileActionButton(
                 text = "Cambiar contraseña",
-                color = AccentBlue,
+                color = colors.primary,
                 onClick = {
                     viewModel.onOpenChangePassword()
                     onChangePassword()
@@ -134,24 +123,24 @@ fun ProfileScreen(
             Spacer(Modifier.height(6.dp))
             ProfileActionButton(
                 text = "Cerrar sesion",
-                color = AccentBlue,
+                color = colors.primary,
                 onClick = { showLogoutDialog = true }
             )
             Spacer(Modifier.height(10.dp))
             ProfileActionButton(
                 text = "Eliminar cuenta",
-                color = DangerRed,
+                color = colors.destructive,
                 onClick = { showDeleteDialog = true }
             )
 
             if (state.generalError != null) {
                 Spacer(Modifier.height(16.dp))
-                MessageBanner(text = state.generalError ?: "", color = DangerRed)
+                MessageBanner(text = state.generalError ?: "", color = colors.destructive)
             }
 
             if (state.showPasswordSavedMessage) {
                 Spacer(Modifier.height(36.dp))
-                MessageBanner(text = "Cambios guardados correctamente.", color = SaveGreen)
+                MessageBanner(text = "Cambios guardados correctamente.", color = colors.success)
             }
         }
     }
@@ -188,6 +177,7 @@ fun ChangePasswordScreen(
     innerPadding: PaddingValues = PaddingValues()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val colors = TaskPointTheme.colors
 
     LaunchedEffect(state.navigateToProfileAfterPasswordSave) {
         if (state.navigateToProfileAfterPasswordSave) {
@@ -199,7 +189,7 @@ fun ChangePasswordScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ProfileBackground)
+            .background(colors.background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 27.dp)
             .padding(
@@ -253,13 +243,13 @@ fun ChangePasswordScreen(
 
         if (state.generalError != null) {
             Spacer(Modifier.height(14.dp))
-            MessageBanner(text = state.generalError ?: "", color = DangerRed)
+            MessageBanner(text = state.generalError ?: "", color = colors.destructive)
         }
 
         Spacer(Modifier.height(24.dp))
         ProfileActionButton(
             text = "Cambiar contraseña",
-            color = SaveGreen,
+            color = colors.success,
             onClick = viewModel::onSavePasswordClick
         )
     }
@@ -278,16 +268,18 @@ private fun ProfileTopBar(title: String, onBack: () -> Unit) {
 
 @Composable
 private fun ProfileAvatar(modifier: Modifier = Modifier) {
+    val colors = TaskPointTheme.colors
+
     Box(
         modifier = modifier
             .clip(CircleShape)
-            .background(ProfileLavender),
+            .background(colors.avatarContainer),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Outlined.Person,
             contentDescription = "Avatar de perfil",
-            tint = ProfileInk,
+            tint = colors.avatarIcon,
             modifier = Modifier.size(116.dp)
         )
     }
@@ -295,9 +287,11 @@ private fun ProfileAvatar(modifier: Modifier = Modifier) {
 
 @Composable
 private fun ProfileSectionLabel(text: String) {
+    val colors = TaskPointTheme.colors
+
     Text(
         text = text,
-        color = Color.White,
+        color = colors.textPrimary,
         fontSize = ProfileLabelSize,
         fontWeight = FontWeight.Bold
     )
@@ -305,10 +299,12 @@ private fun ProfileSectionLabel(text: String) {
 
 @Composable
 private fun ProfileReadOnlyField(label: String, value: String) {
+    val colors = TaskPointTheme.colors
+
     Column {
         Text(
             text = label,
-            color = LabelGray,
+            color = colors.label,
             fontSize = ProfileLabelSize
         )
         Spacer(Modifier.height(6.dp))
@@ -317,14 +313,14 @@ private fun ProfileReadOnlyField(label: String, value: String) {
                 .fillMaxWidth()
                 .height(ProfileFieldHeight)
                 .clip(RoundedCornerShape(12.dp))
-                .background(FieldFill)
-                .border(1.dp, FieldBorder.copy(alpha = 0.55f), RoundedCornerShape(12.dp))
+                .background(colors.fieldBackground)
+                .border(1.dp, colors.fieldBorder.copy(alpha = 0.55f), RoundedCornerShape(12.dp))
                 .padding(horizontal = 14.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
                 text = value,
-                color = PlaceholderGray,
+                color = colors.placeholder,
                 fontSize = ProfileValueSize
             )
         }
@@ -377,19 +373,21 @@ private fun MessageBanner(text: String, color: Color) {
 
 @Composable
 private fun PasswordErrorBanner(text: String) {
+    val colors = TaskPointTheme.colors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(if (text.length > 44) 60.dp else ProfileMessageHeight)
             .clip(RoundedCornerShape(10.dp))
-            .background(ErrorBannerBackground)
-            .border(1.dp, ErrorBannerBorder, RoundedCornerShape(10.dp))
+            .background(colors.errorBackground)
+            .border(1.dp, colors.warningText, RoundedCornerShape(10.dp))
             .padding(horizontal = 14.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         Text(
             text = text,
-            color = ErrorBannerText,
+            color = colors.warningText,
             fontSize = ProfileMessageSize,
             lineHeight = 18.sp
         )

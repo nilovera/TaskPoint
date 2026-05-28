@@ -18,11 +18,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.apk_mock.ui.theme.BackgroundDark
-
-private val ProfileLavender = Color(0xFFE4D4FF)
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 @Composable
 fun ProfileMenuButton(
@@ -32,6 +29,7 @@ fun ProfileMenuButton(
     modifier: Modifier = Modifier
 ) {
     val displayName = userName.ifBlank { "Nicolas Perez" }
+    val colors = TaskPointTheme.colors
     var menuExpanded by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
@@ -40,14 +38,14 @@ fun ProfileMenuButton(
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .background(ProfileLavender)
+                .background(colors.avatarContainer)
                 .clickable { menuExpanded = true },
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 Icons.Default.Person,
                 contentDescription = "Perfil de $displayName",
-                tint = BackgroundDark,
+                tint = colors.avatarIcon,
                 modifier = Modifier.size(30.dp)
             )
         }
@@ -69,7 +67,7 @@ fun ProfileMenuButton(
             AppDropdownMenuItem(
                 text = "Cerrar sesion",
                 icon = Icons.AutoMirrored.Filled.Logout,
-                color = AppDropdownMenuDefaults.DangerText,
+                color = colors.destructive,
                 onClick = {
                     menuExpanded = false
                     showLogoutDialog = true

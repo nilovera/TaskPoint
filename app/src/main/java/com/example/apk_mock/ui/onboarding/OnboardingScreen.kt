@@ -41,21 +41,15 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.apk_mock.ui.theme.TaskPointTheme
 import kotlin.math.min
-
-private val OnboardingBackground = Color(0xFF080B14)
-private val TitleWhite = Color(0xFFFAFAFF)
-private val BodyText = Color(0xFF969DBA)
-private val MutedText = Color(0xFF9BA0BC)
-private val IndicatorInactive = Color(0xFF2E3358)
-private val SecondaryBorder = Color(0xFF242A5A)
-private val PillGray = Color(0xFF282B35)
 
 private data class OnboardingPage(
     val eyebrow: String,
@@ -108,11 +102,12 @@ fun OnboardingScreen(
 ) {
     var pageIndex by rememberSaveable { mutableStateOf(0) }
     val page = onboardingPages[pageIndex]
+    val colors = TaskPointTheme.colors
 
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(OnboardingBackground)
+            .background(colors.background)
     ) {
         val scrollState = rememberScrollState()
         val compactHeight = maxHeight < 760.dp
@@ -151,7 +146,7 @@ fun OnboardingScreen(
                         append(page.titleAccent)
                     }
                 },
-                color = TitleWhite,
+                color = colors.textPrimary,
                 fontSize = 34.sp,
                 lineHeight = 44.sp,
                 fontWeight = FontWeight.ExtraBold
@@ -159,7 +154,7 @@ fun OnboardingScreen(
             Spacer(Modifier.height(17.dp))
             Text(
                 text = page.description,
-                color = BodyText,
+                color = colors.textSecondary,
                 fontSize = 16.sp,
                 lineHeight = 25.sp,
                 fontWeight = FontWeight.Normal
@@ -213,10 +208,10 @@ fun OnboardingScreen(
                     .fillMaxWidth()
                     .height(58.dp),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.3.dp, SecondaryBorder),
+                border = BorderStroke(1.3.dp, colors.border),
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = Color.Transparent,
-                    contentColor = MutedText
+                    contentColor = colors.textSecondary
                 )
             ) {
                 Text(
@@ -235,6 +230,8 @@ private fun PageIndicator(
     selectedColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val colors = TaskPointTheme.colors
+
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -245,7 +242,7 @@ private fun PageIndicator(
                 modifier = Modifier
                     .size(width = if (index == selectedIndex) 27.dp else 8.dp, height = 5.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(if (index == selectedIndex) selectedColor else IndicatorInactive)
+                    .background(if (index == selectedIndex) selectedColor else colors.border)
             )
         }
     }
@@ -269,6 +266,16 @@ private fun OnboardingHero(
 
 @Composable
 private fun TasksHero(accent: Color) {
+    val colors = TaskPointTheme.colors
+    val isLight = colors.background.luminance() > 0.5f
+    val outerCircle = if (isLight) Color(0xFFD8E2FF) else Color(0xFF11163A)
+    val innerCircle = if (isLight) Color(0xFFC6D6F8) else colors.background
+    val heroCard = if (isLight) Color(0xFFEFF4FF) else Color(0xFF1A2044)
+    val lineStrong = if (isLight) Color(0xFF9DB7F6) else Color(0xFF3E4C9D)
+    val lineMedium = if (isLight) Color(0xFF89A7EA) else Color(0xFF344282)
+    val lineSoft = if (isLight) Color(0xFF7D98D8) else Color(0xFF2D3975)
+    val pillContainer = if (isLight) colors.surface else Color(0xFF0D3D2B)
+
     Box(Modifier.fillMaxSize()) {
         Canvas(Modifier.fillMaxSize()) {
             val center = Offset(size.width * 0.52f, size.height * 0.53f)
@@ -277,30 +284,30 @@ private fun TasksHero(accent: Color) {
             val cardHeight = 88.dp.toPx()
             val cardTopLeft = Offset(center.x - cardWidth * 0.42f, center.y - cardHeight * 0.47f)
 
-            drawCircle(Color(0xFF11163A), radius, center)
-            drawCircle(OnboardingBackground, radius * 0.75f, center)
+            drawCircle(outerCircle, radius, center)
+            drawCircle(innerCircle, radius * 0.75f, center)
             drawRoundRect(
-                color = Color(0xFF1A2044),
+                color = heroCard,
                 topLeft = cardTopLeft,
                 size = Size(cardWidth, cardHeight),
                 cornerRadius = CornerRadius(18.dp.toPx())
             )
             drawLine(
-                color = Color(0xFF3E4C9D),
+                color = lineStrong,
                 start = Offset(cardTopLeft.x + 16.dp.toPx(), cardTopLeft.y + 22.dp.toPx()),
                 end = Offset(cardTopLeft.x + 84.dp.toPx(), cardTopLeft.y + 22.dp.toPx()),
                 strokeWidth = 6.dp.toPx(),
                 cap = StrokeCap.Round
             )
             drawLine(
-                color = Color(0xFF344282),
+                color = lineMedium,
                 start = Offset(cardTopLeft.x + 16.dp.toPx(), cardTopLeft.y + 39.dp.toPx()),
                 end = Offset(cardTopLeft.x + 72.dp.toPx(), cardTopLeft.y + 39.dp.toPx()),
                 strokeWidth = 6.dp.toPx(),
                 cap = StrokeCap.Round
             )
             drawLine(
-                color = Color(0xFF2D3975),
+                color = lineSoft,
                 start = Offset(cardTopLeft.x + 16.dp.toPx(), cardTopLeft.y + 56.dp.toPx()),
                 end = Offset(cardTopLeft.x + 60.dp.toPx(), cardTopLeft.y + 56.dp.toPx()),
                 strokeWidth = 6.dp.toPx(),
@@ -312,7 +319,7 @@ private fun TasksHero(accent: Color) {
         StatusPill(
             text = "3 pendientes hoy",
             dotColor = Color(0xFF44D890),
-            containerColor = Color(0xFF0D3D2B),
+            containerColor = pillContainer,
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .offset(x = (-8).dp, y = (-38).dp)
@@ -322,13 +329,18 @@ private fun TasksHero(accent: Color) {
 
 @Composable
 private fun LocationHero(accent: Color) {
+    val colors = TaskPointTheme.colors
+    val isLight = colors.background.luminance() > 0.5f
+    val circleColor = if (isLight) Color(0xFFD9F5E4) else Color(0xFF0D371C)
+    val activePill = if (isLight) colors.surface else Color(0xFF0A4A2B)
+
     Box(Modifier.fillMaxSize()) {
         Canvas(Modifier.fillMaxSize()) {
             val center = Offset(size.width * 0.47f, size.height * 0.52f)
             val radius = min(size.width, size.height) * 0.39f
             val dashed = PathEffect.dashPathEffect(floatArrayOf(9.dp.toPx(), 9.dp.toPx()))
 
-            drawCircle(Color(0xFF0D371C), radius, center)
+            drawCircle(circleColor, radius, center)
             drawCircle(
                 color = accent.copy(alpha = 0.5f),
                 radius = radius * 0.69f,
@@ -349,14 +361,14 @@ private fun LocationHero(accent: Color) {
         StatusPill(
             text = "Radio: 200 m",
             dotColor = accent,
-            containerColor = Color(0xFF0A4A2B),
+            containerColor = activePill,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .offset(y = 28.dp)
         )
         StatusPill(
             text = "Alerta activa",
-            containerColor = PillGray,
+            containerColor = colors.surface,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .offset(y = (-38).dp)
@@ -366,6 +378,11 @@ private fun LocationHero(accent: Color) {
 
 @Composable
 private fun CameraHero(accent: Color) {
+    val colors = TaskPointTheme.colors
+    val isLight = colors.background.luminance() > 0.5f
+    val circleColor = if (isLight) Color(0xFFF7D9DE) else Color(0xFF5A111A)
+    val contextPill = if (isLight) colors.surface else Color(0xFF3A0B12)
+
     Box(Modifier.fillMaxSize()) {
         Canvas(Modifier.fillMaxSize()) {
             val center = Offset(size.width * 0.5f, size.height * 0.52f)
@@ -375,7 +392,7 @@ private fun CameraHero(accent: Color) {
             val iconLeft = center.x - iconWidth / 2
             val iconTop = center.y - iconHeight / 2
 
-            drawCircle(Color(0xFF5A111A), radius, center)
+            drawCircle(circleColor, radius, center)
             drawRoundRect(
                 color = accent.copy(alpha = 0.88f),
                 topLeft = Offset(iconLeft, iconTop + 7.dp.toPx()),
@@ -405,7 +422,7 @@ private fun CameraHero(accent: Color) {
 
         StatusPill(
             text = "Foto adjunta",
-            containerColor = PillGray,
+            containerColor = colors.surface,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .offset(x = (-4).dp, y = 20.dp)
@@ -413,7 +430,7 @@ private fun CameraHero(accent: Color) {
         StatusPill(
             text = "Carpeta roja \u00b7 hoy",
             dotColor = accent,
-            containerColor = Color(0xFF3A0B12),
+            containerColor = contextPill,
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .offset(x = (-4).dp, y = (-20).dp)
@@ -423,6 +440,10 @@ private fun CameraHero(accent: Color) {
 
 @Composable
 private fun OfflineHero(accent: Color) {
+    val colors = TaskPointTheme.colors
+    val isLight = colors.background.luminance() > 0.5f
+    val circleColor = if (isLight) Color(0xFFE6DAFF) else Color(0xFF351952)
+
     Box(Modifier.fillMaxSize()) {
         Canvas(Modifier.fillMaxSize()) {
             val center = Offset(size.width * 0.5f, size.height * 0.53f)
@@ -438,7 +459,7 @@ private fun OfflineHero(accent: Color) {
                 close()
             }
 
-            drawCircle(Color(0xFF351952), radius, center)
+            drawCircle(circleColor, radius, center)
             drawPath(triangle, accent)
             drawRoundRect(
                 color = accent,
@@ -460,14 +481,14 @@ private fun OfflineHero(accent: Color) {
 
         StatusPill(
             text = "Sin internet: OK",
-            containerColor = PillGray,
+            containerColor = colors.surface,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .offset(y = 20.dp)
         )
         StatusPill(
             text = "Sync autom\u00e1tico",
-            containerColor = PillGray,
+            containerColor = colors.surface,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .offset(y = (-42).dp)
@@ -482,6 +503,9 @@ private fun StatusPill(
     modifier: Modifier = Modifier,
     dotColor: Color? = null
 ) {
+    val colors = TaskPointTheme.colors
+    val textColor = if (containerColor.luminance() > 0.55f) colors.textPrimary else Color.White
+
     Row(
         modifier = modifier
             .heightIn(min = 31.dp)
@@ -501,7 +525,7 @@ private fun StatusPill(
         }
         Text(
             text = text,
-            color = Color.White,
+            color = textColor,
             fontSize = 13.sp,
             lineHeight = 16.sp,
             fontWeight = FontWeight.Medium

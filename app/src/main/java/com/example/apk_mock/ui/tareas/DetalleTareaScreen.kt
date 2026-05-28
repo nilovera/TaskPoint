@@ -1,5 +1,6 @@
 package com.example.apk_mock.ui.tareas
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,16 +44,8 @@ import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.ui.components.AppDeleteConfirmDialog
 import com.example.apk_mock.ui.components.DetailActionTopBar
-import com.example.apk_mock.ui.theme.AccentBlue
-import com.example.apk_mock.ui.theme.BackgroundDark
-import com.example.apk_mock.ui.theme.DateBlue
-import com.example.apk_mock.ui.theme.FieldBorder
-import com.example.apk_mock.ui.theme.LabelGray
-import com.example.apk_mock.ui.theme.PlaceholderGray
-import com.example.apk_mock.ui.theme.StrengthGreen
-import com.example.apk_mock.ui.theme.SubtitleGray
-import com.example.apk_mock.ui.theme.SurfaceField
-import com.example.apk_mock.ui.theme.categoryColor
+import com.example.apk_mock.ui.theme.TaskPointTheme
+import com.example.apk_mock.ui.theme.categoryChipColors
 import com.example.apk_mock.ui.utils.displayName
 import kotlinx.coroutines.delay
 
@@ -74,6 +67,7 @@ fun DetalleTareaScreen(
     val offers = tarea?.let { viewModel.getOffersForTarea(it) }.orEmpty()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showSavedOverlay by remember { mutableStateOf(false) }
+    val colors = TaskPointTheme.colors
 
     LaunchedEffect(showTaskEditedMessage) {
         if (showTaskEditedMessage) {
@@ -88,11 +82,11 @@ fun DetalleTareaScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BackgroundDark)
+                .background(colors.background)
                 .padding(20.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text("No se encontró la tarea.", color = SubtitleGray, fontSize = 16.sp)
+            Text("No se encontró la tarea.", color = colors.textSecondary, fontSize = 16.sp)
         }
         return
     }
@@ -100,7 +94,7 @@ fun DetalleTareaScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark)
+            .background(colors.background)
             .verticalScroll(rememberScrollState())
             .padding(
                 start = 20.dp,
@@ -159,7 +153,7 @@ fun DetalleTareaScreen(
             contentAlignment = Alignment.BottomCenter
         ) {
             Surface(
-                color = StrengthGreen,
+                color = colors.success,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -199,21 +193,23 @@ private fun DetailHeader(
 
 @Composable
 private fun DetailTitle(tarea: Tarea) {
-    val categoryColor = tarea.categoria.categoryColor()
+    val categoryColors = tarea.categoria.categoryChipColors()
+    val colors = TaskPointTheme.colors
+
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             tarea.titulo,
-            color = Color.White,
+            color = colors.textPrimary,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
         )
     }
     Spacer(Modifier.height(18.dp))
-    Surface(shape = RoundedCornerShape(5.dp), color = categoryColor.copy(alpha = 0.22f)) {
+    Surface(shape = RoundedCornerShape(5.dp), color = categoryColors.container) {
         Text(
             tarea.categoria.label,
-            color = categoryColor,
+            color = categoryColors.content,
             fontSize = 12.sp,
             fontWeight = FontWeight.ExtraBold,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
@@ -223,10 +219,12 @@ private fun DetailTitle(tarea: Tarea) {
 
 @Composable
 private fun TaskInfoCard(tarea: Tarea, rutina: Rutina?) {
+    val colors = TaskPointTheme.colors
+
     Surface(
         shape = RoundedCornerShape(18.dp),
-        color = SurfaceField,
-        border = androidx.compose.foundation.BorderStroke(1.dp, FieldBorder),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.border),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
@@ -243,6 +241,8 @@ private fun TaskInfoCard(tarea: Tarea, rutina: Rutina?) {
 
 @Composable
 private fun InfoRow(icon: ImageVector, label: String, value: String) {
+    val colors = TaskPointTheme.colors
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -253,66 +253,76 @@ private fun InfoRow(icon: ImageVector, label: String, value: String) {
             modifier = Modifier
                 .size(42.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFF090B12)),
+                .background(colors.primary.copy(alpha = 0.12f)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = DateBlue, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = colors.primary, modifier = Modifier.size(20.dp))
         }
         Spacer(Modifier.size(12.dp))
         Column {
-            Text(label, color = SubtitleGray, fontSize = 14.sp)
-            Text(value, color = Color.White, fontSize = 17.sp)
+            Text(label, color = colors.textSecondary, fontSize = 14.sp)
+            Text(value, color = colors.textPrimary, fontSize = 17.sp)
         }
     }
 }
 
 @Composable
 private fun DividerLine() {
+    val colors = TaskPointTheme.colors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(FieldBorder.copy(alpha = 0.75f))
+            .background(colors.border.copy(alpha = 0.75f))
     )
 }
 
 @Composable
 private fun DetailSectionTitle(text: String) {
-    Text(text, color = LabelGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+    val colors = TaskPointTheme.colors
+
+    Text(text, color = colors.label, fontSize = 14.sp, fontWeight = FontWeight.Bold)
 }
 
 @Composable
 private fun PhotoBlock() {
+    val colors = TaskPointTheme.colors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(140.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFF173016)),
+            .background(colors.success.copy(alpha = 0.18f)),
         contentAlignment = Alignment.Center
     ) {
-        Icon(Icons.Default.Image, contentDescription = "Foto de la tarea", tint = StrengthGreen, modifier = Modifier.size(36.dp))
+        Icon(Icons.Default.Image, contentDescription = "Foto de la tarea", tint = colors.success, modifier = Modifier.size(36.dp))
     }
 }
 
 @Composable
 private fun NotesBlock(text: String) {
+    val colors = TaskPointTheme.colors
+
     Surface(
         shape = RoundedCornerShape(14.dp),
-        color = SurfaceField,
-        border = androidx.compose.foundation.BorderStroke(1.dp, FieldBorder),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.border),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(text, color = LabelGray, fontSize = 16.sp, modifier = Modifier.padding(16.dp))
+        Text(text, color = colors.label, fontSize = 16.sp, modifier = Modifier.padding(16.dp))
     }
 }
 
 @Composable
 private fun OfferCard(offer: StoreOffer) {
+    val colors = TaskPointTheme.colors
+
     Surface(
         shape = RoundedCornerShape(14.dp),
-        color = SurfaceField,
-        border = androidx.compose.foundation.BorderStroke(1.dp, FieldBorder),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.border),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -320,20 +330,20 @@ private fun OfferCard(offer: StoreOffer) {
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFEAF2FF)),
+                    .background(colors.primary.copy(alpha = 0.14f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(offer.store.logo.toLogoText(), color = AccentBlue, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(offer.store.logo.toLogoText(), color = colors.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.size(12.dp))
             Column {
-                Text(offer.store.name.displayStoreName(), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(offer.store.name.displayStoreName(), color = colors.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Text(
                     "${offer.store.address.shortAddress()} | ${offer.distanceMeters} m",
-                    color = PlaceholderGray,
+                    color = colors.placeholder,
                     fontSize = 13.sp
                 )
-                Text(offer.offer.title, color = StrengthGreen, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text(offer.offer.title, color = colors.success, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }

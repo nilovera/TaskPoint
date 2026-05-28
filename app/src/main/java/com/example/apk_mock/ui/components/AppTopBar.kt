@@ -24,10 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.ui.theme.FieldBorder
-import com.example.apk_mock.ui.theme.LabelGray
-import com.example.apk_mock.ui.theme.SubtitleGray
-import com.example.apk_mock.ui.theme.SurfaceField
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 enum class AppTopBarSize(
     val buttonSize: Dp,
@@ -49,9 +46,16 @@ fun AppTopBar(
     modifier: Modifier = Modifier,
     size: AppTopBarSize = AppTopBarSize.Regular,
     titleFontWeight: FontWeight = FontWeight.SemiBold,
-    backIconTint: Color = if (size == AppTopBarSize.Detail) LabelGray else SubtitleGray,
+    backIconTint: Color? = null,
     actions: (@Composable RowScope.() -> Unit)? = null
 ) {
+    val colors = TaskPointTheme.colors
+    val resolvedBackIconTint = backIconTint ?: if (size == AppTopBarSize.Detail) {
+        colors.label
+    } else {
+        colors.textSecondary
+    }
+
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -59,12 +63,12 @@ fun AppTopBar(
         AppTopBarBackButton(
             onBack = onBack,
             size = size,
-            tint = backIconTint
+            tint = resolvedBackIconTint
         )
 
         Text(
             text = title,
-            color = Color.White,
+            color = colors.textPrimary,
             fontSize = size.titleSize,
             fontWeight = titleFontWeight,
             modifier = Modifier.weight(1f),
@@ -85,18 +89,19 @@ private fun AppTopBarBackButton(
     size: AppTopBarSize,
     tint: Color
 ) {
+    val colors = TaskPointTheme.colors
     val shape = RoundedCornerShape(size.cornerRadius)
     val baseModifier = Modifier
         .size(size.buttonSize)
         .clip(shape)
         .background(
-            if (size == AppTopBarSize.Profile) SurfaceField.copy(alpha = 0.45f) else SurfaceField
+            if (size == AppTopBarSize.Profile) colors.surface.copy(alpha = 0.45f) else colors.surface
         )
 
     IconButton(
         onClick = onBack,
         modifier = if (size.bordered) {
-            baseModifier.border(1.dp, FieldBorder, shape)
+            baseModifier.border(1.dp, colors.border, shape)
         } else {
             baseModifier
         }

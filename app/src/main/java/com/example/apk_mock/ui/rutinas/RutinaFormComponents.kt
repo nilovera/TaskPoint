@@ -1,5 +1,6 @@
 package com.example.apk_mock.ui.rutinas
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,10 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.RutinaIcono
 import com.example.apk_mock.ui.components.appTextFieldColors
-import com.example.apk_mock.ui.theme.AccentBlue
-import com.example.apk_mock.ui.theme.PlaceholderGray
-import com.example.apk_mock.ui.theme.SubtitleGray
-import com.example.apk_mock.ui.theme.SurfaceField
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 internal enum class RutinaIconosLayout {
     Horizontal,
@@ -137,6 +135,7 @@ internal fun RutinaDiasSelector(
     scrollable: Boolean = false
 ) {
     val scrollState = rememberScrollState()
+    val colors = TaskPointTheme.colors
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(spacing),
@@ -147,7 +146,8 @@ internal fun RutinaDiasSelector(
             Surface(
                 onClick = { onToggle(dia) },
                 shape = RoundedCornerShape(20.dp),
-                color = if (selected) AccentBlue else SurfaceField,
+                color = if (selected) colors.primary else colors.surface,
+                border = if (selected) null else BorderStroke(1.dp, colors.border),
                 modifier = Modifier.height(32.dp)
             ) {
                 Box(
@@ -157,7 +157,7 @@ internal fun RutinaDiasSelector(
                     Text(
                         dia.label,
                         fontSize = 12.sp,
-                        color = if (selected) Color.White else SubtitleGray,
+                        color = if (selected) Color.White else colors.textSecondary,
                         fontWeight = if (selected) selectedFontWeight else FontWeight.Normal
                     )
                 }
@@ -174,11 +174,13 @@ internal fun RutinaHorarioField(
     isError: Boolean,
     cornerRadius: Dp = 12.dp
 ) {
+    val colors = TaskPointTheme.colors
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text(placeholder, color = PlaceholderGray) },
+        placeholder = { Text(placeholder, color = colors.placeholder) },
         singleLine = true,
         isError = isError,
         shape = RoundedCornerShape(cornerRadius),

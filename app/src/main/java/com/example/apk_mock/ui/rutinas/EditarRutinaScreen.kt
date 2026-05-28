@@ -36,12 +36,7 @@ import com.example.apk_mock.ui.components.AppTextField
 import com.example.apk_mock.ui.components.AppTopBar
 import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.components.FormFieldLabel
-import com.example.apk_mock.ui.theme.AccentBlue
-import com.example.apk_mock.ui.theme.BackgroundDark
-import com.example.apk_mock.ui.theme.ErrorRed
-import com.example.apk_mock.ui.theme.StrengthGreen
-import com.example.apk_mock.ui.theme.SubtitleGray
-import com.example.apk_mock.ui.theme.SurfaceField
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 @Composable
 fun EditarRutinaScreen(
@@ -52,6 +47,7 @@ fun EditarRutinaScreen(
 ) {
     val state by viewModel.editState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val colors = TaskPointTheme.colors
 
     LaunchedEffect(rutinaId) {
         viewModel.loadEditarRutina(rutinaId)
@@ -74,7 +70,7 @@ fun EditarRutinaScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark)
+            .background(colors.background)
     ) {
         Column(
             modifier = Modifier
@@ -115,7 +111,7 @@ fun EditarRutinaScreen(
                 itemSize = 42.dp,
                 cornerRadius = 9.dp,
                 emojiFontSize = 18.sp,
-                selectedBorderColor = AccentBlue
+                selectedBorderColor = colors.primary
             )
 
             Spacer(Modifier.height(18.dp))
@@ -143,7 +139,7 @@ fun EditarRutinaScreen(
             )
             if (state.diasError != null) {
                 Spacer(Modifier.height(4.dp))
-                Text(state.diasError!!, color = ErrorRed, fontSize = 12.sp)
+                Text(state.diasError!!, color = colors.destructive, fontSize = 12.sp)
             }
 
             Spacer(Modifier.height(18.dp))
@@ -151,7 +147,7 @@ fun EditarRutinaScreen(
             FormFieldLabel("Horario", required = true)
             Row(horizontalArrangement = Arrangement.spacedBy(46.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Inicio", color = SubtitleGray, fontSize = 16.sp)
+                    Text("Inicio", color = colors.textSecondary, fontSize = 16.sp)
                     Spacer(Modifier.height(4.dp))
                     RutinaHorarioField(
                         value = state.horarioInicio,
@@ -161,11 +157,11 @@ fun EditarRutinaScreen(
                         cornerRadius = 10.dp
                     )
                     if (state.horarioInicioError != null) {
-                        Text(state.horarioInicioError!!, color = ErrorRed, fontSize = 11.sp)
+                        Text(state.horarioInicioError!!, color = colors.destructive, fontSize = 11.sp)
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Fin", color = SubtitleGray, fontSize = 16.sp)
+                    Text("Fin", color = colors.textSecondary, fontSize = 16.sp)
                     Spacer(Modifier.height(4.dp))
                     RutinaHorarioField(
                         value = state.horarioFin,
@@ -175,7 +171,7 @@ fun EditarRutinaScreen(
                         cornerRadius = 10.dp
                     )
                     if (state.horarioFinError != null) {
-                        Text(state.horarioFinError!!, color = ErrorRed, fontSize = 11.sp)
+                        Text(state.horarioFinError!!, color = colors.destructive, fontSize = 11.sp)
                     }
                 }
             }
@@ -208,7 +204,7 @@ fun EditarRutinaScreen(
                 .padding(horizontal = 24.dp, vertical = 20.dp)
                 .height(50.dp),
             shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = StrengthGreen)
+            colors = ButtonDefaults.buttonColors(containerColor = colors.success)
         ) {
             Text("Guardar cambios", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
@@ -220,8 +216,8 @@ fun EditarRutinaScreen(
                 .padding(horizontal = 24.dp, vertical = 86.dp)
         ) { data ->
             Snackbar(
-                containerColor = SurfaceField,
-                contentColor = Color.White,
+                containerColor = colors.surface,
+                contentColor = colors.textPrimary,
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Text(data.visuals.message, fontSize = 13.sp)

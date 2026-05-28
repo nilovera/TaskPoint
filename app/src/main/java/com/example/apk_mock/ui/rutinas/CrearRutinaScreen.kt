@@ -18,7 +18,7 @@ import com.example.apk_mock.ui.components.AppTextField
 import com.example.apk_mock.ui.components.AppTopBar
 import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.components.FormFieldLabel
-import com.example.apk_mock.ui.theme.*
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 @Composable
 fun CrearRutinaScreen(
@@ -26,6 +26,7 @@ fun CrearRutinaScreen(
     onBack: () -> Unit
 ) {
     val state by viewModel.formState.collectAsState()
+    val colors = TaskPointTheme.colors
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
@@ -37,7 +38,7 @@ fun CrearRutinaScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark)
+            .background(colors.background)
     ) {
         Column(
             modifier = Modifier
@@ -75,7 +76,8 @@ fun CrearRutinaScreen(
             FormFieldLabel("Ícono", required = true)
             RutinaIconosGrid(
                 seleccionado = state.iconoSeleccionado,
-                onSelect = viewModel::onIconoChange
+                onSelect = viewModel::onIconoChange,
+                selectedBorderColor = colors.primary
             )
 
             Spacer(Modifier.height(20.dp))
@@ -101,7 +103,7 @@ fun CrearRutinaScreen(
             )
             if (state.diasError != null) {
                 Spacer(Modifier.height(4.dp))
-                Text(state.diasError!!, color = ErrorRed, fontSize = 12.sp)
+                Text(state.diasError!!, color = colors.destructive, fontSize = 12.sp)
             }
 
             Spacer(Modifier.height(20.dp))
@@ -110,7 +112,7 @@ fun CrearRutinaScreen(
             FormFieldLabel("Horario", required = true)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Inicio", color = SubtitleGray, fontSize = 12.sp)
+                    Text("Inicio", color = colors.textSecondary, fontSize = 12.sp)
                     Spacer(Modifier.height(4.dp))
                     RutinaHorarioField(
                         value = state.horarioInicio,
@@ -119,11 +121,11 @@ fun CrearRutinaScreen(
                         isError = state.horarioInicioError != null
                     )
                     if (state.horarioInicioError != null) {
-                        Text(state.horarioInicioError!!, color = ErrorRed, fontSize = 11.sp)
+                        Text(state.horarioInicioError!!, color = colors.destructive, fontSize = 11.sp)
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Fin", color = SubtitleGray, fontSize = 12.sp)
+                    Text("Fin", color = colors.textSecondary, fontSize = 12.sp)
                     Spacer(Modifier.height(4.dp))
                     RutinaHorarioField(
                         value = state.horarioFin,
@@ -132,7 +134,7 @@ fun CrearRutinaScreen(
                         isError = state.horarioFinError != null
                     )
                     if (state.horarioFinError != null) {
-                        Text(state.horarioFinError!!, color = ErrorRed, fontSize = 11.sp)
+                        Text(state.horarioFinError!!, color = colors.destructive, fontSize = 11.sp)
                     }
                 }
             }
@@ -167,7 +169,7 @@ fun CrearRutinaScreen(
                 .padding(horizontal = 20.dp, vertical = 20.dp)
                 .height(54.dp),
             shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = StrengthGreen)
+            colors = ButtonDefaults.buttonColors(containerColor = colors.success)
         ) {
             Text("Crear rutina", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
         }

@@ -24,39 +24,39 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.ui.theme.AccentBlue
-import com.example.apk_mock.ui.theme.ErrorFieldBg
-import com.example.apk_mock.ui.theme.ErrorRed
-import com.example.apk_mock.ui.theme.FieldBorder
-import com.example.apk_mock.ui.theme.LabelGray
-import com.example.apk_mock.ui.theme.PlaceholderGray
-import com.example.apk_mock.ui.theme.SubtitleGray
-import com.example.apk_mock.ui.theme.SurfaceField
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 @Composable
 fun appTextFieldColors(
-    focusedContainerColor: Color = SurfaceField,
-    unfocusedContainerColor: Color = SurfaceField,
-    errorContainerColor: Color = SurfaceField,
-    focusedBorderColor: Color = AccentBlue,
-    unfocusedBorderColor: Color = FieldBorder,
-    errorBorderColor: Color = ErrorRed,
-    focusedTextColor: Color = Color.White,
-    unfocusedTextColor: Color = Color.White,
-    errorTextColor: Color = Color.White,
-    cursorColor: Color = AccentBlue
-): TextFieldColors = OutlinedTextFieldDefaults.colors(
-    focusedContainerColor = focusedContainerColor,
-    unfocusedContainerColor = unfocusedContainerColor,
-    errorContainerColor = errorContainerColor,
-    focusedBorderColor = focusedBorderColor,
-    unfocusedBorderColor = unfocusedBorderColor,
-    errorBorderColor = errorBorderColor,
-    focusedTextColor = focusedTextColor,
-    unfocusedTextColor = unfocusedTextColor,
-    errorTextColor = errorTextColor,
-    cursorColor = cursorColor
-)
+    focusedContainerColor: Color = TaskPointTheme.colors.fieldBackground,
+    unfocusedContainerColor: Color = TaskPointTheme.colors.fieldBackground,
+    errorContainerColor: Color = TaskPointTheme.colors.fieldBackground,
+    focusedBorderColor: Color = TaskPointTheme.colors.primary,
+    unfocusedBorderColor: Color = TaskPointTheme.colors.fieldBorder,
+    errorBorderColor: Color = TaskPointTheme.colors.destructive,
+    focusedTextColor: Color = TaskPointTheme.colors.textPrimary,
+    unfocusedTextColor: Color = TaskPointTheme.colors.textPrimary,
+    errorTextColor: Color = TaskPointTheme.colors.textPrimary,
+    cursorColor: Color = TaskPointTheme.colors.primary
+): TextFieldColors {
+    val colors = TaskPointTheme.colors
+
+    return OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = focusedContainerColor,
+        unfocusedContainerColor = unfocusedContainerColor,
+        errorContainerColor = errorContainerColor,
+        focusedBorderColor = focusedBorderColor,
+        unfocusedBorderColor = unfocusedBorderColor,
+        errorBorderColor = errorBorderColor,
+        focusedTextColor = focusedTextColor,
+        unfocusedTextColor = unfocusedTextColor,
+        errorTextColor = errorTextColor,
+        cursorColor = cursorColor,
+        focusedPlaceholderColor = colors.placeholder,
+        unfocusedPlaceholderColor = colors.placeholder,
+        errorPlaceholderColor = colors.placeholder
+    )
+}
 
 @Composable
 fun AppTextField(
@@ -69,11 +69,13 @@ fun AppTextField(
     isError: Boolean = false,
     errorMessage: String? = null
 ) {
+    val colors = TaskPointTheme.colors
+
     Column {
         if (label.isNotBlank()) {
             Text(
                 text = label,
-                color = LabelGray,
+                color = colors.label,
                 fontSize = 17.sp,
                 modifier = Modifier.padding(bottom = 6.dp)
             )
@@ -82,7 +84,7 @@ fun AppTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(placeholder, color = PlaceholderGray, fontSize = 18.sp) },
+            placeholder = { Text(placeholder, color = colors.placeholder, fontSize = 18.sp) },
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             isError = isError,
@@ -91,12 +93,12 @@ fun AppTextField(
             colors = appTextFieldColors(),
             textStyle = LocalTextStyle.current.copy(
                 fontSize = 19.sp,
-                color = Color.White
+                color = colors.textPrimary
             )
         )
         if (isError && errorMessage != null) {
             Spacer(Modifier.height(4.dp))
-            Text(errorMessage, color = ErrorRed, fontSize = 17.sp)
+            Text(errorMessage, color = colors.destructive, fontSize = 17.sp)
         }
     }
 }
@@ -113,19 +115,21 @@ fun AppTextArea(
     counterFontSize: TextUnit = 11.sp,
     errorFontSize: TextUnit = 12.sp
 ) {
+    val colors = TaskPointTheme.colors
+
     OutlinedTextField(
         value = value,
         onValueChange = { newValue ->
             onValueChange(maxLength?.let { newValue.take(it) } ?: newValue)
         },
         modifier = modifier,
-        placeholder = { Text(placeholder, color = PlaceholderGray, fontSize = 14.sp) },
+        placeholder = { Text(placeholder, color = colors.placeholder, fontSize = 14.sp) },
         isError = isError,
         shape = RoundedCornerShape(12.dp),
         colors = appTextFieldColors(),
         textStyle = LocalTextStyle.current.copy(
             fontSize = 18.sp,
-            color = Color.White
+            color = colors.textPrimary
         )
     )
 
@@ -135,13 +139,13 @@ fun AppTextArea(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             if (isError && errorMessage != null) {
-                Text(errorMessage, color = ErrorRed, fontSize = errorFontSize)
+                Text(errorMessage, color = colors.destructive, fontSize = errorFontSize)
             } else {
                 Spacer(Modifier.width(1.dp))
             }
 
             maxLength?.let {
-                Text("${value.length}/$it", color = SubtitleGray, fontSize = counterFontSize)
+                Text("${value.length}/$it", color = colors.textSecondary, fontSize = counterFontSize)
             }
         }
     }

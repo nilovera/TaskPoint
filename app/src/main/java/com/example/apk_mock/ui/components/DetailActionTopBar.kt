@@ -20,7 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.apk_mock.ui.theme.LabelGray
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 @Composable
 fun DetailActionTopBar(
@@ -31,9 +31,11 @@ fun DetailActionTopBar(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
-    backIconTint: Color = LabelGray,
-    actionIconTint: Color = LabelGray
+    backIconTint: Color? = null,
+    actionIconTint: Color? = null
 ) {
+    val colors = TaskPointTheme.colors
+    val resolvedActionIconTint = actionIconTint ?: colors.label
     var menuExpanded by remember { mutableStateOf(false) }
 
     AppTopBar(
@@ -55,7 +57,7 @@ fun DetailActionTopBar(
                     Icon(
                         Icons.Default.MoreVert,
                         contentDescription = "Acciones",
-                        tint = actionIconTint
+                        tint = resolvedActionIconTint
                     )
                 }
                 AppDropdownMenu(
@@ -73,7 +75,7 @@ fun DetailActionTopBar(
                     AppDropdownMenuItem(
                         text = deleteLabel,
                         icon = Icons.Default.Delete,
-                        color = AppDropdownMenuDefaults.DangerText,
+                        color = colors.destructive,
                         onClick = {
                             menuExpanded = false
                             onDelete()

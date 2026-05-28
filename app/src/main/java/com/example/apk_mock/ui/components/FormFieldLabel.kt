@@ -10,8 +10,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.ui.theme.ErrorRed
-import com.example.apk_mock.ui.theme.LabelGray
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 @Composable
 fun FormFieldLabel(
@@ -19,16 +18,18 @@ fun FormFieldLabel(
     modifier: Modifier = Modifier,
     required: Boolean = false
 ) {
+    val colors = TaskPointTheme.colors
+
     Text(
         text = buildAnnotatedString {
             append(text)
             if (required) {
-                withStyle(SpanStyle(color = ErrorRed, fontWeight = FontWeight.Bold)) {
+                withStyle(SpanStyle(color = colors.destructive, fontWeight = FontWeight.Bold)) {
                     append(" *")
                 }
             }
         },
-        color = LabelGray,
+        color = colors.label,
         fontSize = 18.sp,
         fontWeight = FontWeight.SemiBold,
         modifier = modifier.padding(bottom = 4.dp)

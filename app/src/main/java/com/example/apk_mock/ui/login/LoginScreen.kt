@@ -28,8 +28,7 @@ import com.example.apk_mock.ui.components.AuthBottomLink
 import com.example.apk_mock.ui.components.AuthErrorBanner
 import com.example.apk_mock.ui.components.AuthHeader
 import com.example.apk_mock.ui.components.AuthPrimaryButton
-import com.example.apk_mock.ui.theme.BackgroundDark
-import com.example.apk_mock.ui.theme.loginAndRegisterBlue
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 @Composable
 fun LoginScreen(
@@ -39,6 +38,7 @@ fun LoginScreen(
     onNavigateToForgotPassword: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    val colors = TaskPointTheme.colors
     val errorMessage = state.errorMessage
     val hasError = errorMessage != null
 
@@ -52,7 +52,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark)
+            .background(colors.background)
             .padding(horizontal = 24.dp)
     ) {
         Column(
@@ -99,7 +99,7 @@ fun LoginScreen(
             ) {
                 Text(
                     text = "¿Olvidaste tu contraseña?",
-                    color = loginAndRegisterBlue,
+                    color = colors.primary,
                     fontSize = 17.sp,
                     modifier = Modifier.clickable { onNavigateToForgotPassword() }
                 )

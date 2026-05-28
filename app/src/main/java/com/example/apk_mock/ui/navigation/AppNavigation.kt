@@ -65,7 +65,7 @@ import com.example.apk_mock.ui.tareas.DetalleTareaScreen
 import com.example.apk_mock.ui.tareas.EditarTareaScreen
 import com.example.apk_mock.ui.tareas.TareasScreen
 import com.example.apk_mock.ui.tareas.TareasViewModel
-import com.example.apk_mock.ui.theme.*
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 // ── Modelo de ítem del bottom bar ─────────────────────────────────────────────
 private data class BottomNavItem(
@@ -80,9 +80,6 @@ private val bottomNavItems = listOf(
     BottomNavItem(Routes.TAREAS,  "Tareas",  Icons.AutoMirrored.Filled.List)
 )
 
-private val BottomBarBackground = Color(0xFF080B12)
-private val BottomBarDivider = Color(0xFF252B44)
-
 // ── Rutas donde se muestra el bottom bar ─────────────────────────────────────
 private val tabRoutes = setOf(Routes.HOME, Routes.RUTINAS, Routes.TAREAS)
 private val profileRoutes = setOf(Routes.PROFILE, Routes.PROFILE_PASSWORD)
@@ -94,6 +91,7 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStack?.destination?.route
+    val colors = TaskPointTheme.colors
 
     val authRepository = remember(context) { JsonAuthRepository(context) }
     val rutinaRepository = remember(context, authRepository) { JsonRutinaRepository(context, authRepository) }
@@ -175,7 +173,7 @@ fun AppNavigation() {
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = colors.background,
         bottomBar = {
             // El bottom bar aparece en tabs y en el flujo de perfil.
             if (currentRoute in bottomBarRoutes) {
@@ -468,6 +466,7 @@ fun AppNavigation() {
 // ── Bottom bar ────────────────────────────────────────────────────────────────
 @Composable
 private fun AppBottomBar(navController: NavController, currentRoute: String?) {
+    val colors = TaskPointTheme.colors
     val selectedRoute = when (currentRoute) {
         in profileRoutes -> Routes.HOME
         Routes.RUTINA_DETALLE_ROUTE -> Routes.RUTINAS
@@ -475,13 +474,13 @@ private fun AppBottomBar(navController: NavController, currentRoute: String?) {
     }
 
     NavigationBar(
-        containerColor = BottomBarBackground,
+        containerColor = colors.bottomNavBackground,
         tonalElevation = 0.dp,
         modifier = Modifier
             .height(92.dp)
             .drawBehind {
                 drawLine(
-                    color = BottomBarDivider,
+                    color = colors.border,
                     start = Offset.Zero,
                     end = Offset(size.width, 0f),
                     strokeWidth = 1.dp.toPx()
@@ -515,6 +514,7 @@ private fun RowScope.BottomNavButton(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val colors = TaskPointTheme.colors
     val itemShape = RoundedCornerShape(18.dp)
     val iconSize = 28.dp
 
@@ -532,7 +532,7 @@ private fun RowScope.BottomNavButton(
         Column(
             modifier = Modifier
                 .clip(itemShape)
-                .background(if (selected) AccentBlue else Color.Transparent)
+                .background(if (selected) colors.primary else Color.Transparent)
                 .padding(
                     horizontal = 14.dp,
                     vertical = 6.dp
@@ -542,13 +542,13 @@ private fun RowScope.BottomNavButton(
             Icon(
                 item.icon,
                 contentDescription = item.label,
-                tint = if (selected) Color.White else SubtitleGray,
+                tint = if (selected) Color.White else colors.bottomNavInactive,
                 modifier = Modifier.size(iconSize)
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 item.label,
-                color = if (selected) Color.White else SubtitleGray,
+                color = if (selected) Color.White else colors.bottomNavInactive,
                 fontSize = 13.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
             )

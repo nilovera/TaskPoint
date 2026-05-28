@@ -1,5 +1,6 @@
 package com.example.apk_mock.ui.tareas
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -27,8 +28,8 @@ import com.example.apk_mock.ui.components.AppTopBar
 import com.example.apk_mock.ui.components.AppTopBarSize
 import com.example.apk_mock.ui.components.FormFieldLabel
 import com.example.apk_mock.ui.components.appTextFieldColors
-import com.example.apk_mock.ui.theme.*
-import com.example.apk_mock.ui.theme.categoryColor
+import com.example.apk_mock.ui.theme.TaskPointTheme
+import com.example.apk_mock.ui.theme.categoryChipColors
 
 @Composable
 fun CrearTareaScreen(
@@ -131,11 +132,12 @@ private fun TareaFormContent(
     onSubmit: () -> Unit
 ) {
     val maxNotas = 120
+    val colors = TaskPointTheme.colors
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark)
+            .background(colors.background)
     ) {
         Column(
             modifier = Modifier
@@ -175,7 +177,7 @@ private fun TareaFormContent(
             )
             if (state.categoriaError != null) {
                 Spacer(Modifier.height(4.dp))
-                Text(state.categoriaError, color = ErrorRed, fontSize = 12.sp)
+                Text(state.categoriaError, color = colors.destructive, fontSize = 12.sp)
             }
 
             Spacer(Modifier.height(20.dp))
@@ -189,19 +191,19 @@ private fun TareaFormContent(
             ) { dismissMenu ->
                 state.rutinasDisponibles.forEach { rutina ->
                     DropdownMenuItem(
-                        text = { Text(rutina.nombre, color = Color.White, fontSize = 14.sp) },
+                        text = { Text(rutina.nombre, color = colors.textPrimary, fontSize = 14.sp) },
                         onClick = {
                             onRutinaSelect(rutina)
                             dismissMenu()
                         },
-                        modifier = Modifier.background(SurfaceField)
+                        modifier = Modifier.background(colors.fieldBackground)
                     )
                 }
                 if (state.rutinasDisponibles.isEmpty()) {
                     DropdownMenuItem(
-                        text = { Text("No hay rutinas creadas", color = SubtitleGray, fontSize = 14.sp) },
+                        text = { Text("No hay rutinas creadas", color = colors.textSecondary, fontSize = 14.sp) },
                         onClick = { dismissMenu() },
-                        modifier = Modifier.background(SurfaceField)
+                        modifier = Modifier.background(colors.fieldBackground)
                     )
                 }
             }
@@ -221,19 +223,19 @@ private fun TareaFormContent(
             ) { dismissMenu ->
                 state.diasDisponibles.forEach { dia ->
                     DropdownMenuItem(
-                        text = { Text(dia.label, color = Color.White, fontSize = 14.sp) },
+                        text = { Text(dia.label, color = colors.textPrimary, fontSize = 14.sp) },
                         onClick = {
                             onDiaSelect(dia)
                             dismissMenu()
                         },
-                        modifier = Modifier.background(SurfaceField)
+                        modifier = Modifier.background(colors.fieldBackground)
                     )
                 }
                 if (state.diasDisponibles.isEmpty()) {
                     DropdownMenuItem(
-                        text = { Text("Seleccioná una rutina para ver los días", color = SubtitleGray, fontSize = 14.sp) },
+                        text = { Text("Seleccioná una rutina para ver los días", color = colors.textSecondary, fontSize = 14.sp) },
                         onClick = { dismissMenu() },
-                        modifier = Modifier.background(SurfaceField)
+                        modifier = Modifier.background(colors.fieldBackground)
                     )
                 }
             }
@@ -253,19 +255,19 @@ private fun TareaFormContent(
             ) { dismissMenu ->
                 state.horariosDisponibles.forEach { horario ->
                     DropdownMenuItem(
-                        text = { Text(horario, color = Color.White, fontSize = 14.sp) },
+                        text = { Text(horario, color = colors.textPrimary, fontSize = 14.sp) },
                         onClick = {
                             onHorarioChange(horario)
                             dismissMenu()
                         },
-                        modifier = Modifier.background(SurfaceField)
+                        modifier = Modifier.background(colors.fieldBackground)
                     )
                 }
                 if (state.horariosDisponibles.isEmpty()) {
                     DropdownMenuItem(
-                        text = { Text("Seleccioná una rutina para ver los horarios", color = SubtitleGray, fontSize = 14.sp) },
+                        text = { Text("Seleccioná una rutina para ver los horarios", color = colors.textSecondary, fontSize = 14.sp) },
                         onClick = { dismissMenu() },
-                        modifier = Modifier.background(SurfaceField)
+                        modifier = Modifier.background(colors.fieldBackground)
                     )
                 }
             }
@@ -275,8 +277,8 @@ private fun TareaFormContent(
             FormFieldLabel("Foto (opcional)")
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = SurfaceField,
-                border = androidx.compose.foundation.BorderStroke(1.dp, FieldBorder),
+                color = colors.fieldBackground,
+                border = BorderStroke(1.dp, colors.fieldBorder),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -287,22 +289,22 @@ private fun TareaFormContent(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isEditing) Color(0xFF173016) else Color(0xFF242A5F)),
+                            .background(if (isEditing) colors.success.copy(alpha = 0.18f) else colors.primary.copy(alpha = 0.18f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Image, contentDescription = null, tint = StrengthGreen, modifier = Modifier.size(24.dp))
+                        Icon(Icons.Default.Image, contentDescription = null, tint = colors.success, modifier = Modifier.size(24.dp))
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(if (isEditing) "Cambiar foto" else "Agregar foto", color = LabelGray, fontSize = 16.sp)
+                        Text(if (isEditing) "Cambiar foto" else "Agregar foto", color = colors.label, fontSize = 16.sp)
                         Text(
                             if (isEditing) "Toca para reemplazar" else "Desde cámara o galería",
-                            color = PlaceholderGray,
+                            color = colors.placeholder,
                             fontSize = 13.sp
                         )
                     }
                     if (isEditing) {
-                        Icon(Icons.Default.Close, contentDescription = "Quitar foto", tint = ErrorRed)
+                        Icon(Icons.Default.Close, contentDescription = "Quitar foto", tint = colors.destructive)
                     }
                 }
             }
@@ -332,7 +334,7 @@ private fun TareaFormContent(
                 .padding(horizontal = 20.dp, vertical = 20.dp)
                 .height(54.dp),
             shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = StrengthGreen)
+            colors = ButtonDefaults.buttonColors(containerColor = colors.success)
         ) {
             Text(submitButtonText, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
         }
@@ -352,21 +354,20 @@ private fun CategoriaSelector(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 fila.forEach { cat ->
                     val selected = cat == seleccionada
-                    val categoryColor = cat.categoryColor()
+                    val categoryColors = cat.categoryChipColors(selected = selected)
                     Surface(
                         onClick = { onSelect(cat) },
                         shape = RoundedCornerShape(8.dp),
-                        color = categoryColor.copy(alpha = if (selected) 0.95f else 0.18f),
-                        border = if (selected) null else androidx.compose.foundation.BorderStroke(
-                            width = 1.dp,
-                            color = categoryColor.copy(alpha = 0.52f)
-                        )
+                        color = categoryColors.container,
+                        border = categoryColors.border?.let {
+                            androidx.compose.foundation.BorderStroke(width = 1.dp, color = it)
+                        }
                     ) {
                         Box(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
                             Text(
                                 cat.label,
                                 fontSize = 12.sp,
-                                color = if (selected) Color.White else categoryColor,
+                                color = categoryColors.content,
                                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                             )
                         }
@@ -387,6 +388,7 @@ private fun DropdownField(
     menuContent: @Composable ColumnScope.(dismissMenu: () -> Unit) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val colors = TaskPointTheme.colors
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -399,12 +401,12 @@ private fun DropdownField(
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true),
-            placeholder = { Text(placeholder, color = PlaceholderGray, fontSize = 14.sp) },
+            placeholder = { Text(placeholder, color = colors.placeholder, fontSize = 14.sp) },
             trailingIcon = {
                 Icon(
                     Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = SubtitleGray
+                    tint = colors.textSecondary
                 )
             },
             isError = isError,
@@ -415,13 +417,13 @@ private fun DropdownField(
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(SurfaceField)
+            modifier = Modifier.background(colors.fieldBackground)
         ) {
             menuContent { expanded = false }
         }
     }
     if (isError && errorMessage != null) {
         Spacer(Modifier.height(4.dp))
-        Text(errorMessage, color = ErrorRed, fontSize = 12.sp)
+        Text(errorMessage, color = colors.destructive, fontSize = 12.sp)
     }
 }

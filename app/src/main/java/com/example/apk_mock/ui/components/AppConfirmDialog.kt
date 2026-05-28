@@ -29,17 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.example.apk_mock.ui.theme.AccentBlue
-import com.example.apk_mock.ui.theme.CancelRed
-import com.example.apk_mock.ui.theme.FieldBorder
-import com.example.apk_mock.ui.theme.LabelGray
-import com.example.apk_mock.ui.theme.SubtitleGray
-import com.example.apk_mock.ui.theme.SurfaceField
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 object AppConfirmDialogDefaults {
     val OverlayColor = Color.Black.copy(alpha = 0.62f)
-    val ContainerColor = SurfaceField
-    val DestructiveColor = CancelRed
     val DialogCornerRadius = 18.dp
     val ButtonCornerRadius = 12.dp
     val TitleFontSize = 20.sp
@@ -63,9 +56,9 @@ fun AppConfirmDialog(
     onConfirm: () -> Unit,
     support: String? = null,
     dismissText: String = "Cancelar",
-    containerColor: Color = AppConfirmDialogDefaults.ContainerColor,
-    messageColor: Color = LabelGray,
-    supportColor: Color = messageColor,
+    containerColor: Color? = null,
+    messageColor: Color? = null,
+    supportColor: Color? = null,
     dismissContainerColor: Color = Color.Transparent,
     dialogCornerRadius: Dp = AppConfirmDialogDefaults.DialogCornerRadius,
     buttonCornerRadius: Dp = AppConfirmDialogDefaults.ButtonCornerRadius,
@@ -73,6 +66,11 @@ fun AppConfirmDialog(
     bodyFontSize: TextUnit = AppConfirmDialogDefaults.BodyFontSize,
     bodyLineHeight: TextUnit = AppConfirmDialogDefaults.BodyLineHeight
 ) {
+    val colors = TaskPointTheme.colors
+    val resolvedContainerColor = containerColor ?: colors.surface
+    val resolvedMessageColor = messageColor ?: colors.label
+    val resolvedSupportColor = supportColor ?: resolvedMessageColor
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
@@ -93,15 +91,15 @@ fun AppConfirmDialog(
             contentAlignment = Alignment.BottomCenter
         ) {
             Surface(
-                color = containerColor,
+                color = resolvedContainerColor,
                 shape = RoundedCornerShape(dialogCornerRadius),
-                border = BorderStroke(1.dp, FieldBorder),
+                border = BorderStroke(1.dp, colors.border),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(AppConfirmDialogDefaults.CardPadding)) {
                     Text(
                         title,
-                        color = Color.White,
+                        color = colors.textPrimary,
                         fontSize = titleFontSize,
                         fontWeight = FontWeight.Bold
                     )
@@ -109,14 +107,14 @@ fun AppConfirmDialog(
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
                             message,
-                            color = messageColor,
+                            color = resolvedMessageColor,
                             fontSize = bodyFontSize,
                             lineHeight = bodyLineHeight
                         )
                         if (support != null) {
                             Text(
                                 support,
-                                color = supportColor,
+                                color = resolvedSupportColor,
                                 fontSize = bodyFontSize,
                                 lineHeight = bodyLineHeight
                             )
@@ -133,10 +131,10 @@ fun AppConfirmDialog(
                                 .height(AppConfirmDialogDefaults.ButtonHeight)
                                 .weight(1f),
                             shape = RoundedCornerShape(buttonCornerRadius),
-                            border = BorderStroke(1.dp, FieldBorder),
+                            border = BorderStroke(1.dp, colors.border),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 containerColor = dismissContainerColor,
-                                contentColor = Color.White
+                                contentColor = colors.textPrimary
                             )
                         ) {
                             Text(dismissText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
@@ -168,14 +166,16 @@ fun AppDeleteConfirmDialog(
     support: String? = "Esta accion no se puede deshacer.",
     confirmText: String = "Eliminar"
 ) {
+    val colors = TaskPointTheme.colors
+
     AppConfirmDialog(
         title = title,
         message = message,
         support = support,
         confirmText = confirmText,
-        confirmColor = AppConfirmDialogDefaults.DestructiveColor,
-        messageColor = LabelGray,
-        supportColor = SubtitleGray,
+        confirmColor = colors.destructive,
+        messageColor = colors.label,
+        supportColor = colors.textSecondary,
         onDismiss = onDismiss,
         onConfirm = onConfirm
     )
@@ -186,13 +186,15 @@ fun AppLogoutConfirmDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+    val colors = TaskPointTheme.colors
+
     AppConfirmDialog(
         title = "Cerrar sesion",
         message = "Estas seguro que deseas cerrar sesion?",
         support = null,
         confirmText = "Confirmar",
-        confirmColor = AccentBlue,
-        messageColor = LabelGray,
+        confirmColor = colors.primary,
+        messageColor = colors.label,
         onDismiss = onDismiss,
         onConfirm = onConfirm
     )

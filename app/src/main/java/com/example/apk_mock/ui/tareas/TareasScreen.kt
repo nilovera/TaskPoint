@@ -1,5 +1,6 @@
 package com.example.apk_mock.ui.tareas
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,11 +40,8 @@ import com.example.apk_mock.ui.components.BottomStatusMessage
 import com.example.apk_mock.ui.components.CreateActionPill
 import com.example.apk_mock.ui.components.MainScreenHeader
 import com.example.apk_mock.ui.rutinas.FiltrosDias
-import com.example.apk_mock.ui.theme.BackgroundDark
-import com.example.apk_mock.ui.theme.DateBlue
-import com.example.apk_mock.ui.theme.SubtitleGray
-import com.example.apk_mock.ui.theme.SurfaceField
-import com.example.apk_mock.ui.theme.categoryColor
+import com.example.apk_mock.ui.theme.TaskPointTheme
+import com.example.apk_mock.ui.theme.categoryChipColors
 import com.example.apk_mock.ui.utils.daysFrom
 import com.example.apk_mock.ui.utils.taskSectionLabel
 import com.example.apk_mock.ui.utils.toDiaSemana
@@ -69,6 +66,7 @@ fun TareasScreen(
     val tareas = viewModel.tareasFiltradas()
     val canCreateTask = listState.rutinasDisponibles > 0
     val today = LocalDate.now()
+    val colors = TaskPointTheme.colors
     var overlayMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) { viewModel.refreshTareas() }
@@ -90,7 +88,7 @@ fun TareasScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = colors.background,
         floatingActionButton = {
             if (overlayMessage == null) {
                 CreateActionPill(
@@ -145,7 +143,7 @@ fun TareasScreen(
                             item {
                                 Text(
                                     dia.taskSectionLabel(today),
-                                    color = DateBlue,
+                                    color = colors.primary,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(top = 12.dp, bottom = 6.dp)
@@ -192,10 +190,13 @@ fun TareaCard(
     tarea: Tarea,
     onClick: () -> Unit = {}
 ) {
-    val catColor = tarea.categoria.categoryColor()
+    val categoryColors = tarea.categoria.categoryChipColors()
+    val colors = TaskPointTheme.colors
+
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = SurfaceField,
+        color = colors.taskCard,
+        border = BorderStroke(1.dp, colors.border),
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 62.dp)
@@ -212,7 +213,7 @@ fun TareaCard(
             ) {
                 Text(
                     tarea.titulo,
-                    color = Color.White,
+                    color = colors.textPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -221,19 +222,19 @@ fun TareaCard(
                 if (tarea.horario != null || tarea.rutinaNombre != null) {
                     Text(
                         listOfNotNull(tarea.horario, tarea.rutinaNombre).joinToString(" | "),
-                        color = SubtitleGray,
+                        color = colors.textSecondary,
                         fontSize = 14.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
             }
-            Surface(shape = RoundedCornerShape(5.dp), color = catColor.copy(alpha = 0.18f)) {
+            Surface(shape = RoundedCornerShape(5.dp), color = categoryColors.container) {
                 Text(
                     tarea.categoria.label,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                     fontSize = 12.sp,
-                    color = catColor,
+                    color = categoryColors.content,
                     fontWeight = FontWeight.ExtraBold
                 )
             }

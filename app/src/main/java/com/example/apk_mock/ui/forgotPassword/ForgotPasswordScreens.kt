@@ -82,7 +82,7 @@ fun ForgotPasswordCodeScreen(
         subtitle = "Ingresá el token de recuperación para cambiar tu contraseña.",
         onCancel = onCancel
     ) {
-        Text("Código de recuperación", color = LabelGray, fontSize = 13.sp)
+        Text("Código de recuperación", color = TaskPointTheme.colors.label, fontSize = 13.sp)
         Spacer(Modifier.height(10.dp))
         OtpInputRow(
             digits = state.codeDigits,
@@ -91,7 +91,7 @@ fun ForgotPasswordCodeScreen(
         )
         if (state.codeError != null) {
             Spacer(Modifier.height(6.dp))
-            Text(state.codeError!!, color = ErrorRed, fontSize = 12.sp)
+            Text(state.codeError!!, color = TaskPointTheme.colors.destructive, fontSize = 12.sp)
         }
         Spacer(Modifier.height(28.dp))
         PrimaryButton(text = "Continuar", onClick = viewModel::onVerifyCode)
@@ -124,6 +124,8 @@ fun ForgotPasswordNewPasswordScreen(
         subtitle = "Ingresá tu nueva contraseña.",
         onCancel = onCancel
     ) {
+        val colors = TaskPointTheme.colors
+
         AppTextField(
             label = "Contraseña",
             value = state.newPassword,
@@ -148,7 +150,7 @@ fun ForgotPasswordNewPasswordScreen(
             onClick = viewModel::onChangePassword,
             modifier = Modifier.fillMaxWidth().height(54.dp),
             shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = StrengthGreen)
+            colors = ButtonDefaults.buttonColors(containerColor = colors.success)
         ) {
             Text("Confirmar", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
         }
@@ -168,10 +170,12 @@ private fun ForgotPasswordScaffold(
     onCancel: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val colors = TaskPointTheme.colors
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark)
+            .background(colors.background)
             .padding(horizontal = 24.dp)
     ) {
         Column(
@@ -183,14 +187,14 @@ private fun ForgotPasswordScaffold(
                 text = title,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = colors.textPrimary,
                 lineHeight = 38.sp
             )
             Spacer(Modifier.height(8.dp))
             Text(
                 text = subtitle,
                 fontSize = 14.sp,
-                color = SubtitleGray,
+                color = colors.textSecondary,
                 lineHeight = 20.sp
             )
             Spacer(Modifier.height(28.dp))
@@ -205,7 +209,7 @@ private fun PrimaryButton(text: String, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().height(54.dp),
         shape = RoundedCornerShape(14.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
+        colors = ButtonDefaults.buttonColors(containerColor = TaskPointTheme.colors.primary)
     ) {
         Text(text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
     }
@@ -217,7 +221,7 @@ private fun CancelButton(onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().height(54.dp),
         shape = RoundedCornerShape(14.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = CancelRed)
+        colors = ButtonDefaults.buttonColors(containerColor = TaskPointTheme.colors.destructive)
     ) {
         Text("Cancelar", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
     }
@@ -231,6 +235,7 @@ fun OtpInputRow(
     onDigitChange: (Int, String) -> Unit,
     isError: Boolean
 ) {
+    val colors = TaskPointTheme.colors
     val focusRequesters = remember { List(6) { FocusRequester() } }
 
     Row(
@@ -255,14 +260,14 @@ fun OtpInputRow(
                     textAlign = TextAlign.Center,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = colors.textPrimary
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 shape = RoundedCornerShape(12.dp),
                 colors = appTextFieldColors(
-                    focusedBorderColor = if (isError) ErrorRed else AccentBlue,
-                    unfocusedBorderColor = if (digit.isNotEmpty()) AccentBlue else FieldBorder
+                    focusedBorderColor = if (isError) colors.destructive else colors.primary,
+                    unfocusedBorderColor = if (digit.isNotEmpty()) colors.primary else colors.fieldBorder
                 )
             )
         }

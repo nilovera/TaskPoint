@@ -29,14 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.ui.theme.AccentBlue
-import com.example.apk_mock.ui.theme.StrengthGreen
-import com.example.apk_mock.ui.theme.SubtitleGray
-import com.example.apk_mock.ui.theme.SurfaceField
-
-private val RequirementBackground = Color(0xFF551017)
-private val RequirementBorder = Color(0xFFA93244)
-private val RequirementText = Color(0xFFFF6E82)
+import com.example.apk_mock.ui.theme.TaskPointTheme
 
 @Composable
 fun MainScreenHeader(
@@ -47,6 +40,8 @@ fun MainScreenHeader(
     modifier: Modifier = Modifier,
     subtitle: String? = null
 ) {
+    val colors = TaskPointTheme.colors
+
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -56,14 +51,14 @@ fun MainScreenHeader(
             if (subtitle != null) {
                 Text(
                     text = subtitle,
-                    color = SubtitleGray,
+                    color = colors.textSecondary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium
                 )
             }
             Text(
                 text = title,
-                color = Color.White,
+                color = colors.textPrimary,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -85,10 +80,12 @@ fun AppEmptyStateCard(
     onAction: () -> Unit = {},
     actionEnabled: Boolean = true
 ) {
+    val colors = TaskPointTheme.colors
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = SurfaceField
+        color = colors.surface
     ) {
         Column(
             modifier = Modifier.padding(vertical = 48.dp, horizontal = 24.dp),
@@ -96,7 +93,7 @@ fun AppEmptyStateCard(
         ) {
             Text(
                 text = message,
-                color = SubtitleGray,
+                color = colors.textSecondary,
                 fontSize = 15.sp,
                 lineHeight = 22.sp,
                 textAlign = TextAlign.Center
@@ -108,15 +105,15 @@ fun AppEmptyStateCard(
                     enabled = actionEnabled,
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AccentBlue.copy(alpha = 0.25f),
-                        disabledContainerColor = Color(0xFF59606E),
-                        disabledContentColor = Color.White
+                        containerColor = colors.primary.copy(alpha = 0.25f),
+                        disabledContainerColor = colors.border,
+                        disabledContentColor = colors.textSecondary
                     ),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
                 ) {
                     Text(
                         text = actionText,
-                        color = if (actionEnabled) AccentBlue else Color.White,
+                        color = if (actionEnabled) colors.primary else colors.textSecondary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -133,6 +130,8 @@ fun RequirementActionPanel(
     onAction: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = TaskPointTheme.colors
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -142,13 +141,13 @@ fun RequirementActionPanel(
                 .fillMaxWidth()
                 .height(34.dp)
                 .clip(RoundedCornerShape(9.dp))
-                .background(RequirementBackground)
-                .border(BorderStroke(1.dp, RequirementBorder), RoundedCornerShape(9.dp)),
+                .background(colors.warningBackground)
+                .border(BorderStroke(1.dp, colors.warningText.copy(alpha = 0.55f)), RoundedCornerShape(9.dp)),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = message,
-                color = RequirementText,
+                color = colors.warningText,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -160,7 +159,7 @@ fun RequirementActionPanel(
                 .fillMaxWidth()
                 .height(48.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
+            colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
         ) {
             Text(
                 text = actionText,
@@ -178,9 +177,11 @@ fun BoxScope.BottomStatusMessage(
     bottomPadding: Dp,
     modifier: Modifier = Modifier
 ) {
+    val colors = TaskPointTheme.colors
+
     Surface(
         shape = RoundedCornerShape(10.dp),
-        color = StrengthGreen,
+        color = colors.success,
         modifier = modifier
             .align(Alignment.BottomCenter)
             .fillMaxWidth()
