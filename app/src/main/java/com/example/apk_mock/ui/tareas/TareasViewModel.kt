@@ -37,10 +37,13 @@ data class CrearTareaUiState(
     val diaSeleccionado: DiaSemana? = null,
     val horario: String? = null,
     val notas: String = "",
+    val photoPath: String? = null,
     val categoriasDisponibles: List<CategoriaTarea> = emptyList(),
     val rutinasDisponibles: List<Rutina> = emptyList(),
     val diasDisponibles: List<DiaSemana> = emptyList(),
     val horariosDisponibles: List<String> = emptyList(),
+    val isFormLoaded: Boolean = false,
+    val loadedTaskId: String? = null,
     // errores
     val tituloError: String? = null,
     val categoriaError: String? = null,
@@ -106,12 +109,30 @@ class TareasViewModel(
         }
     }
 
+    fun resetCreateForm() {
+        _formState.value = CrearTareaUiState()
+    }
+
+    fun resetEditForm() {
+        _formState.value = CrearTareaUiState()
+    }
+
     fun loadFormData() {
+        val categorias = getCategorias()
+        val rutinas = getRutinas()
         _formState.update {
-            CrearTareaUiState(
-                categoriasDisponibles = getCategorias(),
-                rutinasDisponibles = getRutinas()
-            )
+            if (it.isFormLoaded && it.loadedTaskId == null) {
+                it.copy(
+                    categoriasDisponibles = categorias,
+                    rutinasDisponibles = rutinas
+                )
+            } else {
+                CrearTareaUiState(
+                    categoriasDisponibles = categorias,
+                    rutinasDisponibles = rutinas,
+                    isFormLoaded = true
+                )
+            }
         }
     }
 
@@ -123,19 +144,29 @@ class TareasViewModel(
         val categoria = categorias.find { it.code == tarea.categoria.code } ?: tarea.categoria
 
         _formState.update {
-            CrearTareaUiState(
-                titulo = tarea.titulo,
-                categoriaSeleccionada = categoria,
-                rutinaSeleccionadaId = rutina?.id ?: tarea.rutinaId,
-                rutinaSeleccionadaNombre = rutina?.nombre ?: tarea.rutinaNombre,
-                diaSeleccionado = tarea.dia,
-                horario = tarea.horario,
-                notas = tarea.notas,
-                categoriasDisponibles = categorias,
-                rutinasDisponibles = rutinas,
-                diasDisponibles = rutina?.diasSemana.orEmpty(),
-                horariosDisponibles = rutina?.horariosDisponibles().orEmpty()
-            )
+            if (it.isFormLoaded && it.loadedTaskId == taskId) {
+                it.copy(
+                    categoriasDisponibles = categorias,
+                    rutinasDisponibles = rutinas
+                )
+            } else {
+                CrearTareaUiState(
+                    titulo = tarea.titulo,
+                    categoriaSeleccionada = categoria,
+                    rutinaSeleccionadaId = rutina?.id ?: tarea.rutinaId,
+                    rutinaSeleccionadaNombre = rutina?.nombre ?: tarea.rutinaNombre,
+                    diaSeleccionado = tarea.dia,
+                    horario = tarea.horario,
+                    notas = tarea.notas,
+                    photoPath = tarea.photoPath,
+                    categoriasDisponibles = categorias,
+                    rutinasDisponibles = rutinas,
+                    diasDisponibles = rutina?.diasSemana.orEmpty(),
+                    horariosDisponibles = rutina?.horariosDisponibles().orEmpty(),
+                    isFormLoaded = true,
+                    loadedTaskId = taskId
+                )
+            }
         }
     }
 
@@ -158,6 +189,8 @@ class TareasViewModel(
     fun onDiaSelect(d: DiaSemana?) = _formState.update { it.copy(diaSeleccionado = d, diaError = null) }
     fun onHorarioChange(v: String) = _formState.update { it.copy(horario = v, horarioError = null) }
     fun onNotasChange(v: String) = _formState.update { it.copy(notas = v) }
+    fun onPhotoCaptured(photoPath: String) = _formState.update { it.copy(photoPath = photoPath) }
+    fun onPhotoRemoved() = _formState.update { it.copy(photoPath = null) }
 
     fun onCrearTarea() {
         val s = _formState.value
@@ -172,7 +205,7 @@ class TareasViewModel(
         when (val r = crearTarea(
             s.titulo, s.categoriaSeleccionada,
             s.rutinaSeleccionadaId, s.rutinaSeleccionadaNombre,
-            s.diaSeleccionado, s.horario, s.notas
+            s.diaSeleccionado, s.horario, s.notas, s.photoPath
         )) {
             is TareaResult.Success -> {
                 refreshTareas()
@@ -195,7 +228,7 @@ class TareasViewModel(
         when (val r = editarTarea(
             taskId, s.titulo, s.categoriaSeleccionada,
             s.rutinaSeleccionadaId, s.rutinaSeleccionadaNombre,
-            s.diaSeleccionado, s.horario, s.notas
+            s.diaSeleccionado, s.horario, s.notas, s.photoPath
         )) {
             is TareaResult.Success -> {
                 refreshTareas()

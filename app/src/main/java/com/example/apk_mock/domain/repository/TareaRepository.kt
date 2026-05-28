@@ -20,7 +20,8 @@ interface TareaRepository {
         rutinaNombre: String?,
         dia: DiaSemana?,
         horario: String?,
-        notas: String
+        notas: String,
+        photoPath: String?
     ): TareaResult
 
     fun editarTarea(
@@ -31,7 +32,8 @@ interface TareaRepository {
         rutinaNombre: String?,
         dia: DiaSemana?,
         horario: String?,
-        notas: String
+        notas: String,
+        photoPath: String?
     ): TareaResult
 
     fun eliminarTarea(taskId: String): TareaResult

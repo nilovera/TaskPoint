@@ -19,6 +19,7 @@ object Routes {
     // Flujos secundarios
     const val CREAR_RUTINA    = "crear_rutina"
     const val CREAR_TAREA     = "crear_tarea"
+    const val CAPTURAR_FOTO_TAREA = "capturar_foto_tarea"
     const val RUTINA_DETALLE  = "rutina_detalle"
     const val EDITAR_RUTINA   = "editar_rutina"
     const val ARG_RUTINA_ID   = "rutinaId"

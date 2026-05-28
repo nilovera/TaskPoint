@@ -135,7 +135,8 @@ private class FakeDeleteTareaRepository : TareaRepository {
         rutinaNombre: String?,
         dia: DiaSemana?,
         horario: String?,
-        notas: String
+        notas: String,
+        photoPath: String?
     ): TareaResult {
         error("No se usa en este test")
     }
@@ -148,7 +149,8 @@ private class FakeDeleteTareaRepository : TareaRepository {
         rutinaNombre: String?,
         dia: DiaSemana?,
         horario: String?,
-        notas: String
+        notas: String,
+        photoPath: String?
     ): TareaResult {
         error("No se usa en este test")
     }

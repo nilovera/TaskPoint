@@ -128,6 +128,7 @@ class JsonDataSource(private val context: Context) {
                     dia = row.optNullableString("dia")?.let { DiaSemana.valueOf(it) },
                     horario = row.optNullableString("horario"),
                     notas = row.optString("notas", ""),
+                    photoPath = row.optNullableString("photoPath"),
                     completada = row.optBoolean("completada", false)
                 )
             )
@@ -135,7 +136,38 @@ class JsonDataSource(private val context: Context) {
     }
 
     fun saveTareas(tareas: List<StoredTarea>) {
-        // Las tareas son mock de sesion: se modifican en memoria y se resetean al reiniciar la app.
+        val rows = JSONArray()
+        tareas.forEach { stored ->
+            val tarea = stored.tarea
+            rows.put(
+                JSONObject()
+                    .put("id", tarea.id)
+                    .put("userId", stored.userId)
+                    .put("rutinaId", tarea.rutinaId ?: JSONObject.NULL)
+                    .put("titulo", tarea.titulo)
+                    .put("categoria", tarea.categoria.code)
+                    .put("dia", tarea.dia?.name ?: JSONObject.NULL)
+                    .put("horario", tarea.horario ?: JSONObject.NULL)
+                    .put("notas", tarea.notas)
+                    .put("photoPath", tarea.photoPath ?: JSONObject.NULL)
+                    .put("completada", tarea.completada)
+                    .put("updatedAt", Instant.now().toString())
+            )
+        }
+
+        val json = JSONObject()
+            .put("schemaVersion", 1)
+            .put("table", "tareas")
+            .put("primaryKey", "id")
+            .put(
+                "foreignKeys",
+                JSONObject()
+                    .put("userId", "users.id")
+                    .put("rutinaId", "rutinas.id")
+            )
+            .put("rows", rows)
+
+        writableAssetCopy("seed/tareas.json").writeText(json.toString(2))
     }
 
     private fun readRows(assetPath: String): List<JSONObject> {
@@ -146,9 +178,8 @@ class JsonDataSource(private val context: Context) {
 
     private fun readJson(assetPath: String): String {
         if (assetPath == "seed/tareas.json") {
-            return context.assets.open(assetPath).bufferedReader().use { it.readText() }
+            return writableAssetCopy(assetPath).readText()
         }
-
         return context.assets.open(assetPath).bufferedReader().use { it.readText() }
     }
 

@@ -8,13 +8,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,6 +33,7 @@ import com.example.apk_mock.ui.theme.categoryChipColors
 fun CrearTareaScreen(
     viewModel: TareasViewModel,
     onBack: () -> Unit,
+    onCapturePhoto: () -> Unit = {},
     onTaskCreated: () -> Unit = onBack
 ) {
     TareaFormScreen(
@@ -47,6 +46,7 @@ fun CrearTareaScreen(
         loadData = viewModel::loadFormData,
         onBack = onBack,
         onSuccess = onTaskCreated,
+        onCapturePhoto = onCapturePhoto,
         onSubmit = viewModel::onCrearTarea
     )
 }
@@ -56,6 +56,7 @@ fun EditarTareaScreen(
     taskId: String,
     viewModel: TareasViewModel,
     onBack: () -> Unit,
+    onCapturePhoto: () -> Unit = {},
     onTaskEdited: () -> Unit = onBack
 ) {
     TareaFormScreen(
@@ -68,6 +69,7 @@ fun EditarTareaScreen(
         loadData = { viewModel.loadEditFormData(taskId) },
         onBack = onBack,
         onSuccess = onTaskEdited,
+        onCapturePhoto = onCapturePhoto,
         onSubmit = { viewModel.onEditarTarea(taskId) }
     )
 }
@@ -83,6 +85,7 @@ private fun TareaFormScreen(
     loadData: () -> Unit,
     onBack: () -> Unit,
     onSuccess: () -> Unit,
+    onCapturePhoto: () -> Unit,
     onSubmit: () -> Unit
 ) {
     val state by viewModel.formState.collectAsState()
@@ -110,6 +113,8 @@ private fun TareaFormScreen(
         onDiaSelect = viewModel::onDiaSelect,
         onHorarioChange = viewModel::onHorarioChange,
         onNotasChange = viewModel::onNotasChange,
+        onPhotoClick = onCapturePhoto,
+        onPhotoRemove = viewModel::onPhotoRemoved,
         onSubmit = onSubmit
     )
 }
@@ -129,6 +134,8 @@ private fun TareaFormContent(
     onDiaSelect: (DiaSemana?) -> Unit,
     onHorarioChange: (String) -> Unit,
     onNotasChange: (String) -> Unit,
+    onPhotoClick: () -> Unit,
+    onPhotoRemove: () -> Unit,
     onSubmit: () -> Unit
 ) {
     val maxNotas = 120
@@ -276,6 +283,7 @@ private fun TareaFormContent(
 
             FormFieldLabel("Foto (opcional)")
             Surface(
+                onClick = onPhotoClick,
                 shape = RoundedCornerShape(12.dp),
                 color = colors.fieldBackground,
                 border = BorderStroke(1.dp, colors.fieldBorder),
@@ -285,26 +293,28 @@ private fun TareaFormContent(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (isEditing) colors.success.copy(alpha = 0.18f) else colors.primary.copy(alpha = 0.18f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.Image, contentDescription = null, tint = colors.success, modifier = Modifier.size(24.dp))
-                    }
+                    TaskPhotoImage(
+                        photoPath = state.photoPath,
+                        contentDescription = "Foto seleccionada",
+                        modifier = Modifier.size(48.dp)
+                    )
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(if (isEditing) "Cambiar foto" else "Agregar foto", color = colors.label, fontSize = 16.sp)
                         Text(
-                            if (isEditing) "Toca para reemplazar" else "Desde cámara o galería",
+                            if (state.photoPath != null) "Foto adjunta" else if (isEditing) "Cambiar foto" else "Agregar foto",
+                            color = colors.label,
+                            fontSize = 16.sp
+                        )
+                        Text(
+                            if (state.photoPath != null || isEditing) "Toca para reemplazar" else "Desde camara",
                             color = colors.placeholder,
                             fontSize = 13.sp
                         )
                     }
-                    if (isEditing) {
-                        Icon(Icons.Default.Close, contentDescription = "Quitar foto", tint = colors.destructive)
+                    if (state.photoPath != null) {
+                        IconButton(onClick = onPhotoRemove) {
+                            Icon(Icons.Default.Close, contentDescription = "Quitar foto", tint = colors.destructive)
+                        }
                     }
                 }
             }

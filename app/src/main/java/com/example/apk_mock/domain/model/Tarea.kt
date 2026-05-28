@@ -9,6 +9,7 @@ data class Tarea(
     val dia: DiaSemana?,
     val horario: String?,
     val notas: String,
+    val photoPath: String? = null,
     val completada: Boolean = false
 )
 

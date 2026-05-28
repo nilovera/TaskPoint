@@ -27,14 +27,15 @@ class CrearTareaUseCase(private val repository: TareaRepository) {
         rutinaNombre: String?,
         dia: DiaSemana?,
         horario: String?,
-        notas: String
+        notas: String,
+        photoPath: String? = null
     ): TareaResult {
         if (titulo.isBlank()) return TareaResult.Error("El título de la tarea es obligatorio.")
         if (categoria == null) return TareaResult.Error("Seleccioná una categoría.")
         if (rutinaId == null) return TareaResult.Error("Seleccioná una rutina asociada.")
         if (dia == null) return TareaResult.Error("Seleccioná un día.")
         if (horario.isNullOrBlank()) return TareaResult.Error("Seleccioná un horario.")
-        return repository.crearTarea(titulo, categoria, rutinaId, rutinaNombre, dia, horario, notas)
+        return repository.crearTarea(titulo, categoria, rutinaId, rutinaNombre, dia, horario, notas, photoPath)
     }
 }
 
@@ -54,7 +55,8 @@ class EditarTareaUseCase(private val repository: TareaRepository) {
         rutinaNombre: String?,
         dia: DiaSemana?,
         horario: String?,
-        notas: String
+        notas: String,
+        photoPath: String? = null
     ): TareaResult {
         if (taskId.isBlank()) return TareaResult.Error("No se encontro la tarea.")
         if (titulo.isBlank()) return TareaResult.Error("El tÃ­tulo de la tarea es obligatorio.")
@@ -62,6 +64,6 @@ class EditarTareaUseCase(private val repository: TareaRepository) {
         if (rutinaId == null) return TareaResult.Error("SeleccionÃ¡ una rutina asociada.")
         if (dia == null) return TareaResult.Error("SeleccionÃ¡ un dÃ­a.")
         if (horario.isNullOrBlank()) return TareaResult.Error("SeleccionÃ¡ un horario.")
-        return repository.editarTarea(taskId, titulo, categoria, rutinaId, rutinaNombre, dia, horario, notas)
+        return repository.editarTarea(taskId, titulo, categoria, rutinaId, rutinaNombre, dia, horario, notas, photoPath)
     }
 }

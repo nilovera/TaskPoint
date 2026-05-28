@@ -3,6 +3,7 @@ package com.example.apk_mock.data.repository
 import android.content.Context
 import com.example.apk_mock.data.source.JsonDataSource
 import com.example.apk_mock.data.source.StoredTarea
+import com.example.apk_mock.data.source.TaskPhotoStorage
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
@@ -17,6 +18,7 @@ class JsonTareaRepository(
 ) : TareaRepository {
 
     private val dataSource = JsonDataSource(context)
+    private val photoStorage = TaskPhotoStorage(context)
     private val rutinas = dataSource.loadRutinas()
     private val tareas = dataSource.loadTareas(rutinas).toMutableList()
 
@@ -45,10 +47,12 @@ class JsonTareaRepository(
     override fun eliminarTareasDeRutina(rutinaId: String): Int {
         val userId = sessionProvider.currentUserId() ?: return 0
         val before = tareas.size
+        val deletedTasks = tareas.filter { it.userId == userId && it.tarea.rutinaId == rutinaId }
         tareas.removeAll { it.userId == userId && it.tarea.rutinaId == rutinaId }
         val deletedCount = before - tareas.size
         if (deletedCount > 0) {
             dataSource.saveTareas(tareas)
+            deletedTasks.forEach { photoStorage.deletePhoto(it.tarea.photoPath) }
         }
         return deletedCount
     }
@@ -60,7 +64,8 @@ class JsonTareaRepository(
         rutinaNombre: String?,
         dia: DiaSemana?,
         horario: String?,
-        notas: String
+        notas: String,
+        photoPath: String?
     ): TareaResult {
         val userId = sessionProvider.currentUserId()
             ?: return TareaResult.Error("Inicia sesion para crear tareas.")
@@ -73,7 +78,8 @@ class JsonTareaRepository(
             rutinaNombre = rutinaNombre,
             dia = dia,
             horario = horario,
-            notas = notas
+            notas = notas,
+            photoPath = photoPath
         )
         tareas.add(StoredTarea(userId = userId, tarea = tarea))
         dataSource.saveTareas(tareas)
@@ -88,7 +94,8 @@ class JsonTareaRepository(
         rutinaNombre: String?,
         dia: DiaSemana?,
         horario: String?,
-        notas: String
+        notas: String,
+        photoPath: String?
     ): TareaResult {
         val userId = sessionProvider.currentUserId()
             ?: return TareaResult.Error("Inicia sesion para editar tareas.")
@@ -96,6 +103,7 @@ class JsonTareaRepository(
         val index = tareas.indexOfFirst { it.userId == userId && it.tarea.id == taskId }
         if (index == -1) return TareaResult.Error("No se encontro la tarea.")
 
+        val currentPhotoPath = tareas[index].tarea.photoPath
         val updated = tareas[index].tarea.copy(
             titulo = titulo,
             categoria = categoria,
@@ -103,9 +111,14 @@ class JsonTareaRepository(
             rutinaNombre = rutinaNombre,
             dia = dia,
             horario = horario,
-            notas = notas
+            notas = notas,
+            photoPath = photoPath
         )
         tareas[index] = StoredTarea(userId = userId, tarea = updated)
+        dataSource.saveTareas(tareas)
+        if (currentPhotoPath != photoPath) {
+            photoStorage.deletePhoto(currentPhotoPath)
+        }
         return TareaResult.Success(updated)
     }
 
@@ -117,6 +130,8 @@ class JsonTareaRepository(
         if (index == -1) return TareaResult.Error("No se encontro la tarea.")
 
         val removed = tareas.removeAt(index).tarea
+        dataSource.saveTareas(tareas)
+        photoStorage.deletePhoto(removed.photoPath)
         return TareaResult.Success(removed)
     }
 }

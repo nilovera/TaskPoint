@@ -60,6 +60,7 @@ import com.example.apk_mock.ui.rutinas.DetalleRutinaScreen
 import com.example.apk_mock.ui.rutinas.EditarRutinaScreen
 import com.example.apk_mock.ui.rutinas.RutinasScreen
 import com.example.apk_mock.ui.rutinas.RutinasViewModel
+import com.example.apk_mock.ui.tareas.CameraCaptureScreen
 import com.example.apk_mock.ui.tareas.CrearTareaScreen
 import com.example.apk_mock.ui.tareas.DetalleTareaScreen
 import com.example.apk_mock.ui.tareas.EditarTareaScreen
@@ -84,6 +85,7 @@ private val bottomNavItems = listOf(
 private val tabRoutes = setOf(Routes.HOME, Routes.RUTINAS, Routes.TAREAS)
 private val profileRoutes = setOf(Routes.PROFILE, Routes.PROFILE_PASSWORD)
 private val bottomBarRoutes = tabRoutes + profileRoutes + Routes.RUTINA_DETALLE_ROUTE + Routes.DETALLE_TAREA
+private const val CAPTURED_PHOTO_PATH_KEY = "captured_photo_path"
 
 @Composable
 fun AppNavigation() {
@@ -270,7 +272,10 @@ fun AppNavigation() {
                     rutinasViewModel = rutinasViewModel,
                     tareasViewModel = tareasViewModel,
                     onCrearRutina = { navController.navigate(Routes.CREAR_RUTINA) },
-                    onCrearTarea = { navController.navigate(Routes.CREAR_TAREA) },
+                    onCrearTarea = {
+                        tareasViewModel.resetCreateForm()
+                        navController.navigate(Routes.CREAR_TAREA)
+                    },
                     onProfile = { navController.navigate(Routes.PROFILE) },
                     onLogout = {
                         navigateToLoginAfterSessionEnd()
@@ -306,7 +311,10 @@ fun AppNavigation() {
                 TareasScreen(
                     viewModel = tareasViewModel,
                     userName = userName,
-                    onNavigateToCrear = { navController.navigate(Routes.CREAR_TAREA) },
+                    onNavigateToCrear = {
+                        tareasViewModel.resetCreateForm()
+                        navController.navigate(Routes.CREAR_TAREA)
+                    },
                     onProfile = { navController.navigate(Routes.PROFILE) },
                     onLogout = navigateToLoginAfterSessionEnd,
                     onNavigateToDetalle = { taskId -> navController.navigate(Routes.detalleTarea(taskId)) },
@@ -405,10 +413,22 @@ fun AppNavigation() {
                 )
             }
 
-            composable(Routes.CREAR_TAREA) {
+            composable(Routes.CREAR_TAREA) { backStackEntry ->
+                val capturedPhotoPath by backStackEntry.savedStateHandle
+                    .getStateFlow(CAPTURED_PHOTO_PATH_KEY, "")
+                    .collectAsState()
+
+                LaunchedEffect(capturedPhotoPath) {
+                    if (capturedPhotoPath.isNotBlank()) {
+                        tareasViewModel.onPhotoCaptured(capturedPhotoPath)
+                        backStackEntry.savedStateHandle[CAPTURED_PHOTO_PATH_KEY] = ""
+                    }
+                }
+
                 CrearTareaScreen(
                     viewModel = tareasViewModel,
                     onBack = { navController.popBackStack() },
+                    onCapturePhoto = { navController.navigate(Routes.CAPTURAR_FOTO_TAREA) },
                     onTaskCreated = {
                         navController.previousBackStackEntry
                             ?.savedStateHandle
@@ -430,7 +450,10 @@ fun AppNavigation() {
                     taskId = taskId,
                     viewModel = tareasViewModel,
                     onBack = { navController.popBackStack() },
-                    onEditTask = { id -> navController.navigate(Routes.editarTarea(id)) },
+                    onEditTask = { id ->
+                        tareasViewModel.resetEditForm()
+                        navController.navigate(Routes.editarTarea(id))
+                    },
                     onTaskDeleted = {
                         navController.previousBackStackEntry
                             ?.savedStateHandle
@@ -447,14 +470,38 @@ fun AppNavigation() {
 
             composable(Routes.EDITAR_TAREA) { backStackEntry ->
                 val taskId = backStackEntry.arguments?.getString("taskId").orEmpty()
+                val capturedPhotoPath by backStackEntry.savedStateHandle
+                    .getStateFlow(CAPTURED_PHOTO_PATH_KEY, "")
+                    .collectAsState()
+
+                LaunchedEffect(capturedPhotoPath) {
+                    if (capturedPhotoPath.isNotBlank()) {
+                        tareasViewModel.onPhotoCaptured(capturedPhotoPath)
+                        backStackEntry.savedStateHandle[CAPTURED_PHOTO_PATH_KEY] = ""
+                    }
+                }
+
                 EditarTareaScreen(
                     taskId = taskId,
                     viewModel = tareasViewModel,
                     onBack = { navController.popBackStack() },
+                    onCapturePhoto = { navController.navigate(Routes.CAPTURAR_FOTO_TAREA) },
                     onTaskEdited = {
                         navController.previousBackStackEntry
                             ?.savedStateHandle
                             ?.set("task_edited", true)
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Routes.CAPTURAR_FOTO_TAREA) {
+                CameraCaptureScreen(
+                    onBack = { navController.popBackStack() },
+                    onPhotoCaptured = { photoPath ->
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(CAPTURED_PHOTO_PATH_KEY, photoPath)
                         navController.popBackStack()
                     }
                 )

@@ -18,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Icon
@@ -115,7 +114,7 @@ fun DetalleTareaScreen(
         TaskInfoCard(tarea = tarea, rutina = rutina)
         Spacer(Modifier.height(16.dp))
         DetailSectionTitle("Foto")
-        PhotoBlock()
+        PhotoBlock(tarea.photoPath)
         Spacer(Modifier.height(20.dp))
         DetailSectionTitle("Notas")
         NotesBlock(text = tarea.notas.ifBlank { "Sin notas." })
@@ -286,19 +285,14 @@ private fun DetailSectionTitle(text: String) {
 }
 
 @Composable
-private fun PhotoBlock() {
-    val colors = TaskPointTheme.colors
-
-    Box(
+private fun PhotoBlock(photoPath: String?) {
+    TaskPhotoImage(
+        photoPath = photoPath,
+        contentDescription = "Foto de la tarea",
         modifier = Modifier
             .fillMaxWidth()
             .height(140.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(colors.success.copy(alpha = 0.18f)),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(Icons.Default.Image, contentDescription = "Foto de la tarea", tint = colors.success, modifier = Modifier.size(36.dp))
-    }
+    )
 }
 
 @Composable
