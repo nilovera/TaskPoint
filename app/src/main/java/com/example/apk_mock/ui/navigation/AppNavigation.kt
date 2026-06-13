@@ -43,7 +43,6 @@ import com.example.apk_mock.data.repository.JsonCategoriaRepository
 import com.example.apk_mock.data.repository.JsonOfferRepository
 import com.example.apk_mock.data.repository.JsonRutinaRepository
 import com.example.apk_mock.data.repository.JsonTareaRepository
-import com.example.apk_mock.domain.useCase.*
 import com.example.apk_mock.ui.forgotPassword.ForgotPasswordEmailScreen
 import com.example.apk_mock.ui.forgotPassword.ForgotPasswordViewModel
 import com.example.apk_mock.ui.home.HomeScreen
@@ -101,31 +100,6 @@ fun AppNavigation() {
     val categoriaRepository = remember(context) { JsonCategoriaRepository(context) }
     val offerRepository = remember(context) { JsonOfferRepository(context) }
 
-    val registerUseCase = remember(authRepository) { RegisterUseCase(authRepository) }
-    val loginUseCase = remember(authRepository) { LoginUseCase(authRepository) }
-    val sendCodeUseCase = remember(authRepository) { SendResetCodeUseCase(authRepository) }
-    val verifyCodeUseCase = remember(authRepository) { VerifyResetCodeUseCase(authRepository) }
-    val changePassUseCase = remember(authRepository) { ChangePasswordUseCase(authRepository) }
-    val getRutinasUseCase = remember(rutinaRepository) { GetRutinasUseCase(rutinaRepository) }
-    val getRutinaByIdUseCase = remember(rutinaRepository) { GetRutinaByIdUseCase(rutinaRepository) }
-    val crearRutinaUseCase = remember(rutinaRepository) { CrearRutinaUseCase(rutinaRepository) }
-    val editarRutinaUseCase = remember(rutinaRepository, tareaRepository) {
-        EditarRutinaUseCase(rutinaRepository, tareaRepository)
-    }
-    val eliminarRutinaUseCase = remember(rutinaRepository, tareaRepository) {
-        EliminarRutinaUseCase(rutinaRepository, tareaRepository)
-    }
-    val getTareasUseCase = remember(tareaRepository) { GetTareasUseCase(tareaRepository) }
-    val crearTareaUseCase = remember(tareaRepository) { CrearTareaUseCase(tareaRepository) }
-    val eliminarTareaUseCase = remember(tareaRepository) { EliminarTareaUseCase(tareaRepository) }
-    val editarTareaUseCase = remember(tareaRepository) { EditarTareaUseCase(tareaRepository) }
-    val getCategoriasUseCase = remember(categoriaRepository) { GetCategoriasUseCase(categoriaRepository) }
-    val getOffersByCategoryUseCase = remember(offerRepository) { GetOffersByCategoryUseCase(offerRepository) }
-    val getCurrentUserUseCase = remember(authRepository) { GetCurrentUserUseCase(authRepository) }
-    val logoutUseCase = remember(authRepository) { LogoutUseCase(authRepository) }
-    val changeCurrentPasswordUseCase = remember(authRepository) { ChangeCurrentPasswordUseCase(authRepository) }
-    val deleteAccountUseCase = remember(authRepository) { DeleteAccountUseCase(authRepository) }
-
     // Estado del nombre del usuario: se setea al hacer login y persiste
     var userName by remember { mutableStateOf("") }
 
@@ -133,35 +107,24 @@ fun AppNavigation() {
     val rutinasViewModel = viewModel<RutinasViewModel>(
         factory = vmFactory {
             RutinasViewModel(
-                getRutinasUseCase,
-                crearRutinaUseCase,
-                getRutinaByIdUseCase,
-                editarRutinaUseCase,
-                eliminarRutinaUseCase
+                rutinaRepository,
+                tareaRepository
             )
         }
     )
     val tareasViewModel = viewModel<TareasViewModel>(
         factory = vmFactory {
             TareasViewModel(
-                getTareasUseCase,
-                crearTareaUseCase,
-                eliminarTareaUseCase,
-                editarTareaUseCase,
-                getRutinasUseCase,
-                getCategoriasUseCase,
-                getOffersByCategoryUseCase
+                tareaRepository,
+                rutinaRepository,
+                categoriaRepository,
+                offerRepository
             )
         }
     )
     val profileViewModel = viewModel<ProfileViewModel>(
         factory = vmFactory {
-            ProfileViewModel(
-                getCurrentUserUseCase,
-                logoutUseCase,
-                changeCurrentPasswordUseCase,
-                deleteAccountUseCase
-            )
+            ProfileViewModel(authRepository)
         }
     )
 
@@ -217,7 +180,7 @@ fun AppNavigation() {
 
             composable(Routes.REGISTER) {
                 val vm = viewModel<RegisterViewModel>(
-                    factory = vmFactory { RegisterViewModel(registerUseCase) }
+                    factory = vmFactory { RegisterViewModel(authRepository) }
                 )
                 RegisterScreen(
                     viewModel = vm,
@@ -231,7 +194,7 @@ fun AppNavigation() {
 
             composable(Routes.LOGIN) {
                 val vm = viewModel<LoginViewModel>(
-                    factory = vmFactory { LoginViewModel(loginUseCase) }
+                    factory = vmFactory { LoginViewModel(authRepository) }
                 )
                 LoginScreen(
                     viewModel = vm,
@@ -254,9 +217,7 @@ fun AppNavigation() {
 
             composable(Routes.FORGOT_PASSWORD) {
                 val vm = viewModel<ForgotPasswordViewModel>(
-                    factory = vmFactory {
-                        ForgotPasswordViewModel(sendCodeUseCase, verifyCodeUseCase, changePassUseCase)
-                    }
+                    factory = vmFactory { ForgotPasswordViewModel(authRepository) }
                 )
                 ForgotPasswordEmailScreen(
                     viewModel = vm,

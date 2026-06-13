@@ -5,10 +5,6 @@ import com.example.apk_mock.domain.repository.AuthResult
 import com.example.apk_mock.domain.repository.ProfileResult
 import com.example.apk_mock.domain.repository.ResetResult
 import com.example.apk_mock.domain.repository.User
-import com.example.apk_mock.domain.useCase.ChangeCurrentPasswordUseCase
-import com.example.apk_mock.domain.useCase.DeleteAccountUseCase
-import com.example.apk_mock.domain.useCase.GetCurrentUserUseCase
-import com.example.apk_mock.domain.useCase.LogoutUseCase
 import com.example.apk_mock.ui.profile.ProfileViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -26,12 +22,7 @@ class ProfileViewModelTest {
                 password = "correcta123"
             )
         )
-        val viewModel = ProfileViewModel(
-            getCurrentUserUseCase = GetCurrentUserUseCase(repository),
-            logoutUseCase = LogoutUseCase(repository),
-            changeCurrentPasswordUseCase = ChangeCurrentPasswordUseCase(repository),
-            deleteAccountUseCase = DeleteAccountUseCase(repository)
-        )
+        val viewModel = ProfileViewModel(repository)
 
         viewModel.onCurrentPasswordChange("incorrecta")
         viewModel.onNewPasswordChange("nueva123")
@@ -54,12 +45,7 @@ class ProfileViewModelTest {
                 password = "correcta123"
             )
         )
-        val viewModel = ProfileViewModel(
-            getCurrentUserUseCase = GetCurrentUserUseCase(repository),
-            logoutUseCase = LogoutUseCase(repository),
-            changeCurrentPasswordUseCase = ChangeCurrentPasswordUseCase(repository),
-            deleteAccountUseCase = DeleteAccountUseCase(repository)
-        )
+        val viewModel = ProfileViewModel(repository)
 
         viewModel.onCurrentPasswordChange("correcta123")
         viewModel.onNewPasswordChange("nueva123")

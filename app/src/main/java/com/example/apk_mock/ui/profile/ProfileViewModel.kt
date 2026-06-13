@@ -1,11 +1,8 @@
 package com.example.apk_mock.ui.profile
 
 import androidx.lifecycle.ViewModel
+import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.ProfileResult
-import com.example.apk_mock.domain.useCase.ChangeCurrentPasswordUseCase
-import com.example.apk_mock.domain.useCase.DeleteAccountUseCase
-import com.example.apk_mock.domain.useCase.GetCurrentUserUseCase
-import com.example.apk_mock.domain.useCase.LogoutUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,17 +25,14 @@ data class ProfileUiState(
 )
 
 class ProfileViewModel(
-    private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val logoutUseCase: LogoutUseCase,
-    private val changeCurrentPasswordUseCase: ChangeCurrentPasswordUseCase,
-    private val deleteAccountUseCase: DeleteAccountUseCase
+    private val repository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     fun refreshUser(fallbackName: String = "") {
-        val user = getCurrentUserUseCase()
+        val user = repository.currentUser()
         if (user != null) {
             _uiState.update {
                 it.copy(
@@ -87,13 +81,30 @@ class ProfileViewModel(
 
     fun onSavePasswordClick() {
         val state = _uiState.value
-        when (
-            val result = changeCurrentPasswordUseCase(
-                state.currentPassword,
-                state.newPassword,
-                state.confirmPassword
-            )
-        ) {
+        if (state.currentPassword.isBlank()) {
+            showPasswordError("Ingresa tu contraseña actual.")
+            return
+        }
+
+        val currentUser = repository.currentUser()
+        if (currentUser == null) {
+            showPasswordError("No hay una sesion activa.")
+            return
+        }
+        if (currentUser.password != state.currentPassword) {
+            showPasswordError("La contraseña ingresada es incorrecta.")
+            return
+        }
+        if (state.newPassword.length < 6) {
+            showPasswordError("Tu contraseña debe tener mas de 6 caracteres.")
+            return
+        }
+        if (state.newPassword != state.confirmPassword) {
+            showPasswordError("Las contraseñas ingresadas no coinciden entre si.")
+            return
+        }
+
+        when (val result = repository.changeCurrentPassword(state.currentPassword, state.newPassword)) {
             is ProfileResult.Success -> {
                 refreshUser()
                 _uiState.update {
@@ -120,12 +131,12 @@ class ProfileViewModel(
     }
 
     fun onLogoutConfirmed() {
-        logoutUseCase()
+        repository.logout()
         _uiState.update { it.copy(sessionEnded = true) }
     }
 
     fun onDeleteAccountConfirmed() {
-        when (val result = deleteAccountUseCase()) {
+        when (val result = repository.deleteCurrentUser()) {
             is ProfileResult.Success -> _uiState.update { it.copy(sessionEnded = true) }
             is ProfileResult.Error -> _uiState.update { it.copy(generalError = result.message) }
         }
