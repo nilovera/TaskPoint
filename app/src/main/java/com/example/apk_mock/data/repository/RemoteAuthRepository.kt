@@ -16,7 +16,7 @@ import com.example.apk_mock.domain.repository.ResetResult
 import com.example.apk_mock.domain.repository.User
 import com.example.apk_mock.domain.repository.UserSessionProvider
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -25,8 +25,8 @@ class RemoteAuthRepository(
     private val sessionStorage: SecureSessionStorage
 ) : AuthRepository, UserSessionProvider {
 
-    override fun register(name: String, email: String, password: String): AuthResult {
-        return runBlocking(Dispatchers.IO) {
+    override suspend fun register(name: String, email: String, password: String): AuthResult {
+        return withContext(Dispatchers.IO) {
             runCatching {
                 val response = authApi.register(
                     RegisterRequestDto(
@@ -44,8 +44,8 @@ class RemoteAuthRepository(
         }
     }
 
-    override fun login(email: String, password: String): AuthResult {
-        return runBlocking(Dispatchers.IO) {
+    override suspend fun login(email: String, password: String): AuthResult {
+        return withContext(Dispatchers.IO) {
             runCatching {
                 val response = authApi.login(LoginRequestDto(email = email, password = password))
                 val user = response.user.toDomainUser()
@@ -57,20 +57,20 @@ class RemoteAuthRepository(
         }
     }
 
-    override fun currentUser(): User? {
-        return sessionStorage.currentUser()
+    override suspend fun currentUser(): User? {
+        return withContext(Dispatchers.IO) { sessionStorage.currentUser() }
     }
 
-    override fun currentUserId(): String? {
-        return sessionStorage.currentUserId()
+    override suspend fun currentUserId(): String? {
+        return withContext(Dispatchers.IO) { sessionStorage.currentUserId() }
     }
 
-    override fun logout() {
-        sessionStorage.clear()
+    override suspend fun logout() {
+        withContext(Dispatchers.IO) { sessionStorage.clear() }
     }
 
-    override fun sendResetCode(email: String): ResetResult {
-        return runBlocking(Dispatchers.IO) {
+    override suspend fun sendResetCode(email: String): ResetResult {
+        return withContext(Dispatchers.IO) {
             runCatching {
                 authApi.sendResetCode(SendResetCodeRequestDto(email = email))
                 ResetResult.CodeSent
@@ -80,8 +80,8 @@ class RemoteAuthRepository(
         }
     }
 
-    override fun verifyResetCode(email: String, code: String): ResetResult {
-        return runBlocking(Dispatchers.IO) {
+    override suspend fun verifyResetCode(email: String, code: String): ResetResult {
+        return withContext(Dispatchers.IO) {
             runCatching {
                 authApi.verifyResetCode(VerifyResetCodeRequestDto(email = email, code = code))
                 ResetResult.CodeValid
@@ -91,8 +91,8 @@ class RemoteAuthRepository(
         }
     }
 
-    override fun changePassword(email: String, newPassword: String): ResetResult {
-        return runBlocking(Dispatchers.IO) {
+    override suspend fun changePassword(email: String, newPassword: String): ResetResult {
+        return withContext(Dispatchers.IO) {
             runCatching {
                 authApi.changePassword(
                     ChangePasswordRequestDto(
@@ -107,11 +107,11 @@ class RemoteAuthRepository(
         }
     }
 
-    override fun changeCurrentPassword(currentPassword: String, newPassword: String): ProfileResult {
-        val authorization = sessionStorage.currentAuthorizationHeader()
-            ?: return ProfileResult.Error("No hay una sesion activa.")
+    override suspend fun changeCurrentPassword(currentPassword: String, newPassword: String): ProfileResult {
+        return withContext(Dispatchers.IO) {
+            val authorization = sessionStorage.currentAuthorizationHeader()
+                ?: return@withContext ProfileResult.Error("No hay una sesion activa.")
 
-        return runBlocking(Dispatchers.IO) {
             runCatching {
                 authApi.changeCurrentPassword(
                     authorization = authorization,
@@ -127,11 +127,11 @@ class RemoteAuthRepository(
         }
     }
 
-    override fun deleteCurrentUser(): ProfileResult {
-        val authorization = sessionStorage.currentAuthorizationHeader()
-            ?: return ProfileResult.Error("No hay una sesion activa.")
+    override suspend fun deleteCurrentUser(): ProfileResult {
+        return withContext(Dispatchers.IO) {
+            val authorization = sessionStorage.currentAuthorizationHeader()
+                ?: return@withContext ProfileResult.Error("No hay una sesion activa.")
 
-        return runBlocking(Dispatchers.IO) {
             runCatching {
                 authApi.deleteCurrentUser(authorization)
                 sessionStorage.clear()

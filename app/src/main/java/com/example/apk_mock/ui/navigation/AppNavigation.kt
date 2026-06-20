@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -54,6 +55,8 @@ import com.example.apk_mock.ui.rutinas.DetalleRutinaScreen
 import com.example.apk_mock.ui.rutinas.EditarRutinaScreen
 import com.example.apk_mock.ui.rutinas.RutinasScreen
 import com.example.apk_mock.ui.rutinas.RutinasViewModel
+import com.example.apk_mock.ui.session.SessionUiState
+import com.example.apk_mock.ui.session.SessionViewModel
 import com.example.apk_mock.ui.tareas.CameraCaptureScreen
 import com.example.apk_mock.ui.tareas.CrearTareaScreen
 import com.example.apk_mock.ui.tareas.DetalleTareaScreen
@@ -122,14 +125,48 @@ fun AppNavigation() {
             ProfileViewModel(authRepository)
         }
     )
+    val profileState by profileViewModel.uiState.collectAsState()
+    val sessionViewModel = viewModel<SessionViewModel>(
+        factory = vmFactory { SessionViewModel(authRepository) }
+    )
+    val sessionState by sessionViewModel.uiState.collectAsState()
 
     val navigateToLoginAfterSessionEnd: () -> Unit = {
-        authRepository.logout()
         userName = ""
         navController.navigate(Routes.LOGIN) {
             popUpTo(Routes.HOME) { inclusive = true }
             launchSingleTop = true
         }
+    }
+
+    LaunchedEffect(profileState.sessionEnded) {
+        if (profileState.sessionEnded) {
+            profileViewModel.onSessionEndedConsumed()
+            sessionViewModel.onSessionEnded()
+            navigateToLoginAfterSessionEnd()
+        }
+    }
+
+    LaunchedEffect(sessionState) {
+        userName = (sessionState as? SessionUiState.Authenticated)?.user?.name.orEmpty()
+    }
+
+    if (sessionState is SessionUiState.Checking) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = colors.primary)
+        }
+        return
+    }
+
+    val startDestination = if (sessionState is SessionUiState.Authenticated) {
+        Routes.HOME
+    } else {
+        Routes.ONBOARDING
     }
 
     Scaffold(
@@ -146,7 +183,7 @@ fun AppNavigation() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Routes.ONBOARDING,
+            startDestination = startDestination,
             // El NavHost respeta el innerPadding del Scaffold externo
             // Cada pantalla recibe este padding limpio sin duplicación
         ) {
@@ -179,6 +216,13 @@ fun AppNavigation() {
                 )
                 RegisterScreen(
                     viewModel = vm,
+                    onRegisterSuccess = { user ->
+                        userName = user.name
+                        sessionViewModel.onAuthenticated(user)
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.REGISTER) { inclusive = true }
+                        }
+                    },
                     onNavigateToLogin = {
                         navController.navigate(Routes.LOGIN) {
                             popUpTo(Routes.REGISTER) { inclusive = true }
@@ -193,8 +237,9 @@ fun AppNavigation() {
                 )
                 LoginScreen(
                     viewModel = vm,
-                    onNavigateToHome = { name ->
-                        userName = name
+                    onNavigateToHome = { user ->
+                        userName = user.name
+                        sessionViewModel.onAuthenticated(user)
                         navController.navigate(Routes.HOME) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
@@ -233,9 +278,7 @@ fun AppNavigation() {
                         navController.navigate(Routes.CREAR_TAREA)
                     },
                     onProfile = { navController.navigate(Routes.PROFILE) },
-                    onLogout = {
-                        navigateToLoginAfterSessionEnd()
-                    },
+                    onLogout = profileViewModel::onLogoutConfirmed,
                     innerPadding = innerPadding
                 )
             }
@@ -247,7 +290,7 @@ fun AppNavigation() {
                     onNavigateToCrear = { navController.navigate(Routes.CREAR_RUTINA) },
                     onRutinaClick = { rutina -> navController.navigate(Routes.rutinaDetalle(rutina.id)) },
                     onProfile = { navController.navigate(Routes.PROFILE) },
-                    onLogout = navigateToLoginAfterSessionEnd,
+                    onLogout = profileViewModel::onLogoutConfirmed,
                     innerPadding = innerPadding
                 )
             }
@@ -272,7 +315,7 @@ fun AppNavigation() {
                         navController.navigate(Routes.CREAR_TAREA)
                     },
                     onProfile = { navController.navigate(Routes.PROFILE) },
-                    onLogout = navigateToLoginAfterSessionEnd,
+                    onLogout = profileViewModel::onLogoutConfirmed,
                     onNavigateToDetalle = { taskId -> navController.navigate(Routes.detalleTarea(taskId)) },
                     showTaskCreatedMessage = taskCreated,
                     onTaskCreatedMessageShown = {
@@ -343,7 +386,6 @@ fun AppNavigation() {
                         }
                     },
                     onChangePassword = { navController.navigate(Routes.PROFILE_PASSWORD) },
-                    onSessionEnded = navigateToLoginAfterSessionEnd,
                     innerPadding = innerPadding
                 )
             }

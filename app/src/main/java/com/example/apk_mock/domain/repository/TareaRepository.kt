@@ -10,10 +10,10 @@ sealed class TareaResult {
 }
 
 interface TareaRepository {
-    fun getTareas(): List<Tarea>
-    fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String): Int
-    fun eliminarTareasDeRutina(rutinaId: String): Int
-    fun crearTarea(
+    suspend fun getTareas(): List<Tarea>
+    suspend fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String): Int
+    suspend fun eliminarTareasDeRutina(rutinaId: String): Int
+    suspend fun crearTarea(
         titulo: String,
         categoria: CategoriaTarea,
         rutinaId: String?,
@@ -24,7 +24,7 @@ interface TareaRepository {
         photoPath: String?
     ): TareaResult
 
-    fun editarTarea(
+    suspend fun editarTarea(
         taskId: String,
         titulo: String,
         categoria: CategoriaTarea,
@@ -36,5 +36,5 @@ interface TareaRepository {
         photoPath: String?
     ): TareaResult
 
-    fun eliminarTarea(taskId: String): TareaResult
+    suspend fun eliminarTarea(taskId: String): TareaResult
 }

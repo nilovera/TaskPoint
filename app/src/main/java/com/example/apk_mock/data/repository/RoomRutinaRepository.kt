@@ -17,7 +17,7 @@ import com.example.apk_mock.domain.repository.RutinaResult
 import com.example.apk_mock.domain.repository.UserSessionProvider
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -30,9 +30,9 @@ class RoomRutinaRepository(
     private val tareaDao = database.tareaDao()
     private val syncOperationDao = database.syncOperationDao()
 
-    override fun getRutinas(): List<Rutina> {
+    override suspend fun getRutinas(): List<Rutina> {
         val userId = sessionProvider.currentUserId() ?: return emptyList()
-        return runBlocking(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             rutinaDao.getRutinas(userId).map { entity ->
                 entity.toDomain(
                     cantidadTareas = tareaDao.countTareasByRutina(entity.id, userId)
@@ -41,9 +41,9 @@ class RoomRutinaRepository(
         }
     }
 
-    override fun getRutinaById(id: String): Rutina? {
+    override suspend fun getRutinaById(id: String): Rutina? {
         val userId = sessionProvider.currentUserId() ?: return null
-        return runBlocking(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             rutinaDao.getRutinaById(id, userId)?.let { entity ->
                 entity.toDomain(
                     cantidadTareas = tareaDao.countTareasByRutina(entity.id, userId)
@@ -52,7 +52,7 @@ class RoomRutinaRepository(
         }
     }
 
-    override fun crearRutina(
+    override suspend fun crearRutina(
         nombre: String,
         icono: RutinaIcono,
         direccion: String,
@@ -76,7 +76,7 @@ class RoomRutinaRepository(
             cantidadTareas = 0
         )
 
-        runBlocking(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             database.withTransaction {
                 rutinaDao.upsertRutina(rutina.toEntity(userId, SyncStatus.PENDING_CREATE))
                 syncOperationDao.upsertOperation(
@@ -93,7 +93,7 @@ class RoomRutinaRepository(
         return RutinaResult.Success(rutina)
     }
 
-    override fun editarRutina(
+    override suspend fun editarRutina(
         id: String,
         nombre: String,
         icono: RutinaIcono,
@@ -106,9 +106,9 @@ class RoomRutinaRepository(
         val userId = sessionProvider.currentUserId()
             ?: return RutinaResult.Error("Inicia sesion para editar rutinas.")
 
-        return runBlocking(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             val current = rutinaDao.getRutinaById(id, userId)
-                ?: return@runBlocking RutinaResult.Error("La rutina no existe o no pertenece a tu cuenta.")
+                ?: return@withContext RutinaResult.Error("La rutina no existe o no pertenece a tu cuenta.")
 
             val updated = current.toDomain(
                 cantidadTareas = tareaDao.countTareasByRutina(current.id, userId)
@@ -138,13 +138,13 @@ class RoomRutinaRepository(
         }
     }
 
-    override fun eliminarRutina(id: String): RutinaResult {
+    override suspend fun eliminarRutina(id: String): RutinaResult {
         val userId = sessionProvider.currentUserId()
             ?: return RutinaResult.Error("Inicia sesion para eliminar rutinas.")
 
-        return runBlocking(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             val current = rutinaDao.getRutinaById(id, userId)
-                ?: return@runBlocking RutinaResult.Error("La rutina no existe o no pertenece a tu cuenta.")
+                ?: return@withContext RutinaResult.Error("La rutina no existe o no pertenece a tu cuenta.")
             val removed = current.toDomain(
                 cantidadTareas = tareaDao.countTareasByRutina(current.id, userId)
             )

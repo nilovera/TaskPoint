@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.apk_mock.domain.repository.User
 import com.example.apk_mock.ui.components.AppTextField
 import com.example.apk_mock.ui.components.AuthBottomLink
 import com.example.apk_mock.ui.components.AuthErrorBanner
@@ -33,7 +34,7 @@ import com.example.apk_mock.ui.theme.TaskPointTheme
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
-    onNavigateToHome: (String) -> Unit,
+    onNavigateToHome: (User) -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit
 ) {
@@ -45,7 +46,7 @@ fun LoginScreen(
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             viewModel.onSuccessConsumed()
-            onNavigateToHome(state.loggedInName)
+            state.loggedInUser?.let(onNavigateToHome)
         }
     }
 

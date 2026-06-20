@@ -19,7 +19,7 @@ import com.example.apk_mock.domain.repository.TareaResult
 import com.example.apk_mock.domain.repository.UserSessionProvider
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 class RoomTareaRepository(
@@ -31,16 +31,16 @@ class RoomTareaRepository(
     private val tareaDao = database.tareaDao()
     private val syncOperationDao = database.syncOperationDao()
 
-    override fun getTareas(): List<Tarea> {
+    override suspend fun getTareas(): List<Tarea> {
         val userId = sessionProvider.currentUserId() ?: return emptyList()
-        return runBlocking(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             tareaDao.getTareas(userId).toTareaDomainList()
         }
     }
 
-    override fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String): Int {
+    override suspend fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String): Int {
         val userId = sessionProvider.currentUserId() ?: return 0
-        return runBlocking(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             database.withTransaction {
                 val tareas = tareaDao.getTareasByRutina(rutinaId, userId)
                 val updated = tareas.map { entity ->
@@ -67,9 +67,9 @@ class RoomTareaRepository(
         }
     }
 
-    override fun eliminarTareasDeRutina(rutinaId: String): Int {
+    override suspend fun eliminarTareasDeRutina(rutinaId: String): Int {
         val userId = sessionProvider.currentUserId() ?: return 0
-        return runBlocking(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             val photoPaths = mutableListOf<String?>()
             database.withTransaction {
                 val tareas = tareaDao.getTareasByRutina(rutinaId, userId)
@@ -96,7 +96,7 @@ class RoomTareaRepository(
         }
     }
 
-    override fun crearTarea(
+    override suspend fun crearTarea(
         titulo: String,
         categoria: CategoriaTarea,
         rutinaId: String?,
@@ -121,7 +121,7 @@ class RoomTareaRepository(
             photoPath = photoPath
         )
 
-        runBlocking(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             database.withTransaction {
                 tareaDao.upsertTarea(tarea.toEntity(userId, SyncStatus.PENDING_CREATE))
                 syncOperationDao.upsertOperation(
@@ -138,7 +138,7 @@ class RoomTareaRepository(
         return TareaResult.Success(tarea)
     }
 
-    override fun editarTarea(
+    override suspend fun editarTarea(
         taskId: String,
         titulo: String,
         categoria: CategoriaTarea,
@@ -152,9 +152,9 @@ class RoomTareaRepository(
         val userId = sessionProvider.currentUserId()
             ?: return TareaResult.Error("Inicia sesion para editar tareas.")
 
-        return runBlocking(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             val current = tareaDao.getTareaById(taskId, userId)
-                ?: return@runBlocking TareaResult.Error("No se encontro la tarea.")
+                ?: return@withContext TareaResult.Error("No se encontro la tarea.")
 
             val updated = current.toDomain().copy(
                 titulo = titulo,
@@ -187,13 +187,13 @@ class RoomTareaRepository(
         }
     }
 
-    override fun eliminarTarea(taskId: String): TareaResult {
+    override suspend fun eliminarTarea(taskId: String): TareaResult {
         val userId = sessionProvider.currentUserId()
             ?: return TareaResult.Error("Inicia sesion para eliminar tareas.")
 
-        return runBlocking(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             val current = tareaDao.getTareaById(taskId, userId)
-                ?: return@runBlocking TareaResult.Error("No se encontro la tarea.")
+                ?: return@withContext TareaResult.Error("No se encontro la tarea.")
             val removed = current.toDomain()
 
             database.withTransaction {

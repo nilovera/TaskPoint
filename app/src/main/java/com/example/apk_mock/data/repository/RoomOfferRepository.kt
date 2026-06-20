@@ -1,21 +1,21 @@
 package com.example.apk_mock.data.repository
 
-import com.example.apk_mock.data.local.ReferenceDataSeeder
+import com.example.apk_mock.data.local.OfferCatalogImporter
 import com.example.apk_mock.data.local.dao.OfferDao
 import com.example.apk_mock.data.mapper.toDomain
 import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.repository.OfferRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class RoomOfferRepository(
     private val offerDao: OfferDao,
-    private val referenceDataSeeder: ReferenceDataSeeder
+    private val offerCatalogImporter: OfferCatalogImporter
 ) : OfferRepository {
 
-    override fun getOffersByCategory(categoryCode: String): List<StoreOffer> {
-        return runBlocking(Dispatchers.IO) {
-            referenceDataSeeder.seedIfNeeded()
+    override suspend fun getOffersByCategory(categoryCode: String): List<StoreOffer> {
+        return withContext(Dispatchers.IO) {
+            offerCatalogImporter.importIfNeeded()
 
             val storesById = offerDao.getStoresByCategory(categoryCode)
                 .associateBy { it.id }

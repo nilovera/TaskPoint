@@ -58,7 +58,6 @@ fun ProfileScreen(
     userName: String,
     onBack: () -> Unit,
     onChangePassword: () -> Unit,
-    onSessionEnded: () -> Unit,
     innerPadding: PaddingValues = PaddingValues()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -68,13 +67,6 @@ fun ProfileScreen(
 
     LaunchedEffect(userName) {
         viewModel.refreshUser(userName)
-    }
-
-    LaunchedEffect(state.sessionEnded) {
-        if (state.sessionEnded) {
-            viewModel.onSessionEndedConsumed()
-            onSessionEnded()
-        }
     }
 
     Box(

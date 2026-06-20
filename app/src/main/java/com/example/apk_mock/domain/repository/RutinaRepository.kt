@@ -10,9 +10,9 @@ sealed class RutinaResult {
 }
 
 interface RutinaRepository {
-    fun getRutinas(): List<Rutina>
-    fun getRutinaById(id: String): Rutina?
-    fun crearRutina(
+    suspend fun getRutinas(): List<Rutina>
+    suspend fun getRutinaById(id: String): Rutina?
+    suspend fun crearRutina(
         nombre: String,
         icono: RutinaIcono,
         direccion: String,
@@ -21,7 +21,7 @@ interface RutinaRepository {
         horarioFin: String,
         descripcion: String
     ): RutinaResult
-    fun editarRutina(
+    suspend fun editarRutina(
         id: String,
         nombre: String,
         icono: RutinaIcono,
@@ -31,5 +31,5 @@ interface RutinaRepository {
         horarioFin: String,
         descripcion: String
     ): RutinaResult
-    fun eliminarRutina(id: String): RutinaResult
+    suspend fun eliminarRutina(id: String): RutinaResult
 }

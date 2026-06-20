@@ -25,17 +25,17 @@ sealed class ProfileResult {
 }
 
 interface AuthRepository {
-    fun register(name: String, email: String, password: String): AuthResult
-    fun login(email: String, password: String): AuthResult
-    fun currentUser(): User?
-    fun logout()
-    fun sendResetCode(email: String): ResetResult
-    fun verifyResetCode(email: String, code: String): ResetResult
-    fun changePassword(email: String, newPassword: String): ResetResult
-    fun changeCurrentPassword(currentPassword: String, newPassword: String): ProfileResult
-    fun deleteCurrentUser(): ProfileResult
+    suspend fun register(name: String, email: String, password: String): AuthResult
+    suspend fun login(email: String, password: String): AuthResult
+    suspend fun currentUser(): User?
+    suspend fun logout()
+    suspend fun sendResetCode(email: String): ResetResult
+    suspend fun verifyResetCode(email: String, code: String): ResetResult
+    suspend fun changePassword(email: String, newPassword: String): ResetResult
+    suspend fun changeCurrentPassword(currentPassword: String, newPassword: String): ProfileResult
+    suspend fun deleteCurrentUser(): ProfileResult
 }
 
 interface UserSessionProvider {
-    fun currentUserId(): String?
+    suspend fun currentUserId(): String?
 }

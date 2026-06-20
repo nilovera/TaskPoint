@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import com.example.apk_mock.data.local.ReferenceDataSeeder
+import com.example.apk_mock.data.local.OfferCatalogImporter
 import com.example.apk_mock.data.local.TaskPointDatabase
 import com.example.apk_mock.data.remote.RetrofitClient
 import com.example.apk_mock.data.repository.RemoteAuthRepository
@@ -32,7 +32,7 @@ class AppContainer private constructor(context: Context) {
     private val secureSessionStorage = SecureSessionStorage(applicationContext)
     val database: TaskPointDatabase = TaskPointDatabase.getInstance(applicationContext)
     val retrofitClient: RetrofitClient = RetrofitClient()
-    private val referenceDataSeeder = ReferenceDataSeeder(applicationContext, database)
+    private val offerCatalogImporter = OfferCatalogImporter(applicationContext, database)
     private val sessionRepository = RemoteAuthRepository(
         retrofitClient.authApi,
         secureSessionStorage
@@ -51,16 +51,16 @@ class AppContainer private constructor(context: Context) {
     )
     val categoriaRepository: CategoriaRepository = RoomCategoriaRepository(
         database.categoriaDao(),
-        referenceDataSeeder
+        offerCatalogImporter
     )
     val offerRepository: OfferRepository = RoomOfferRepository(
         database.offerDao(),
-        referenceDataSeeder
+        offerCatalogImporter
     )
 
     init {
         applicationScope.launch {
-            referenceDataSeeder.seedIfNeeded()
+            offerCatalogImporter.importIfNeeded()
         }
     }
 
