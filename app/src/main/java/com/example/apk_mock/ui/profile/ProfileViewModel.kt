@@ -38,7 +38,7 @@ class ProfileViewModel(
                 it.copy(
                     name = user.name,
                     email = user.email,
-                    passwordMask = "•".repeat(user.password.length.coerceIn(6, 12))
+                    passwordMask = "•".repeat(8)
                 )
             }
         } else if (fallbackName.isNotBlank()) {
@@ -83,16 +83,6 @@ class ProfileViewModel(
         val state = _uiState.value
         if (state.currentPassword.isBlank()) {
             showPasswordError("Ingresa tu contraseña actual.")
-            return
-        }
-
-        val currentUser = repository.currentUser()
-        if (currentUser == null) {
-            showPasswordError("No hay una sesion activa.")
-            return
-        }
-        if (currentUser.password != state.currentPassword) {
-            showPasswordError("La contraseña ingresada es incorrecta.")
             return
         }
         if (state.newPassword.length < 6) {
