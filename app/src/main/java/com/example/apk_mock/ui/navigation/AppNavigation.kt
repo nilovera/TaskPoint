@@ -28,8 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -38,7 +37,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.apk_mock.di.rememberAppContainer
 import com.example.apk_mock.ui.forgotPassword.ForgotPasswordEmailScreen
 import com.example.apk_mock.ui.forgotPassword.ForgotPasswordViewModel
 import com.example.apk_mock.ui.home.HomeScreen
@@ -86,49 +84,20 @@ private const val CAPTURED_PHOTO_PATH_KEY = "captured_photo_path"
 
 @Composable
 fun AppNavigation() {
-    val appContainer = rememberAppContainer()
     val navController = rememberNavController()
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStack?.destination?.route
     val colors = TaskPointTheme.colors
 
-    val authRepository = appContainer.authRepository
-    val rutinaRepository = appContainer.rutinaRepository
-    val tareaRepository = appContainer.tareaRepository
-    val categoriaRepository = appContainer.categoriaRepository
-    val offerRepository = appContainer.offerRepository
-
     // Estado del nombre del usuario: se setea al hacer login y persiste
     var userName by remember { mutableStateOf("") }
 
     // ViewModels de tabs: viven aquí para persistir al cambiar de tab
-    val rutinasViewModel = viewModel<RutinasViewModel>(
-        factory = vmFactory {
-            RutinasViewModel(
-                rutinaRepository,
-                tareaRepository
-            )
-        }
-    )
-    val tareasViewModel = viewModel<TareasViewModel>(
-        factory = vmFactory {
-            TareasViewModel(
-                tareaRepository,
-                rutinaRepository,
-                categoriaRepository,
-                offerRepository
-            )
-        }
-    )
-    val profileViewModel = viewModel<ProfileViewModel>(
-        factory = vmFactory {
-            ProfileViewModel(authRepository)
-        }
-    )
+    val rutinasViewModel: RutinasViewModel = hiltViewModel()
+    val tareasViewModel: TareasViewModel = hiltViewModel()
+    val profileViewModel: ProfileViewModel = hiltViewModel()
     val profileState by profileViewModel.uiState.collectAsState()
-    val sessionViewModel = viewModel<SessionViewModel>(
-        factory = vmFactory { SessionViewModel(authRepository) }
-    )
+    val sessionViewModel: SessionViewModel = hiltViewModel()
     val sessionState by sessionViewModel.uiState.collectAsState()
 
     val navigateToLoginAfterSessionEnd: () -> Unit = {
@@ -211,9 +180,7 @@ fun AppNavigation() {
             }
 
             composable(Routes.REGISTER) {
-                val vm = viewModel<RegisterViewModel>(
-                    factory = vmFactory { RegisterViewModel(authRepository) }
-                )
+                val vm: RegisterViewModel = hiltViewModel()
                 RegisterScreen(
                     viewModel = vm,
                     onRegisterSuccess = { user ->
@@ -232,9 +199,7 @@ fun AppNavigation() {
             }
 
             composable(Routes.LOGIN) {
-                val vm = viewModel<LoginViewModel>(
-                    factory = vmFactory { LoginViewModel(authRepository) }
-                )
+                val vm: LoginViewModel = hiltViewModel()
                 LoginScreen(
                     viewModel = vm,
                     onNavigateToHome = { user ->
@@ -256,9 +221,7 @@ fun AppNavigation() {
             }
 
             composable(Routes.FORGOT_PASSWORD) {
-                val vm = viewModel<ForgotPasswordViewModel>(
-                    factory = vmFactory { ForgotPasswordViewModel(authRepository) }
-                )
+                val vm: ForgotPasswordViewModel = hiltViewModel()
                 ForgotPasswordEmailScreen(
                     viewModel = vm,
                     onCancel = { navController.popBackStack() }
@@ -602,9 +565,3 @@ private fun RowScope.BottomNavButton(
 }
 
 // ── Helper factory ────────────────────────────────────────────────────────────
-inline fun <reified VM : androidx.lifecycle.ViewModel> vmFactory(
-    crossinline create: () -> VM
-): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T = create() as T
-}

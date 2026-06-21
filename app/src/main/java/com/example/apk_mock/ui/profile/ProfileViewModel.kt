@@ -2,6 +2,7 @@ package com.example.apk_mock.ui.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.ProfileResult
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class ProfileUiState(
     val name: String = "Nicolas Perez",
@@ -27,7 +29,8 @@ data class ProfileUiState(
     val sessionEnded: Boolean = false
 )
 
-class ProfileViewModel(
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
     private val repository: AuthRepository
 ) : ViewModel() {
 

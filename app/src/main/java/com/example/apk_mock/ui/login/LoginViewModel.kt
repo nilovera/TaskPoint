@@ -2,6 +2,7 @@ package com.example.apk_mock.ui.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.AuthResult
 import com.example.apk_mock.domain.repository.User
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class LoginUiState(
     val email: String = "",
@@ -20,7 +22,10 @@ data class LoginUiState(
     val loggedInUser: User? = null
 )
 
-class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val repository: AuthRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()

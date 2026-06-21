@@ -2,6 +2,7 @@ package com.example.apk_mock.ui.forgotPassword
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.ResetResult
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 // ── UiState ──────────────────────────────────────────────────────────────────
 
@@ -33,7 +35,8 @@ data class ForgotPasswordUiState(
 
 // ── ViewModel ─────────────────────────────────────────────────────────────────
 
-class ForgotPasswordViewModel(
+@HiltViewModel
+class ForgotPasswordViewModel @Inject constructor(
     private val repository: AuthRepository
 ) : ViewModel() {
 

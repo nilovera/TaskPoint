@@ -2,12 +2,14 @@ package com.example.apk_mock.ui.session
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed interface SessionUiState {
     data object Checking : SessionUiState
@@ -15,7 +17,8 @@ sealed interface SessionUiState {
     data class Authenticated(val user: User) : SessionUiState
 }
 
-class SessionViewModel(
+@HiltViewModel
+class SessionViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 

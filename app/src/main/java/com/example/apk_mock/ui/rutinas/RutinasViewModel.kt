@@ -2,6 +2,7 @@ package com.example.apk_mock.ui.rutinas
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import java.time.LocalTime
 
 // ── UiState lista de rutinas ──────────────────────────────────────────────────
@@ -68,7 +70,8 @@ data class DetalleRutinaUiState(
     val isDeleted: Boolean = false
 )
 
-class RutinasViewModel(
+@HiltViewModel
+class RutinasViewModel @Inject constructor(
     private val rutinaRepository: RutinaRepository,
     private val tareaRepository: TareaRepository
 ) : ViewModel() {

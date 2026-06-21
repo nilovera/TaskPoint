@@ -1,19 +1,38 @@
 import { Router } from "express";
+import { requireAuth } from "../middleware/authMiddleware.js";
+import { createRoutine, getRoutines, removeRoutine, updateRoutine } from "../services/routineService.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const routineRouter = Router();
 
-routineRouter.get("/", (_req, res) => {
-  res.status(501).json({ message: "List routines endpoint pending implementation." });
-});
+routineRouter.use(requireAuth);
 
-routineRouter.post("/", (_req, res) => {
-  res.status(501).json({ message: "Create routine endpoint pending implementation." });
-});
+routineRouter.get(
+  "/",
+  asyncHandler(async (req, res) => {
+    res.json(await getRoutines(req.user.id));
+  })
+);
 
-routineRouter.put("/:id", (_req, res) => {
-  res.status(501).json({ message: "Update routine endpoint pending implementation." });
-});
+routineRouter.post(
+  "/",
+  asyncHandler(async (req, res) => {
+    const { routine, created } = await createRoutine(req.user.id, req.body);
+    res.status(created ? 201 : 200).json(routine);
+  })
+);
 
-routineRouter.delete("/:id", (_req, res) => {
-  res.status(501).json({ message: "Delete routine endpoint pending implementation." });
-});
+routineRouter.put(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    res.json(await updateRoutine(req.user.id, req.params.id, req.body));
+  })
+);
+
+routineRouter.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    await removeRoutine(req.user.id, req.params.id);
+    res.status(204).send();
+  })
+);

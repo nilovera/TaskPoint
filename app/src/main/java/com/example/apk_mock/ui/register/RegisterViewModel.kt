@@ -2,6 +2,7 @@ package com.example.apk_mock.ui.register
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.AuthResult
 import com.example.apk_mock.domain.repository.User
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class RegisterUiState(
     val name: String = "",
@@ -26,7 +28,10 @@ data class RegisterUiState(
     val isSuccess: Boolean = false
 )
 
-class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
+@HiltViewModel
+class RegisterViewModel @Inject constructor(
+    private val repository: AuthRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()

@@ -2,6 +2,7 @@ package com.example.apk_mock.ui.tareas
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class TareasListUiState(
     val tareas: List<Tarea> = emptyList(),
@@ -61,7 +63,8 @@ data class TaskDetailUiState(
     val isDeleted: Boolean = false
 )
 
-class TareasViewModel(
+@HiltViewModel
+class TareasViewModel @Inject constructor(
     private val tareaRepository: TareaRepository,
     private val rutinaRepository: RutinaRepository,
     private val categoriaRepository: CategoriaRepository,
