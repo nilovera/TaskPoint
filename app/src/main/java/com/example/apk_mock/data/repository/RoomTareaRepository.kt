@@ -79,13 +79,14 @@ class RoomTareaRepository(
                 val tareas = tareaDao.getTareasByRutina(rutinaId, userId)
                 photoPaths.addAll(tareas.map { it.photoPath })
                 tareas.forEach { entity ->
+                    val deletedAt = System.currentTimeMillis()
                     tareaDao.deleteTarea(entity.id, userId)
                     syncOperationDao.upsertOperation(
                         syncOperation(
                             userId = userId,
                             entityId = entity.id,
                             operationType = SyncOperationType.DELETE,
-                            payloadJson = null
+                            payloadJson = deletePayloadJson(deletedAt)
                         )
                     )
                 }
@@ -204,6 +205,7 @@ class RoomTareaRepository(
             val current = tareaDao.getTareaById(taskId, userId)
                 ?: return@withContext TareaResult.Error("No se encontro la tarea.")
             val removed = current.toDomain()
+            val deletedAt = System.currentTimeMillis()
 
             database.withTransaction {
                 tareaDao.deleteTarea(taskId, userId)
@@ -212,7 +214,7 @@ class RoomTareaRepository(
                         userId = userId,
                         entityId = taskId,
                         operationType = SyncOperationType.DELETE,
-                        payloadJson = null
+                        payloadJson = deletePayloadJson(deletedAt)
                     )
                 )
             }
@@ -252,6 +254,12 @@ class RoomTareaRepository(
             .put("notas", notas)
             .put("photoPath", photoPath)
             .put("completada", completada)
+            .put("updatedAt", updatedAt)
+            .toString()
+    }
+
+    private fun deletePayloadJson(updatedAt: Long): String {
+        return JSONObject()
             .put("updatedAt", updatedAt)
             .toString()
     }

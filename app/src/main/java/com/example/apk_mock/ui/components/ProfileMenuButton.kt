@@ -28,7 +28,7 @@ fun ProfileMenuButton(
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val displayName = userName.ifBlank { "Nicolas Perez" }
+    val displayName = userName.ifBlank { "Usuario" }
     val colors = TaskPointTheme.colors
     var menuExpanded by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }

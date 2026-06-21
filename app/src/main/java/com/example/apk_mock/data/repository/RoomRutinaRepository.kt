@@ -154,6 +154,7 @@ class RoomRutinaRepository(
             val removed = current.toDomain(
                 cantidadTareas = tareaDao.countTareasByRutina(current.id, userId)
             )
+            val deletedAt = System.currentTimeMillis()
 
             database.withTransaction {
                 rutinaDao.deleteRutina(id, userId)
@@ -162,7 +163,7 @@ class RoomRutinaRepository(
                         userId = userId,
                         entityId = id,
                         operationType = SyncOperationType.DELETE,
-                        payloadJson = null
+                        payloadJson = deletePayloadJson(deletedAt)
                     )
                 )
             }
@@ -199,6 +200,12 @@ class RoomRutinaRepository(
             .put("horarioInicio", horarioInicio)
             .put("horarioFin", horarioFin)
             .put("descripcion", descripcion)
+            .put("updatedAt", updatedAt)
+            .toString()
+    }
+
+    private fun deletePayloadJson(updatedAt: Long): String {
+        return JSONObject()
             .put("updatedAt", updatedAt)
             .toString()
     }

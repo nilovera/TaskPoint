@@ -3,6 +3,7 @@ package com.example.apk_mock.ui.session
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.apk_mock.data.sync.RemoteSyncReconciler
 import com.example.apk_mock.data.sync.SyncScheduler
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.User
@@ -21,6 +22,7 @@ sealed interface SessionUiState {
 @HiltViewModel
 class SessionViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val remoteSyncReconciler: RemoteSyncReconciler,
     private val syncScheduler: SyncScheduler
 ) : ViewModel() {
 
@@ -40,6 +42,7 @@ class SessionViewModel @Inject constructor(
                 ?: SessionUiState.Unauthenticated
             _uiState.value = state
             if (state is SessionUiState.Authenticated) {
+                runCatching { remoteSyncReconciler.reconcileRemoteChanges() }
                 syncScheduler.schedulePendingSync()
             }
         }
@@ -47,7 +50,10 @@ class SessionViewModel @Inject constructor(
 
     fun onAuthenticated(user: User) {
         _uiState.value = SessionUiState.Authenticated(user)
-        viewModelScope.launch { syncScheduler.schedulePendingSync() }
+        viewModelScope.launch {
+            runCatching { remoteSyncReconciler.reconcileRemoteChanges() }
+            syncScheduler.schedulePendingSync()
+        }
     }
 
     fun onSessionEnded() {

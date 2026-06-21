@@ -2,6 +2,7 @@ package com.example.apk_mock.di
 
 import android.content.Context
 import com.example.apk_mock.data.local.OfferCatalogImporter
+import com.example.apk_mock.data.local.LocalUserDataCleaner
 import com.example.apk_mock.data.local.TaskPointDatabase
 import com.example.apk_mock.data.remote.AuthApi
 import com.example.apk_mock.data.remote.RetrofitClient
@@ -74,8 +75,15 @@ object AppModule {
     @Singleton
     fun provideRemoteAuthRepository(
         authApi: AuthApi,
-        sessionStorage: SecureSessionStorage
-    ): RemoteAuthRepository = RemoteAuthRepository(authApi, sessionStorage)
+        sessionStorage: SecureSessionStorage,
+        syncScheduler: SyncScheduler,
+        localUserDataCleaner: LocalUserDataCleaner
+    ): RemoteAuthRepository = RemoteAuthRepository(
+        authApi,
+        sessionStorage,
+        syncScheduler,
+        localUserDataCleaner
+    )
 
     @Provides
     fun provideAuthRepository(repository: RemoteAuthRepository): AuthRepository = repository

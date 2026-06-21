@@ -3,6 +3,7 @@ package com.example.apk_mock.data.local.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
+import com.example.apk_mock.data.local.SyncEntityType
 import com.example.apk_mock.data.local.SyncOperationStatus
 import com.example.apk_mock.data.local.entity.SyncOperationEntity
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +15,7 @@ interface SyncOperationDao {
         userId: String,
         statuses: List<SyncOperationStatus> = listOf(
             SyncOperationStatus.PENDING,
-            SyncOperationStatus.FAILED,
+            SyncOperationStatus.FAILED_RETRYABLE,
             SyncOperationStatus.IN_PROGRESS
         )
     ): Flow<List<SyncOperationEntity>>
@@ -24,10 +25,22 @@ interface SyncOperationDao {
         userId: String,
         statuses: List<SyncOperationStatus> = listOf(
             SyncOperationStatus.PENDING,
-            SyncOperationStatus.FAILED,
+            SyncOperationStatus.FAILED_RETRYABLE,
             SyncOperationStatus.IN_PROGRESS
         ),
         limit: Int = 50
+    ): List<SyncOperationEntity>
+
+    @Query("SELECT * FROM sync_operations WHERE userId = :userId AND status = :status ORDER BY updatedAt DESC")
+    fun observePermanentOperations(
+        userId: String,
+        status: SyncOperationStatus = SyncOperationStatus.FAILED_PERMANENT
+    ): Flow<List<SyncOperationEntity>>
+
+    @Query("SELECT * FROM sync_operations WHERE userId = :userId AND status = :status ORDER BY updatedAt DESC")
+    suspend fun getPermanentOperations(
+        userId: String,
+        status: SyncOperationStatus = SyncOperationStatus.FAILED_PERMANENT
     ): List<SyncOperationEntity>
 
     @Upsert
@@ -47,9 +60,35 @@ interface SyncOperationDao {
     suspend fun markFailed(
         id: String,
         lastError: String?,
-        status: SyncOperationStatus = SyncOperationStatus.FAILED,
+        status: SyncOperationStatus = SyncOperationStatus.FAILED_RETRYABLE,
         updatedAt: Long = System.currentTimeMillis()
     ): Int
+
+    @Query("UPDATE sync_operations SET status = :pendingStatus, lastError = NULL, updatedAt = :updatedAt WHERE id = :id AND userId = :userId AND status = :permanentStatus")
+    suspend fun retryPermanentOperation(
+        id: String,
+        userId: String,
+        pendingStatus: SyncOperationStatus = SyncOperationStatus.PENDING,
+        permanentStatus: SyncOperationStatus = SyncOperationStatus.FAILED_PERMANENT,
+        updatedAt: Long = System.currentTimeMillis()
+    ): Int
+
+    @Query("UPDATE sync_operations SET status = :completedStatus, lastError = NULL, updatedAt = :updatedAt WHERE userId = :userId AND entityType = :entityType AND entityId = :entityId AND status != :completedStatus")
+    suspend fun completeOutstandingOperationsForEntity(
+        userId: String,
+        entityType: SyncEntityType,
+        entityId: String,
+        completedStatus: SyncOperationStatus = SyncOperationStatus.COMPLETED,
+        updatedAt: Long = System.currentTimeMillis()
+    ): Int
+
+    @Query("SELECT * FROM sync_operations WHERE userId = :userId AND entityType = :entityType AND entityId = :entityId AND status != :completedStatus ORDER BY createdAt ASC")
+    suspend fun getOutstandingOperationsForEntity(
+        userId: String,
+        entityType: SyncEntityType,
+        entityId: String,
+        completedStatus: SyncOperationStatus = SyncOperationStatus.COMPLETED
+    ): List<SyncOperationEntity>
 
     @Query("DELETE FROM sync_operations WHERE id = :id")
     suspend fun deleteOperation(id: String): Int

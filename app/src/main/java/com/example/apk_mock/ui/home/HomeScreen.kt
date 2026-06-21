@@ -90,7 +90,7 @@ fun HomeScreen(
     val isOnline = rememberIsOnline()
     val today = LocalDate.now()
     val todayDia = today.toDiaSemana()
-    val displayName = userName.ifBlank { "Nicolas Perez" }
+    val displayName = userName.ifBlank { "Usuario" }
     val rutinas = rutinasState.rutinas
     val todayTasks = tareasState.tareas.filter { it.dia == todayDia || it.dia == null }
     val canCreateTask = rutinas.isNotEmpty()

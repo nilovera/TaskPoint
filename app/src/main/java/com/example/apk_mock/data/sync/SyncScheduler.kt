@@ -42,6 +42,14 @@ class SyncScheduler @Inject constructor(
                 ExistingWorkPolicy.KEEP,
                 request
             )
+            SyncLog.info("worker_scheduled")
+        }
+    }
+
+    suspend fun cancelPendingSync() {
+        withContext(Dispatchers.IO) {
+            WorkManager.getInstance(applicationContext).cancelUniqueWork(UNIQUE_WORK_NAME)
+            SyncLog.info("worker_cancelled")
         }
     }
 
@@ -60,9 +68,13 @@ class PendingSyncWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val result = syncProcessor.syncPendingOperations()
+        SyncLog.info(
+            "worker_finished",
+            "completed=${result.completed} retryable=${result.retryableFailures} permanent=${result.permanentFailures}"
+        )
         return when {
-            result.skipped || result.failed == 0 -> Result.success()
-            result.retryableFailure -> Result.retry()
+            result.skipped || result.retryableFailures == 0 -> Result.success()
+            result.retryableFailures > 0 -> Result.retry()
             else -> Result.success()
         }
     }

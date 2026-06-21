@@ -11,6 +11,7 @@ import com.example.apk_mock.data.local.entity.SyncOperationEntity
 import com.example.apk_mock.data.local.entity.TareaEntity
 import com.example.apk_mock.data.remote.RoutineApi
 import com.example.apk_mock.data.remote.TaskApi
+import com.example.apk_mock.data.remote.dto.DeleteRequestDto
 import com.example.apk_mock.data.remote.dto.RoutineDto
 import com.example.apk_mock.data.remote.dto.RoutineRequestDto
 import com.example.apk_mock.data.remote.dto.TaskDto
@@ -19,6 +20,7 @@ import com.example.apk_mock.data.secure.SecureSessionStorage
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -29,8 +31,8 @@ import retrofit2.HttpException
 data class SyncResult(
     val processed: Int = 0,
     val completed: Int = 0,
-    val failed: Int = 0,
-    val retryableFailure: Boolean = false,
+    val retryableFailures: Int = 0,
+    val permanentFailures: Int = 0,
     val skipped: Boolean = false
 )
 
@@ -58,47 +60,114 @@ class SyncProcessor @Inject constructor(
     }
 
     private suspend fun syncPendingOperationsLocked(limit: Int): SyncResult {
-        val userId = sessionStorage.currentUserId() ?: return SyncResult(skipped = true)
-        val authorization = sessionStorage.currentAuthorizationHeader() ?: return SyncResult(skipped = true)
+        val userId = sessionStorage.currentUserId()
+            ?: return SyncResult(skipped = true).also {
+                SyncLog.info("push_skipped", "reason=no_session")
+            }
+        val authorization = sessionStorage.currentAuthorizationHeader()
+            ?: return SyncResult(skipped = true).also {
+                SyncLog.info("push_skipped", "reason=no_token")
+            }
         val operations = syncOperationDao.getOperations(userId, limit = limit)
+        SyncLog.info("push_started", "operations=${operations.size}")
 
         var processed = 0
         var completed = 0
-        var failed = 0
-        var retryableFailure = false
+        var retryableFailures = 0
+        var permanentFailures = 0
 
         for (operation in operations) {
             syncOperationDao.updateStatus(operation.id, SyncOperationStatus.IN_PROGRESS)
             processed += 1
+            SyncLog.info("operation_started", operation.logDetails())
 
             try {
                 val response = executeOperation(operation, authorization)
                 completeOperation(operation, response)
                 completed += 1
+                SyncLog.info("operation_completed", operation.logDetails())
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: HttpException) {
+                if (error.code() == HTTP_CONFLICT) {
+                    try {
+                        resolveLastWriteWinsConflict(operation, authorization)
+                        completed += 1
+                    } catch (resolutionError: CancellationException) {
+                        throw resolutionError
+                    } catch (resolutionError: IOException) {
+                        failOperation(
+                            operation,
+                            "Sin conexion con el servidor.",
+                            SyncOperationStatus.FAILED_RETRYABLE
+                        )
+                        retryableFailures += 1
+                        SyncLog.warn("operation_retryable_failure", operation.logDetails())
+                        break
+                    } catch (resolutionError: Exception) {
+                        failOperation(
+                            operation,
+                            "No se pudo resolver el conflicto de sincronizacion.",
+                            SyncOperationStatus.FAILED_PERMANENT
+                        )
+                        permanentFailures += 1
+                        SyncLog.warn("operation_permanent_failure", operation.logDetails())
+                    }
+                    continue
+                }
+
                 if (operation.operationType == SyncOperationType.DELETE && error.code() == HTTP_NOT_FOUND) {
                     completeOperation(operation, null)
                     completed += 1
                     continue
                 }
 
-                failOperation(operation, error.toSyncMessage())
-                failed += 1
-                retryableFailure = error.code() >= HTTP_SERVER_ERROR
-                break
+                if (error.isRetryable()) {
+                    failOperation(
+                        operation,
+                        error.toSyncMessage(),
+                        SyncOperationStatus.FAILED_RETRYABLE
+                    )
+                    retryableFailures += 1
+                    SyncLog.warn("operation_retryable_failure", operation.logDetails())
+                    break
+                }
+
+                failOperation(
+                    operation,
+                    error.toSyncMessage(),
+                    SyncOperationStatus.FAILED_PERMANENT
+                )
+                permanentFailures += 1
+                SyncLog.warn("operation_permanent_failure", operation.logDetails())
+                continue
             } catch (error: IOException) {
-                failOperation(operation, "Sin conexion con el servidor.")
-                failed += 1
-                retryableFailure = true
+                failOperation(
+                    operation,
+                    "Sin conexion con el servidor.",
+                    SyncOperationStatus.FAILED_RETRYABLE
+                )
+                retryableFailures += 1
+                SyncLog.warn("operation_retryable_failure", operation.logDetails())
                 break
             } catch (error: Exception) {
-                failOperation(operation, "No se pudo sincronizar la operacion.")
-                failed += 1
-                break
+                failOperation(
+                    operation,
+                    "No se pudo sincronizar la operacion.",
+                    SyncOperationStatus.FAILED_PERMANENT
+                )
+                permanentFailures += 1
+                SyncLog.warn("operation_permanent_failure", operation.logDetails())
+                continue
             }
         }
 
-        return SyncResult(processed, completed, failed, retryableFailure)
+        return SyncResult(processed, completed, retryableFailures, permanentFailures).also { result ->
+            SyncLog.info(
+                "push_finished",
+                "processed=${result.processed} completed=${result.completed} retryable=${result.retryableFailures} permanent=${result.permanentFailures}"
+            )
+        }
     }
 
     private suspend fun executeOperation(
@@ -126,7 +195,11 @@ class SyncProcessor @Inject constructor(
             )
 
             SyncOperationType.DELETE -> {
-                taskApi.deleteTask(authorization, operation.entityId)
+                taskApi.deleteTask(
+                    authorization,
+                    operation.entityId,
+                    DeleteRequestDto(operation.payloadUpdatedAt())
+                )
                 null
             }
         }
@@ -146,7 +219,11 @@ class SyncProcessor @Inject constructor(
             )
 
             SyncOperationType.DELETE -> {
-                routineApi.deleteRoutine(authorization, operation.entityId)
+                routineApi.deleteRoutine(
+                    authorization,
+                    operation.entityId,
+                    DeleteRequestDto(operation.payloadUpdatedAt())
+                )
                 null
             }
         }
@@ -167,10 +244,11 @@ class SyncProcessor @Inject constructor(
     }
 
     private suspend fun applyTaskResponse(operation: SyncOperationEntity, remote: TaskDto) {
-        val current = tareaDao.getTareaById(operation.entityId, operation.userId) ?: return
-        if (current.updatedAt > operation.payloadUpdatedAt()) return
+        val current = tareaDao.getTareaById(operation.entityId, operation.userId)
+        if (current == null && operation.operationType != SyncOperationType.DELETE) return
+        if (current != null && current.updatedAt > operation.payloadUpdatedAt()) return
 
-        val category = if (current.categoriaCode == remote.categoriaCode) {
+        val category = if (current?.categoriaCode == remote.categoriaCode) {
             null
         } else {
             categoriaDao.getCategoriaByCode(remote.categoriaCode)
@@ -181,11 +259,15 @@ class SyncProcessor @Inject constructor(
                 id = remote.id,
                 userId = operation.userId,
                 titulo = remote.titulo,
-                categoriaId = category?.id ?: current.categoriaId,
-                categoriaName = category?.name ?: current.categoriaName,
+                categoriaId = category?.id ?: current?.categoriaId ?: UNKNOWN_CATEGORY_ID,
+                categoriaName = category?.name ?: current?.categoriaName ?: UNKNOWN_CATEGORY_NAME,
                 categoriaCode = remote.categoriaCode,
-                categoriaDescription = category?.description ?: current.categoriaDescription,
-                categoriaActivatesOffers = category?.activatesOffers ?: current.categoriaActivatesOffers,
+                categoriaDescription = category?.description
+                    ?: current?.categoriaDescription
+                    ?: UNKNOWN_CATEGORY_DESCRIPTION,
+                categoriaActivatesOffers = category?.activatesOffers
+                    ?: current?.categoriaActivatesOffers
+                    ?: false,
                 rutinaId = remote.rutinaId,
                 rutinaNombre = remote.rutinaNombre,
                 dia = remote.dia,
@@ -200,8 +282,9 @@ class SyncProcessor @Inject constructor(
     }
 
     private suspend fun applyRoutineResponse(operation: SyncOperationEntity, remote: RoutineDto) {
-        val current = rutinaDao.getRutinaById(operation.entityId, operation.userId) ?: return
-        if (current.updatedAt > operation.payloadUpdatedAt()) return
+        val current = rutinaDao.getRutinaById(operation.entityId, operation.userId)
+        if (current == null && operation.operationType != SyncOperationType.DELETE) return
+        if (current != null && current.updatedAt > operation.payloadUpdatedAt()) return
 
         rutinaDao.upsertRutina(
             RutinaEntity(
@@ -220,7 +303,50 @@ class SyncProcessor @Inject constructor(
         )
     }
 
-    private suspend fun failOperation(operation: SyncOperationEntity, message: String) {
+    private suspend fun resolveLastWriteWinsConflict(
+        operation: SyncOperationEntity,
+        authorization: String
+    ) {
+        if (operation.operationType == SyncOperationType.DELETE) {
+            val remote = when (operation.entityType) {
+                SyncEntityType.TAREA -> taskApi.getTasks(authorization)
+                    .firstOrNull { task -> task.id == operation.entityId }
+                    ?.let(SyncResponse::Task)
+
+                SyncEntityType.RUTINA -> routineApi.getRoutines(authorization)
+                    .firstOrNull { routine -> routine.id == operation.entityId }
+                    ?.let(SyncResponse::Routine)
+
+                else -> null
+            }
+            completeOperation(operation, remote)
+        } else {
+            completeDeletedConflict(operation)
+        }
+    }
+
+    private suspend fun completeDeletedConflict(operation: SyncOperationEntity) {
+        database.withTransaction {
+            when (operation.entityType) {
+                SyncEntityType.TAREA -> tareaDao.getTareaById(operation.entityId, operation.userId)
+                    ?.takeIf { it.updatedAt <= operation.payloadUpdatedAt() }
+                    ?.let { tareaDao.deleteTarea(it.id, operation.userId) }
+
+                SyncEntityType.RUTINA -> rutinaDao.getRutinaById(operation.entityId, operation.userId)
+                    ?.takeIf { it.updatedAt <= operation.payloadUpdatedAt() }
+                    ?.let { rutinaDao.deleteRutina(it.id, operation.userId) }
+
+                else -> Unit
+            }
+            syncOperationDao.updateStatus(operation.id, SyncOperationStatus.COMPLETED)
+        }
+    }
+
+    private suspend fun failOperation(
+        operation: SyncOperationEntity,
+        message: String,
+        operationStatus: SyncOperationStatus
+    ) {
         database.withTransaction {
             when (operation.entityType) {
                 SyncEntityType.TAREA -> tareaDao.getTareaById(operation.entityId, operation.userId)
@@ -233,7 +359,7 @@ class SyncProcessor @Inject constructor(
 
                 else -> Unit
             }
-            syncOperationDao.markFailed(operation.id, message)
+            syncOperationDao.markFailed(operation.id, message, operationStatus)
         }
     }
 
@@ -284,6 +410,10 @@ class SyncProcessor @Inject constructor(
             ?: createdAt
     }
 
+    private fun SyncOperationEntity.logDetails(): String {
+        return "entity=${entityType.name} operation=${operationType.name} id=${entityId.take(8)}"
+    }
+
     private fun JSONObject.requiredString(name: String): String {
         return stringOrNull(name) ?: throw IllegalArgumentException("Campo obligatorio ausente.")
     }
@@ -297,6 +427,10 @@ class SyncProcessor @Inject constructor(
         return "El servidor rechazo la operacion (codigo ${code()})."
     }
 
+    private fun HttpException.isRetryable(): Boolean {
+        return code() == HTTP_REQUEST_TIMEOUT || code() == HTTP_TOO_MANY_REQUESTS || code() >= HTTP_SERVER_ERROR
+    }
+
     private sealed interface SyncResponse {
         data class Task(val value: TaskDto) : SyncResponse
         data class Routine(val value: RoutineDto) : SyncResponse
@@ -306,6 +440,12 @@ class SyncProcessor @Inject constructor(
         const val DEFAULT_LIMIT = 50
         const val MAX_LIMIT = 100
         const val HTTP_NOT_FOUND = 404
+        const val HTTP_CONFLICT = 409
+        const val HTTP_REQUEST_TIMEOUT = 408
+        const val HTTP_TOO_MANY_REQUESTS = 429
         const val HTTP_SERVER_ERROR = 500
+        const val UNKNOWN_CATEGORY_ID = -1
+        const val UNKNOWN_CATEGORY_NAME = "Categoria no disponible"
+        const val UNKNOWN_CATEGORY_DESCRIPTION = "Categoria no disponible en este dispositivo."
     }
 }

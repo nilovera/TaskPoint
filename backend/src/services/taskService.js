@@ -1,13 +1,17 @@
-import { deleteTask, listTasks, saveTaskLastWriteWins } from "../repositories/taskRepository.js";
+import { deleteTaskLastWriteWins, listTaskSyncRecords, listTasks, saveTaskLastWriteWins } from "../repositories/taskRepository.js";
 import { httpError } from "../utils/httpError.js";
 
 export function getTasks(userId) {
   return listTasks(userId);
 }
 
+export function getTaskSyncRecords(userId) {
+  return listTaskSyncRecords(userId);
+}
+
 export async function createTask(userId, input) {
   const task = normalizeTask(input);
-  return saveTaskLastWriteWins(userId, task);
+  return ensureTaskWasNotDeleted(await saveTaskLastWriteWins(userId, task));
 }
 
 export async function updateTask(userId, taskId, input) {
@@ -15,13 +19,27 @@ export async function updateTask(userId, taskId, input) {
   if (input?.id && input.id !== taskId) {
     throw httpError(400, "El id del cuerpo no coincide con la ruta.");
   }
-  return (await saveTaskLastWriteWins(userId, task)).task;
+  return ensureTaskWasNotDeleted(await saveTaskLastWriteWins(userId, task));
 }
 
-export async function removeTask(userId, taskId) {
+export async function removeTask(userId, taskId, input) {
   validateId(taskId);
-  const deleted = await deleteTask(userId, taskId);
-  if (!deleted) throw httpError(404, "Tarea no encontrada.");
+  const result = await deleteTaskLastWriteWins(
+    userId,
+    taskId,
+    normalizeTimestamp(input?.updatedAt, Date.now())
+  );
+  if (!result.applied && !result.deleted) {
+    throw httpError(409, "Existe una version remota mas nueva de la tarea.");
+  }
+  return result;
+}
+
+function ensureTaskWasNotDeleted(result) {
+  if (result.deleted) {
+    throw httpError(409, "La tarea fue eliminada en una version remota mas nueva.");
+  }
+  return result;
 }
 
 function normalizeTask(input) {
