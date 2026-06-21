@@ -1,34 +1,35 @@
 package com.example.apk_mock.ui.tareas
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.repository.CategoriaRepository
+import com.example.apk_mock.domain.repository.OfferRepository
+import com.example.apk_mock.domain.repository.RutinaRepository
+import com.example.apk_mock.domain.repository.TareaRepository
 import com.example.apk_mock.domain.repository.TareaResult
-import com.example.apk_mock.domain.useCase.CrearTareaUseCase
-import com.example.apk_mock.domain.useCase.EditarTareaUseCase
-import com.example.apk_mock.domain.useCase.EliminarTareaUseCase
-import com.example.apk_mock.domain.useCase.GetCategoriasUseCase
-import com.example.apk_mock.domain.useCase.GetOffersByCategoryUseCase
-import com.example.apk_mock.domain.useCase.GetTareasUseCase
-import com.example.apk_mock.domain.useCase.GetRutinasUseCase
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-// ── UiState lista ─────────────────────────────────────────────────────────────
 data class TareasListUiState(
     val tareas: List<Tarea> = emptyList(),
     val filtroDia: DiaSemana? = null,
-    val rutinasDisponibles: Int = 0
+    val rutinasDisponibles: Int = 0,
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
 )
 
-// ── UiState formulario ────────────────────────────────────────────────────────
 data class CrearTareaUiState(
     val titulo: String = "",
     val categoriaSeleccionada: CategoriaTarea? = null,
@@ -43,25 +44,31 @@ data class CrearTareaUiState(
     val diasDisponibles: List<DiaSemana> = emptyList(),
     val horariosDisponibles: List<String> = emptyList(),
     val isFormLoaded: Boolean = false,
+    val isLoading: Boolean = false,
     val loadedTaskId: String? = null,
-    // errores
     val tituloError: String? = null,
     val categoriaError: String? = null,
     val rutinaError: String? = null,
     val diaError: String? = null,
     val horarioError: String? = null,
-    // resultado
     val isSuccess: Boolean = false
 )
 
-class TareasViewModel(
-    private val getTareas: GetTareasUseCase,
-    private val crearTarea: CrearTareaUseCase,
-    private val eliminarTarea: EliminarTareaUseCase,
-    private val editarTarea: EditarTareaUseCase,
-    private val getRutinas: GetRutinasUseCase,
-    private val getCategorias: GetCategoriasUseCase,
-    private val getOffersByCategory: GetOffersByCategoryUseCase
+data class TaskDetailUiState(
+    val tarea: Tarea? = null,
+    val rutina: Rutina? = null,
+    val offers: List<StoreOffer> = emptyList(),
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val isDeleted: Boolean = false
+)
+
+@HiltViewModel
+class TareasViewModel @Inject constructor(
+    private val tareaRepository: TareaRepository,
+    private val rutinaRepository: RutinaRepository,
+    private val categoriaRepository: CategoriaRepository,
+    private val offerRepository: OfferRepository
 ) : ViewModel() {
 
     private val _listState = MutableStateFlow(TareasListUiState())
@@ -70,44 +77,80 @@ class TareasViewModel(
     private val _formState = MutableStateFlow(CrearTareaUiState())
     val formState: StateFlow<CrearTareaUiState> = _formState.asStateFlow()
 
-    fun refreshTareas() = _listState.update {
-        it.copy(
-            tareas = getTareas(),
-            rutinasDisponibles = getRutinas().size
-        )
+    private val _detailState = MutableStateFlow(TaskDetailUiState())
+    val detailState: StateFlow<TaskDetailUiState> = _detailState.asStateFlow()
+
+    fun refreshTareas() {
+        viewModelScope.launch {
+            _listState.update { it.copy(isLoading = true, errorMessage = null) }
+            runCatching {
+                val tareas = tareaRepository.getTareas()
+                val rutinas = rutinaRepository.getRutinas()
+                tareas to rutinas
+            }.onSuccess { (tareas, rutinas) ->
+                _listState.update {
+                    it.copy(
+                        tareas = tareas,
+                        rutinasDisponibles = rutinas.size,
+                        isLoading = false
+                    )
+                }
+            }.onFailure {
+                _listState.update { state -> state.copy(isLoading = false, errorMessage = "No se pudieron cargar las tareas.") }
+            }
+        }
     }
 
     fun onFiltroDia(dia: DiaSemana?) = _listState.update { it.copy(filtroDia = dia) }
 
     fun tareasFiltradas(): List<Tarea> {
-        val filtro = _listState.value.filtroDia ?: return _listState.value.tareas
-        return _listState.value.tareas.filter { it.dia == filtro }
+        val state = _listState.value
+        return state.filtroDia?.let { filtro -> state.tareas.filter { it.dia == filtro } } ?: state.tareas
     }
 
-    fun getTareaById(taskId: String): Tarea? {
-        return _listState.value.tareas.find { it.id == taskId }
-            ?: getTareas().find { it.id == taskId }
-    }
-
-    fun getRutinaForTarea(tarea: Tarea): Rutina? {
-        val rutinaId = tarea.rutinaId ?: return null
-        return getRutinas().find { it.id == rutinaId }
-    }
-
-    fun getOffersForTarea(tarea: Tarea): List<StoreOffer> {
-        if (!tarea.categoria.activatesOffers) return emptyList()
-        return getOffersByCategory(tarea.categoria.code)
-    }
-
-    fun onEliminarTarea(taskId: String): Boolean {
-        return when (eliminarTarea(taskId)) {
-            is TareaResult.Success -> {
-                refreshTareas()
-                true
+    fun loadTaskDetail(taskId: String) {
+        viewModelScope.launch {
+            _detailState.value = TaskDetailUiState(isLoading = true)
+            runCatching {
+                val tarea = tareaRepository.getTareas().find { it.id == taskId }
+                    ?: return@runCatching null
+                val rutina = tarea.rutinaId?.let { rutinaRepository.getRutinaById(it) }
+                val offers = if (tarea.categoria.activatesOffers) {
+                    offerRepository.getOffersByCategory(tarea.categoria.code)
+                } else {
+                    emptyList()
+                }
+                Triple(tarea, rutina, offers)
+            }.onSuccess { result ->
+                if (result == null) {
+                    _detailState.value = TaskDetailUiState(errorMessage = "No se encontro la tarea.")
+                } else {
+                    _detailState.value = TaskDetailUiState(
+                        tarea = result.first,
+                        rutina = result.second,
+                        offers = result.third
+                    )
+                }
+            }.onFailure {
+                _detailState.value = TaskDetailUiState(errorMessage = "No se pudo cargar la tarea.")
             }
-            is TareaResult.Error -> false
         }
     }
+
+    fun onEliminarTarea(taskId: String) {
+        if (taskId.isBlank()) return
+        viewModelScope.launch {
+            when (val result = tareaRepository.eliminarTarea(taskId)) {
+                is TareaResult.Success -> {
+                    refreshTareas()
+                    _detailState.update { it.copy(isDeleted = true) }
+                }
+                is TareaResult.Error -> _detailState.update { it.copy(errorMessage = result.message) }
+            }
+        }
+    }
+
+    fun consumeTaskDeleted() = _detailState.update { it.copy(isDeleted = false) }
 
     fun resetCreateForm() {
         _formState.value = CrearTareaUiState()
@@ -118,39 +161,48 @@ class TareasViewModel(
     }
 
     fun loadFormData() {
-        val categorias = getCategorias()
-        val rutinas = getRutinas()
-        _formState.update {
-            if (it.isFormLoaded && it.loadedTaskId == null) {
-                it.copy(
-                    categoriasDisponibles = categorias,
-                    rutinasDisponibles = rutinas
-                )
-            } else {
-                CrearTareaUiState(
-                    categoriasDisponibles = categorias,
-                    rutinasDisponibles = rutinas,
-                    isFormLoaded = true
-                )
+        viewModelScope.launch {
+            _formState.update { it.copy(isLoading = true) }
+            runCatching {
+                categoriaRepository.getCategorias() to rutinaRepository.getRutinas()
+            }.onSuccess { (categorias, rutinas) ->
+                _formState.update {
+                    if (it.isFormLoaded && it.loadedTaskId == null) {
+                        it.copy(
+                            categoriasDisponibles = categorias,
+                            rutinasDisponibles = rutinas,
+                            isLoading = false
+                        )
+                    } else {
+                        CrearTareaUiState(
+                            categoriasDisponibles = categorias,
+                            rutinasDisponibles = rutinas,
+                            isFormLoaded = true
+                        )
+                    }
+                }
+            }.onFailure {
+                _formState.update { it.copy(isLoading = false) }
             }
         }
     }
 
     fun loadEditFormData(taskId: String) {
-        val categorias = getCategorias()
-        val rutinas = getRutinas()
-        val tarea = getTareaById(taskId) ?: return
-        val rutina = rutinas.find { it.id == tarea.rutinaId }
-        val categoria = categorias.find { it.code == tarea.categoria.code } ?: tarea.categoria
-
-        _formState.update {
-            if (it.isFormLoaded && it.loadedTaskId == taskId) {
-                it.copy(
-                    categoriasDisponibles = categorias,
-                    rutinasDisponibles = rutinas
-                )
-            } else {
-                CrearTareaUiState(
+        viewModelScope.launch {
+            _formState.update { it.copy(isLoading = true) }
+            runCatching {
+                val categorias = categoriaRepository.getCategorias()
+                val rutinas = rutinaRepository.getRutinas()
+                val tarea = tareaRepository.getTareas().find { it.id == taskId }
+                Triple(categorias, rutinas, tarea)
+            }.onSuccess { (categorias, rutinas, tarea) ->
+                if (tarea == null) {
+                    _formState.update { it.copy(isLoading = false) }
+                    return@onSuccess
+                }
+                val rutina = rutinas.find { it.id == tarea.rutinaId }
+                val categoria = categorias.find { it.code == tarea.categoria.code } ?: tarea.categoria
+                _formState.value = CrearTareaUiState(
                     titulo = tarea.titulo,
                     categoriaSeleccionada = categoria,
                     rutinaSeleccionadaId = rutina?.id ?: tarea.rutinaId,
@@ -166,88 +218,143 @@ class TareasViewModel(
                     isFormLoaded = true,
                     loadedTaskId = taskId
                 )
+            }.onFailure {
+                _formState.update { it.copy(isLoading = false) }
             }
         }
     }
 
-    // Handlers formulario
-    fun onTituloChange(v: String) = _formState.update { it.copy(titulo = v, tituloError = null) }
-    fun onCategoriaSelect(c: CategoriaTarea) = _formState.update { it.copy(categoriaSeleccionada = c, categoriaError = null) }
-    fun onRutinaSelect(r: Rutina?) = _formState.update {
+    fun onTituloChange(value: String) = _formState.update { it.copy(titulo = value, tituloError = null) }
+    fun onCategoriaSelect(category: CategoriaTarea) = _formState.update { it.copy(categoriaSeleccionada = category, categoriaError = null) }
+    fun onRutinaSelect(rutina: Rutina?) = _formState.update {
         it.copy(
-            rutinaSeleccionadaId = r?.id,
-            rutinaSeleccionadaNombre = r?.nombre,
+            rutinaSeleccionadaId = rutina?.id,
+            rutinaSeleccionadaNombre = rutina?.nombre,
             diaSeleccionado = null,
             horario = null,
-            diasDisponibles = r?.diasSemana.orEmpty(),
-            horariosDisponibles = r?.horariosDisponibles().orEmpty(),
+            diasDisponibles = rutina?.diasSemana.orEmpty(),
+            horariosDisponibles = rutina?.horariosDisponibles().orEmpty(),
             rutinaError = null,
             diaError = null,
             horarioError = null
         )
     }
-    fun onDiaSelect(d: DiaSemana?) = _formState.update { it.copy(diaSeleccionado = d, diaError = null) }
-    fun onHorarioChange(v: String) = _formState.update { it.copy(horario = v, horarioError = null) }
-    fun onNotasChange(v: String) = _formState.update { it.copy(notas = v) }
+    fun onDiaSelect(dia: DiaSemana?) = _formState.update { it.copy(diaSeleccionado = dia, diaError = null) }
+    fun onHorarioChange(value: String) = _formState.update { it.copy(horario = value, horarioError = null) }
+    fun onNotasChange(value: String) = _formState.update { it.copy(notas = value) }
     fun onPhotoCaptured(photoPath: String) = _formState.update { it.copy(photoPath = photoPath) }
     fun onPhotoRemoved() = _formState.update { it.copy(photoPath = null) }
 
     fun onCrearTarea() {
-        val s = _formState.value
-        if (s.diaSeleccionado != null && s.diaSeleccionado !in s.diasDisponibles) {
-            _formState.update { it.copy(diaError = "Seleccioná un día de la rutina asociada.") }
-            return
-        }
-        if (!s.horario.isNullOrBlank() && s.horario !in s.horariosDisponibles) {
-            _formState.update { it.copy(horarioError = "Seleccioná un horario de la rutina asociada.") }
-            return
-        }
-        when (val r = crearTarea(
-            s.titulo, s.categoriaSeleccionada,
-            s.rutinaSeleccionadaId, s.rutinaSeleccionadaNombre,
-            s.diaSeleccionado, s.horario, s.notas, s.photoPath
-        )) {
-            is TareaResult.Success -> {
-                refreshTareas()
-                _formState.update { CrearTareaUiState(isSuccess = true) }
+        val state = _formState.value
+        if (!validateSchedule(state)) return
+        val categoria = validateTaskInput(state) ?: return
+
+        viewModelScope.launch {
+            _formState.update { it.copy(isLoading = true) }
+            when (val result = tareaRepository.crearTarea(
+                state.titulo,
+                categoria,
+                state.rutinaSeleccionadaId,
+                state.rutinaSeleccionadaNombre,
+                state.diaSeleccionado,
+                state.horario,
+                state.notas,
+                state.photoPath
+            )) {
+                is TareaResult.Success -> {
+                    refreshTareas()
+                    _formState.value = CrearTareaUiState(isSuccess = true)
+                }
+                is TareaResult.Error -> {
+                    _formState.update { it.copy(isLoading = false) }
+                    applyFieldError(result.message)
+                }
             }
-            is TareaResult.Error -> applyFieldError(r.message)
         }
     }
 
     fun onEditarTarea(taskId: String) {
-        val s = _formState.value
-        if (s.diaSeleccionado != null && s.diaSeleccionado !in s.diasDisponibles) {
-            _formState.update { it.copy(diaError = "SeleccionÃ¡ un dÃ­a de la rutina asociada.") }
+        val state = _formState.value
+        if (taskId.isBlank()) {
+            applyFieldError("No se encontro la tarea.")
             return
         }
-        if (!s.horario.isNullOrBlank() && s.horario !in s.horariosDisponibles) {
-            _formState.update { it.copy(horarioError = "SeleccionÃ¡ un horario de la rutina asociada.") }
-            return
-        }
-        when (val r = editarTarea(
-            taskId, s.titulo, s.categoriaSeleccionada,
-            s.rutinaSeleccionadaId, s.rutinaSeleccionadaNombre,
-            s.diaSeleccionado, s.horario, s.notas, s.photoPath
-        )) {
-            is TareaResult.Success -> {
-                refreshTareas()
-                _formState.update { CrearTareaUiState(isSuccess = true) }
+        if (!validateSchedule(state)) return
+        val categoria = validateTaskInput(state) ?: return
+
+        viewModelScope.launch {
+            _formState.update { it.copy(isLoading = true) }
+            when (val result = tareaRepository.editarTarea(
+                taskId,
+                state.titulo,
+                categoria,
+                state.rutinaSeleccionadaId,
+                state.rutinaSeleccionadaNombre,
+                state.diaSeleccionado,
+                state.horario,
+                state.notas,
+                state.photoPath
+            )) {
+                is TareaResult.Success -> {
+                    refreshTareas()
+                    _formState.value = CrearTareaUiState(isSuccess = true)
+                }
+                is TareaResult.Error -> {
+                    _formState.update { it.copy(isLoading = false) }
+                    applyFieldError(result.message)
+                }
             }
-            is TareaResult.Error -> applyFieldError(r.message)
         }
     }
 
     fun consumeSuccess() = _formState.update { it.copy(isSuccess = false) }
 
-    private fun applyFieldError(msg: String) {
+    private fun validateSchedule(state: CrearTareaUiState): Boolean {
+        if (state.diaSeleccionado != null && state.diaSeleccionado !in state.diasDisponibles) {
+            _formState.update { it.copy(diaError = "Selecciona un dia de la rutina asociada.") }
+            return false
+        }
+        if (!state.horario.isNullOrBlank() && state.horario !in state.horariosDisponibles) {
+            _formState.update { it.copy(horarioError = "Selecciona un horario de la rutina asociada.") }
+            return false
+        }
+        return true
+    }
+
+    private fun validateTaskInput(state: CrearTareaUiState): CategoriaTarea? {
+        if (state.titulo.isBlank()) {
+            applyFieldError("El titulo de la tarea es obligatorio.")
+            return null
+        }
+        val categoria = state.categoriaSeleccionada
+        if (categoria == null) {
+            applyFieldError("Selecciona una categoria.")
+            return null
+        }
+        if (state.rutinaSeleccionadaId == null) {
+            applyFieldError("Selecciona una rutina asociada.")
+            return null
+        }
+        if (state.diaSeleccionado == null) {
+            applyFieldError("Selecciona un dia.")
+            return null
+        }
+        if (state.horario.isNullOrBlank()) {
+            applyFieldError("Selecciona un horario.")
+            return null
+        }
+        return categoria
+    }
+
+    private fun applyFieldError(message: String) {
         _formState.update {
             it.copy(
-                tituloError    = if (msg.contains("título", true)) msg else it.tituloError,
-                categoriaError = if (msg.contains("categoría", true)) msg else it.categoriaError,
-                rutinaError    = if (msg.contains("rutina", true)) msg else it.rutinaError,
-                diaError       = if (msg.contains("día", true)) msg else it.diaError,
-                horarioError   = if (msg.contains("horario", true)) msg else it.horarioError,
+                tituloError = if (message.contains("titulo", true)) message else it.tituloError,
+                categoriaError = if (message.contains("categoria", true)) message else it.categoriaError,
+                rutinaError = if (message.contains("rutina", true)) message else it.rutinaError,
+                diaError = if (message.contains("dia", true)) message else it.diaError,
+                horarioError = if (message.contains("horario", true)) message else it.horarioError
             )
         }
     }
@@ -259,10 +366,12 @@ private fun Rutina.horariosDisponibles(): List<String> {
     return runCatching {
         val inicio = LocalTime.parse(horarioInicio, timeFormatter)
         val fin = LocalTime.parse(horarioFin, timeFormatter)
-        if (fin.isBefore(inicio)) return emptyList()
-
-        generateSequence(inicio) { current ->
-            current.plusMinutes(30).takeIf { !it.isAfter(fin) }
-        }.map { it.format(timeFormatter) }.toList()
+        if (fin.isBefore(inicio)) {
+            emptyList()
+        } else {
+            generateSequence(inicio) { current -> current.plusMinutes(30).takeIf { !it.isAfter(fin) } }
+                .map { it.format(timeFormatter) }
+                .toList()
+        }
     }.getOrDefault(emptyList())
 }

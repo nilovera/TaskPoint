@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,12 +25,10 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -38,12 +37,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.apk_mock.data.repository.JsonAuthRepository
-import com.example.apk_mock.data.repository.JsonCategoriaRepository
-import com.example.apk_mock.data.repository.JsonOfferRepository
-import com.example.apk_mock.data.repository.JsonRutinaRepository
-import com.example.apk_mock.data.repository.JsonTareaRepository
-import com.example.apk_mock.domain.useCase.*
 import com.example.apk_mock.ui.forgotPassword.ForgotPasswordEmailScreen
 import com.example.apk_mock.ui.forgotPassword.ForgotPasswordViewModel
 import com.example.apk_mock.ui.home.HomeScreen
@@ -60,6 +53,8 @@ import com.example.apk_mock.ui.rutinas.DetalleRutinaScreen
 import com.example.apk_mock.ui.rutinas.EditarRutinaScreen
 import com.example.apk_mock.ui.rutinas.RutinasScreen
 import com.example.apk_mock.ui.rutinas.RutinasViewModel
+import com.example.apk_mock.ui.session.SessionUiState
+import com.example.apk_mock.ui.session.SessionViewModel
 import com.example.apk_mock.ui.tareas.CameraCaptureScreen
 import com.example.apk_mock.ui.tareas.CrearTareaScreen
 import com.example.apk_mock.ui.tareas.DetalleTareaScreen
@@ -89,89 +84,58 @@ private const val CAPTURED_PHOTO_PATH_KEY = "captured_photo_path"
 
 @Composable
 fun AppNavigation() {
-    val context = LocalContext.current.applicationContext
     val navController = rememberNavController()
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStack?.destination?.route
     val colors = TaskPointTheme.colors
 
-    val authRepository = remember(context) { JsonAuthRepository(context) }
-    val rutinaRepository = remember(context, authRepository) { JsonRutinaRepository(context, authRepository) }
-    val tareaRepository = remember(context, authRepository) { JsonTareaRepository(context, authRepository) }
-    val categoriaRepository = remember(context) { JsonCategoriaRepository(context) }
-    val offerRepository = remember(context) { JsonOfferRepository(context) }
-
-    val registerUseCase = remember(authRepository) { RegisterUseCase(authRepository) }
-    val loginUseCase = remember(authRepository) { LoginUseCase(authRepository) }
-    val sendCodeUseCase = remember(authRepository) { SendResetCodeUseCase(authRepository) }
-    val verifyCodeUseCase = remember(authRepository) { VerifyResetCodeUseCase(authRepository) }
-    val changePassUseCase = remember(authRepository) { ChangePasswordUseCase(authRepository) }
-    val getRutinasUseCase = remember(rutinaRepository) { GetRutinasUseCase(rutinaRepository) }
-    val getRutinaByIdUseCase = remember(rutinaRepository) { GetRutinaByIdUseCase(rutinaRepository) }
-    val crearRutinaUseCase = remember(rutinaRepository) { CrearRutinaUseCase(rutinaRepository) }
-    val editarRutinaUseCase = remember(rutinaRepository, tareaRepository) {
-        EditarRutinaUseCase(rutinaRepository, tareaRepository)
-    }
-    val eliminarRutinaUseCase = remember(rutinaRepository, tareaRepository) {
-        EliminarRutinaUseCase(rutinaRepository, tareaRepository)
-    }
-    val getTareasUseCase = remember(tareaRepository) { GetTareasUseCase(tareaRepository) }
-    val crearTareaUseCase = remember(tareaRepository) { CrearTareaUseCase(tareaRepository) }
-    val eliminarTareaUseCase = remember(tareaRepository) { EliminarTareaUseCase(tareaRepository) }
-    val editarTareaUseCase = remember(tareaRepository) { EditarTareaUseCase(tareaRepository) }
-    val getCategoriasUseCase = remember(categoriaRepository) { GetCategoriasUseCase(categoriaRepository) }
-    val getOffersByCategoryUseCase = remember(offerRepository) { GetOffersByCategoryUseCase(offerRepository) }
-    val getCurrentUserUseCase = remember(authRepository) { GetCurrentUserUseCase(authRepository) }
-    val logoutUseCase = remember(authRepository) { LogoutUseCase(authRepository) }
-    val changeCurrentPasswordUseCase = remember(authRepository) { ChangeCurrentPasswordUseCase(authRepository) }
-    val deleteAccountUseCase = remember(authRepository) { DeleteAccountUseCase(authRepository) }
-
     // Estado del nombre del usuario: se setea al hacer login y persiste
     var userName by remember { mutableStateOf("") }
 
     // ViewModels de tabs: viven aquí para persistir al cambiar de tab
-    val rutinasViewModel = viewModel<RutinasViewModel>(
-        factory = vmFactory {
-            RutinasViewModel(
-                getRutinasUseCase,
-                crearRutinaUseCase,
-                getRutinaByIdUseCase,
-                editarRutinaUseCase,
-                eliminarRutinaUseCase
-            )
-        }
-    )
-    val tareasViewModel = viewModel<TareasViewModel>(
-        factory = vmFactory {
-            TareasViewModel(
-                getTareasUseCase,
-                crearTareaUseCase,
-                eliminarTareaUseCase,
-                editarTareaUseCase,
-                getRutinasUseCase,
-                getCategoriasUseCase,
-                getOffersByCategoryUseCase
-            )
-        }
-    )
-    val profileViewModel = viewModel<ProfileViewModel>(
-        factory = vmFactory {
-            ProfileViewModel(
-                getCurrentUserUseCase,
-                logoutUseCase,
-                changeCurrentPasswordUseCase,
-                deleteAccountUseCase
-            )
-        }
-    )
+    val rutinasViewModel: RutinasViewModel = hiltViewModel()
+    val tareasViewModel: TareasViewModel = hiltViewModel()
+    val profileViewModel: ProfileViewModel = hiltViewModel()
+    val profileState by profileViewModel.uiState.collectAsState()
+    val sessionViewModel: SessionViewModel = hiltViewModel()
+    val sessionState by sessionViewModel.uiState.collectAsState()
 
     val navigateToLoginAfterSessionEnd: () -> Unit = {
-        authRepository.logout()
         userName = ""
         navController.navigate(Routes.LOGIN) {
             popUpTo(Routes.HOME) { inclusive = true }
             launchSingleTop = true
         }
+    }
+
+    LaunchedEffect(profileState.sessionEnded) {
+        if (profileState.sessionEnded) {
+            profileViewModel.onSessionEndedConsumed()
+            sessionViewModel.onSessionEnded()
+            navigateToLoginAfterSessionEnd()
+        }
+    }
+
+    LaunchedEffect(sessionState) {
+        userName = (sessionState as? SessionUiState.Authenticated)?.user?.name.orEmpty()
+    }
+
+    if (sessionState is SessionUiState.Checking) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = colors.primary)
+        }
+        return
+    }
+
+    val startDestination = if (sessionState is SessionUiState.Authenticated) {
+        Routes.HOME
+    } else {
+        Routes.ONBOARDING
     }
 
     Scaffold(
@@ -188,7 +152,7 @@ fun AppNavigation() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Routes.ONBOARDING,
+            startDestination = startDestination,
             // El NavHost respeta el innerPadding del Scaffold externo
             // Cada pantalla recibe este padding limpio sin duplicación
         ) {
@@ -216,11 +180,16 @@ fun AppNavigation() {
             }
 
             composable(Routes.REGISTER) {
-                val vm = viewModel<RegisterViewModel>(
-                    factory = vmFactory { RegisterViewModel(registerUseCase) }
-                )
+                val vm: RegisterViewModel = hiltViewModel()
                 RegisterScreen(
                     viewModel = vm,
+                    onRegisterSuccess = { user ->
+                        userName = user.name
+                        sessionViewModel.onAuthenticated(user)
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.REGISTER) { inclusive = true }
+                        }
+                    },
                     onNavigateToLogin = {
                         navController.navigate(Routes.LOGIN) {
                             popUpTo(Routes.REGISTER) { inclusive = true }
@@ -230,13 +199,12 @@ fun AppNavigation() {
             }
 
             composable(Routes.LOGIN) {
-                val vm = viewModel<LoginViewModel>(
-                    factory = vmFactory { LoginViewModel(loginUseCase) }
-                )
+                val vm: LoginViewModel = hiltViewModel()
                 LoginScreen(
                     viewModel = vm,
-                    onNavigateToHome = { name ->
-                        userName = name
+                    onNavigateToHome = { user ->
+                        userName = user.name
+                        sessionViewModel.onAuthenticated(user)
                         navController.navigate(Routes.HOME) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
@@ -253,11 +221,7 @@ fun AppNavigation() {
             }
 
             composable(Routes.FORGOT_PASSWORD) {
-                val vm = viewModel<ForgotPasswordViewModel>(
-                    factory = vmFactory {
-                        ForgotPasswordViewModel(sendCodeUseCase, verifyCodeUseCase, changePassUseCase)
-                    }
-                )
+                val vm: ForgotPasswordViewModel = hiltViewModel()
                 ForgotPasswordEmailScreen(
                     viewModel = vm,
                     onCancel = { navController.popBackStack() }
@@ -277,9 +241,7 @@ fun AppNavigation() {
                         navController.navigate(Routes.CREAR_TAREA)
                     },
                     onProfile = { navController.navigate(Routes.PROFILE) },
-                    onLogout = {
-                        navigateToLoginAfterSessionEnd()
-                    },
+                    onLogout = profileViewModel::onLogoutConfirmed,
                     innerPadding = innerPadding
                 )
             }
@@ -291,7 +253,7 @@ fun AppNavigation() {
                     onNavigateToCrear = { navController.navigate(Routes.CREAR_RUTINA) },
                     onRutinaClick = { rutina -> navController.navigate(Routes.rutinaDetalle(rutina.id)) },
                     onProfile = { navController.navigate(Routes.PROFILE) },
-                    onLogout = navigateToLoginAfterSessionEnd,
+                    onLogout = profileViewModel::onLogoutConfirmed,
                     innerPadding = innerPadding
                 )
             }
@@ -316,7 +278,7 @@ fun AppNavigation() {
                         navController.navigate(Routes.CREAR_TAREA)
                     },
                     onProfile = { navController.navigate(Routes.PROFILE) },
-                    onLogout = navigateToLoginAfterSessionEnd,
+                    onLogout = profileViewModel::onLogoutConfirmed,
                     onNavigateToDetalle = { taskId -> navController.navigate(Routes.detalleTarea(taskId)) },
                     showTaskCreatedMessage = taskCreated,
                     onTaskCreatedMessageShown = {
@@ -387,7 +349,6 @@ fun AppNavigation() {
                         }
                     },
                     onChangePassword = { navController.navigate(Routes.PROFILE_PASSWORD) },
-                    onSessionEnded = navigateToLoginAfterSessionEnd,
                     innerPadding = innerPadding
                 )
             }
@@ -604,9 +565,3 @@ private fun RowScope.BottomNavButton(
 }
 
 // ── Helper factory ────────────────────────────────────────────────────────────
-inline fun <reified VM : androidx.lifecycle.ViewModel> vmFactory(
-    crossinline create: () -> VM
-): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T = create() as T
-}

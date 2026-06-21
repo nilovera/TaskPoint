@@ -1,12 +1,17 @@
 package com.example.apk_mock.ui.register
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.AuthResult
-import com.example.apk_mock.domain.useCase.RegisterUseCase
+import com.example.apk_mock.domain.repository.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class RegisterUiState(
     val name: String = "",
@@ -18,10 +23,15 @@ data class RegisterUiState(
     val passwordError: String? = null,
     val confirmPasswordError: String? = null,
     val generalError: String? = null,
+    val isLoading: Boolean = false,
+    val registeredUser: User? = null,
     val isSuccess: Boolean = false
 )
 
-class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewModel() {
+@HiltViewModel
+class RegisterViewModel @Inject constructor(
+    private val repository: AuthRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
@@ -58,16 +68,22 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
             return
         }
 
-        when (val result = registerUseCase(state.name, state.email, state.password)) {
-            is AuthResult.Success -> _uiState.update { it.copy(isSuccess = true) }
-            is AuthResult.Error -> _uiState.update {
-                it.copy(
-                    nameError = null,
-                    emailError = result.message,
-                    passwordError = null,
-                    confirmPasswordError = null,
-                    generalError = result.message
-                )
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, generalError = null) }
+            when (val result = repository.register(state.name.trim(), state.email.trim(), state.password)) {
+                is AuthResult.Success -> _uiState.update {
+                    it.copy(isLoading = false, registeredUser = result.user, isSuccess = true)
+                }
+                is AuthResult.Error -> _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        nameError = null,
+                        emailError = result.message,
+                        passwordError = null,
+                        confirmPasswordError = null,
+                        generalError = result.message
+                    )
+                }
             }
         }
     }

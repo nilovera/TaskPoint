@@ -43,6 +43,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.apk_mock.data.source.TaskPhotoStorage
 import com.example.apk_mock.ui.theme.TaskPointTheme
@@ -117,6 +119,7 @@ private fun CameraPreviewCapture(
     val context = LocalContext.current
     val colors = TaskPointTheme.colors
     val photoStorage = remember(context) { TaskPhotoStorage(context) }
+    val coroutineScope = rememberCoroutineScope()
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var isCapturing by remember { mutableStateOf(false) }
     var cameraError by remember { mutableStateOf<String?>(null) }
@@ -182,27 +185,34 @@ private fun CameraPreviewCapture(
                 Button(
                     onClick = {
                         val capture = imageCapture ?: return@Button
-                        val photoFile = photoStorage.createPhotoFile()
                         isCapturing = true
                         cameraError = null
+                        coroutineScope.launch {
+                            runCatching { photoStorage.createPhotoFile() }
+                                .onSuccess { photoFile ->
+                                    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+                                    capture.takePicture(
+                                        outputOptions,
+                                        ContextCompat.getMainExecutor(context),
+                                        object : ImageCapture.OnImageSavedCallback {
+                                            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                                                isCapturing = false
+                                                onPhotoCaptured(photoFile.absolutePath)
+                                            }
 
-                        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-                        capture.takePicture(
-                            outputOptions,
-                            ContextCompat.getMainExecutor(context),
-                            object : ImageCapture.OnImageSavedCallback {
-                                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                                    isCapturing = false
-                                    onPhotoCaptured(photoFile.absolutePath)
+                                            override fun onError(exception: ImageCaptureException) {
+                                                isCapturing = false
+                                                coroutineScope.launch { photoStorage.deletePhoto(photoFile.absolutePath) }
+                                                cameraError = "No pudimos guardar la foto. Proba de nuevo."
+                                            }
+                                        }
+                                    )
                                 }
-
-                                override fun onError(exception: ImageCaptureException) {
+                                .onFailure {
                                     isCapturing = false
-                                    photoFile.delete()
-                                    cameraError = "No pudimos guardar la foto. Proba de nuevo."
+                                    cameraError = "No pudimos preparar el archivo de la foto."
                                 }
-                            }
-                        )
+                        }
                     },
                     enabled = imageCapture != null && !isCapturing,
                     shape = CircleShape,

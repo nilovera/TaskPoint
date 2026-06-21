@@ -1,19 +1,21 @@
 package com.example.apk_mock.ui.rutinas
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.domain.repository.RutinaRepository
 import com.example.apk_mock.domain.repository.RutinaResult
-import com.example.apk_mock.domain.useCase.CrearRutinaUseCase
-import com.example.apk_mock.domain.useCase.EditarRutinaUseCase
-import com.example.apk_mock.domain.useCase.EliminarRutinaUseCase
-import com.example.apk_mock.domain.useCase.GetRutinaByIdUseCase
-import com.example.apk_mock.domain.useCase.GetRutinasUseCase
+import com.example.apk_mock.domain.repository.TareaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+import java.time.LocalTime
 
 // ── UiState lista de rutinas ──────────────────────────────────────────────────
 data class RutinasListUiState(
@@ -68,12 +70,10 @@ data class DetalleRutinaUiState(
     val isDeleted: Boolean = false
 )
 
-class RutinasViewModel(
-    private val getRutinas: GetRutinasUseCase,
-    private val crearRutina: CrearRutinaUseCase,
-    private val getRutinaById: GetRutinaByIdUseCase,
-    private val editarRutina: EditarRutinaUseCase,
-    private val eliminarRutina: EliminarRutinaUseCase
+@HiltViewModel
+class RutinasViewModel @Inject constructor(
+    private val rutinaRepository: RutinaRepository,
+    private val tareaRepository: TareaRepository
 ) : ViewModel() {
 
     // ── Lista ─────────────────────────────────────────────────────────────────
@@ -91,7 +91,9 @@ class RutinasViewModel(
     val detalleState: StateFlow<DetalleRutinaUiState> = _detalleState.asStateFlow()
 
     fun refreshRutinas() {
-        _listState.update { it.copy(rutinas = getRutinas()) }
+        viewModelScope.launch {
+            _listState.update { it.copy(rutinas = rutinaRepository.getRutinas()) }
+        }
     }
 
     fun onFiltroDia(dia: DiaSemana?) {
@@ -106,25 +108,36 @@ class RutinasViewModel(
     fun consumeSnackbar() = _listState.update { it.copy(snackbarMessage = null) }
 
     fun loadDetalleRutina(rutinaId: String) {
-        val rutina = getRutinaById(rutinaId)
-        _detalleState.update {
-            it.copy(
-                rutina = rutina,
-                errorMessage = if (rutina == null) "La rutina no existe o no pertenece a tu cuenta." else null,
-                isDeleted = false
-            )
+        viewModelScope.launch {
+            val rutina = rutinaRepository.getRutinaById(rutinaId.trim())
+            _detalleState.update {
+                it.copy(
+                    rutina = rutina,
+                    errorMessage = if (rutina == null) "La rutina no existe o no pertenece a tu cuenta." else null,
+                    isDeleted = false
+                )
+            }
         }
     }
 
     fun onEliminarRutina(rutinaId: String) {
-        when (val result = eliminarRutina(rutinaId)) {
-            is RutinaResult.Success -> {
-                refreshRutinas()
-                _listState.update { it.copy(snackbarMessage = "Rutina eliminada correctamente.") }
-                _detalleState.update { DetalleRutinaUiState(isDeleted = true) }
-            }
-            is RutinaResult.Error -> {
-                _detalleState.update { it.copy(errorMessage = result.message) }
+        val id = rutinaId.trim()
+        if (id.isBlank()) {
+            _detalleState.update { it.copy(errorMessage = "No se pudo identificar la rutina.") }
+            return
+        }
+
+        viewModelScope.launch {
+            when (val result = rutinaRepository.eliminarRutina(id)) {
+                is RutinaResult.Success -> {
+                    tareaRepository.eliminarTareasDeRutina(id)
+                    refreshRutinas()
+                    _listState.update { it.copy(snackbarMessage = "Rutina eliminada correctamente.") }
+                    _detalleState.update { DetalleRutinaUiState(isDeleted = true) }
+                }
+                is RutinaResult.Error -> {
+                    _detalleState.update { it.copy(errorMessage = result.message) }
+                }
             }
         }
     }
@@ -159,28 +172,30 @@ class RutinasViewModel(
     fun onDescripcionChange(v: String) = _formState.update { it.copy(descripcion = v, descripcionError = null) }
 
     fun loadEditarRutina(rutinaId: String) {
-        val rutina = getRutinaById(rutinaId)
-        if (rutina == null) {
+        viewModelScope.launch {
+            val rutina = rutinaRepository.getRutinaById(rutinaId.trim())
+            if (rutina == null) {
+                _editState.update {
+                    EditarRutinaUiState(
+                        rutinaId = rutinaId,
+                        errorMessage = "La rutina no existe o no pertenece a tu cuenta."
+                    )
+                }
+                return@launch
+            }
+
             _editState.update {
                 EditarRutinaUiState(
-                    rutinaId = rutinaId,
-                    errorMessage = "La rutina no existe o no pertenece a tu cuenta."
+                    rutinaId = rutina.id,
+                    nombre = rutina.nombre,
+                    iconoSeleccionado = rutina.icono,
+                    direccion = rutina.direccion,
+                    diasSeleccionados = rutina.diasSemana.toSet(),
+                    horarioInicio = rutina.horarioInicio,
+                    horarioFin = rutina.horarioFin,
+                    descripcion = rutina.descripcion
                 )
             }
-            return
-        }
-
-        _editState.update {
-            EditarRutinaUiState(
-                rutinaId = rutina.id,
-                nombre = rutina.nombre,
-                iconoSeleccionado = rutina.icono,
-                direccion = rutina.direccion,
-                diasSeleccionados = rutina.diasSemana.toSet(),
-                horarioInicio = rutina.horarioInicio,
-                horarioFin = rutina.horarioFin,
-                descripcion = rutina.descripcion
-            )
         }
     }
 
@@ -198,39 +213,81 @@ class RutinasViewModel(
 
     fun onCrearRutina() {
         val s = _formState.value
-        when (val r = crearRutina(
-            s.nombre, s.iconoSeleccionado, s.direccion,
-            s.diasSeleccionados.toList(), s.horarioInicio, s.horarioFin, s.descripcion
-        )) {
-            is RutinaResult.Success -> {
-                _formState.update { CrearRutinaUiState(isSuccess = true) }
-                refreshRutinas()
-                _listState.update { it.copy(snackbarMessage = "Rutina creada correctamente.") }
-            }
-            is RutinaResult.Error -> applyFieldError(r.message)
-        }
-    }
-
-    fun onGuardarCambiosRutina() {
-        val s = _editState.value
-        when (val result = editarRutina(
-            s.rutinaId,
+        val input = RutinaInput.from(
             s.nombre,
-            s.iconoSeleccionado,
             s.direccion,
             s.diasSeleccionados.toList(),
             s.horarioInicio,
             s.horarioFin,
             s.descripcion
-        )) {
-            is RutinaResult.Success -> {
-                refreshRutinas()
-                _detalleState.update {
-                    it.copy(rutina = result.rutina)
+        )
+        input.error?.let {
+            applyFieldError(it.message)
+            return
+        }
+
+        viewModelScope.launch {
+            when (val r = rutinaRepository.crearRutina(
+                input.nombre,
+                s.iconoSeleccionado,
+                input.direccion,
+                input.dias,
+                input.horarioInicio,
+                input.horarioFin,
+                input.descripcion
+            )) {
+                is RutinaResult.Success -> {
+                    _formState.update { CrearRutinaUiState(isSuccess = true) }
+                    refreshRutinas()
+                    _listState.update { it.copy(snackbarMessage = "Rutina creada correctamente.") }
                 }
-                _editState.update { it.copy(isSuccess = true) }
+                is RutinaResult.Error -> applyFieldError(r.message)
             }
-            is RutinaResult.Error -> applyEditFieldError(result.message)
+        }
+    }
+
+    fun onGuardarCambiosRutina() {
+        val s = _editState.value
+        val rutinaId = s.rutinaId.trim()
+        if (rutinaId.isBlank()) {
+            applyEditFieldError("No se pudo identificar la rutina.")
+            return
+        }
+
+        val input = RutinaInput.from(
+            s.nombre,
+            s.direccion,
+            s.diasSeleccionados.toList(),
+            s.horarioInicio,
+            s.horarioFin,
+            s.descripcion
+        )
+        input.error?.let {
+            applyEditFieldError(it.message)
+            return
+        }
+
+        viewModelScope.launch {
+            when (val result = rutinaRepository.editarRutina(
+                rutinaId,
+                input.nombre,
+                s.iconoSeleccionado,
+                input.direccion,
+                input.dias,
+                input.horarioInicio,
+                input.horarioFin,
+                input.descripcion
+            )) {
+                is RutinaResult.Success -> {
+                    tareaRepository.actualizarNombreRutina(result.rutina.id, result.rutina.nombre)
+                    refreshRutinas()
+                    _detalleState.update {
+                        it.copy(rutina = result.rutina)
+                    }
+                    _editState.update { it.copy(isSuccess = true) }
+                }
+                is RutinaResult.Error -> applyEditFieldError(result.message)
+            }
         }
     }
 
@@ -272,4 +329,59 @@ class RutinasViewModel(
             )
         }
     }
+}
+
+private data class RutinaInput(
+    val nombre: String,
+    val direccion: String,
+    val dias: List<DiaSemana>,
+    val horarioInicio: String,
+    val horarioFin: String,
+    val descripcion: String,
+    val error: RutinaResult.Error? = null
+) {
+    companion object {
+        fun from(
+            nombre: String,
+            direccion: String,
+            dias: List<DiaSemana>,
+            horarioInicio: String,
+            horarioFin: String,
+            descripcion: String
+        ): RutinaInput {
+            val input = RutinaInput(
+                nombre = nombre.trim(),
+                direccion = direccion.trim(),
+                dias = dias.distinct().sortedBy { it.ordinal },
+                horarioInicio = horarioInicio.trim(),
+                horarioFin = horarioFin.trim(),
+                descripcion = descripcion.trim()
+            )
+
+            return input.copy(error = input.validate())
+        }
+    }
+
+    private fun validate(): RutinaResult.Error? {
+        if (nombre.isBlank()) return RutinaResult.Error("El nombre de la rutina es obligatorio.")
+        if (direccion.isBlank()) return RutinaResult.Error("La dirección es obligatoria.")
+        if (dias.isEmpty()) return RutinaResult.Error("Seleccioná al menos un día.")
+        if (horarioInicio.isBlank()) return RutinaResult.Error("El horario de inicio es obligatorio.")
+        if (horarioFin.isBlank()) return RutinaResult.Error("El horario de fin es obligatorio.")
+        if (!horarioInicio.isValidHorario()) {
+            return RutinaResult.Error("El horario de inicio debe tener formato HH:mm.")
+        }
+        if (!horarioFin.isValidHorario()) {
+            return RutinaResult.Error("El horario de fin debe tener formato HH:mm.")
+        }
+        if (!LocalTime.parse(horarioFin).isAfter(LocalTime.parse(horarioInicio))) {
+            return RutinaResult.Error("El horario de fin debe ser posterior al horario de inicio.")
+        }
+        if (descripcion.isBlank()) return RutinaResult.Error("La descripción es obligatoria.")
+        return null
+    }
+}
+
+private fun String.isValidHorario(): Boolean {
+    return Regex("^([01]\\d|2[0-3]):[0-5]\\d$").matches(this)
 }
