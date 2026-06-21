@@ -11,6 +11,7 @@ import com.example.apk_mock.data.mapper.toDomain
 import com.example.apk_mock.data.mapper.toEntity
 import com.example.apk_mock.data.mapper.toTareaDomainList
 import com.example.apk_mock.data.source.TaskPhotoStorage
+import com.example.apk_mock.data.sync.SyncScheduler
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
@@ -25,7 +26,8 @@ import org.json.JSONObject
 class RoomTareaRepository(
     private val database: TaskPointDatabase,
     private val sessionProvider: UserSessionProvider,
-    private val photoStorage: TaskPhotoStorage
+    private val photoStorage: TaskPhotoStorage,
+    private val syncScheduler: SyncScheduler
 ) : TareaRepository {
 
     private val tareaDao = database.tareaDao()
@@ -41,7 +43,7 @@ class RoomTareaRepository(
     override suspend fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String): Int {
         val userId = sessionProvider.currentUserId() ?: return 0
         return withContext(Dispatchers.IO) {
-            database.withTransaction {
+            val updatedCount = database.withTransaction {
                 val tareas = tareaDao.getTareasByRutina(rutinaId, userId)
                 val updated = tareas.map { entity ->
                     entity.copy(
@@ -58,12 +60,14 @@ class RoomTareaRepository(
                             userId = userId,
                             entityId = entity.id,
                             operationType = SyncOperationType.UPDATE,
-                            payloadJson = entity.toDomain().toPayloadJson()
+                            payloadJson = entity.toPayloadJson()
                         )
                     }
                 )
                 updated.size
             }
+            if (updatedCount > 0) syncScheduler.schedulePendingSync()
+            updatedCount
         }
     }
 
@@ -71,28 +75,30 @@ class RoomTareaRepository(
         val userId = sessionProvider.currentUserId() ?: return 0
         return withContext(Dispatchers.IO) {
             val photoPaths = mutableListOf<String?>()
-            database.withTransaction {
+            val deletedCount = database.withTransaction {
                 val tareas = tareaDao.getTareasByRutina(rutinaId, userId)
                 photoPaths.addAll(tareas.map { it.photoPath })
                 tareas.forEach { entity ->
+                    val deletedAt = System.currentTimeMillis()
                     tareaDao.deleteTarea(entity.id, userId)
                     syncOperationDao.upsertOperation(
                         syncOperation(
                             userId = userId,
                             entityId = entity.id,
                             operationType = SyncOperationType.DELETE,
-                            payloadJson = null
+                            payloadJson = deletePayloadJson(deletedAt)
                         )
                     )
                 }
                 tareas.size
-            }.also {
-                if (it > 0) {
-                    photoPaths.forEach { photoPath ->
-                        photoStorage.deletePhoto(photoPath)
-                    }
-                }
             }
+            if (deletedCount > 0) {
+                photoPaths.forEach { photoPath ->
+                    photoStorage.deletePhoto(photoPath)
+                }
+                syncScheduler.schedulePendingSync()
+            }
+            deletedCount
         }
     }
 
@@ -123,16 +129,18 @@ class RoomTareaRepository(
 
         withContext(Dispatchers.IO) {
             database.withTransaction {
-                tareaDao.upsertTarea(tarea.toEntity(userId, SyncStatus.PENDING_CREATE))
+                val entity = tarea.toEntity(userId, SyncStatus.PENDING_CREATE)
+                tareaDao.upsertTarea(entity)
                 syncOperationDao.upsertOperation(
                     syncOperation(
                         userId = userId,
                         entityId = tarea.id,
                         operationType = SyncOperationType.CREATE,
-                        payloadJson = tarea.toPayloadJson()
+                        payloadJson = entity.toPayloadJson()
                     )
                 )
             }
+            syncScheduler.schedulePendingSync()
         }
 
         return TareaResult.Success(tarea)
@@ -168,16 +176,18 @@ class RoomTareaRepository(
             )
 
             database.withTransaction {
-                tareaDao.upsertTarea(updated.toEntity(userId, SyncStatus.PENDING_UPDATE))
+                val entity = updated.toEntity(userId, SyncStatus.PENDING_UPDATE)
+                tareaDao.upsertTarea(entity)
                 syncOperationDao.upsertOperation(
                     syncOperation(
                         userId = userId,
                         entityId = updated.id,
                         operationType = SyncOperationType.UPDATE,
-                        payloadJson = updated.toPayloadJson()
+                        payloadJson = entity.toPayloadJson()
                     )
                 )
             }
+            syncScheduler.schedulePendingSync()
 
             if (current.photoPath != photoPath) {
                 photoStorage.deletePhoto(current.photoPath)
@@ -195,6 +205,7 @@ class RoomTareaRepository(
             val current = tareaDao.getTareaById(taskId, userId)
                 ?: return@withContext TareaResult.Error("No se encontro la tarea.")
             val removed = current.toDomain()
+            val deletedAt = System.currentTimeMillis()
 
             database.withTransaction {
                 tareaDao.deleteTarea(taskId, userId)
@@ -203,11 +214,12 @@ class RoomTareaRepository(
                         userId = userId,
                         entityId = taskId,
                         operationType = SyncOperationType.DELETE,
-                        payloadJson = null
+                        payloadJson = deletePayloadJson(deletedAt)
                     )
                 )
             }
 
+            syncScheduler.schedulePendingSync()
             photoStorage.deletePhoto(removed.photoPath)
             TareaResult.Success(removed)
         }
@@ -230,18 +242,25 @@ class RoomTareaRepository(
         )
     }
 
-    private fun Tarea.toPayloadJson(): String {
+    private fun com.example.apk_mock.data.local.entity.TareaEntity.toPayloadJson(): String {
         return JSONObject()
             .put("id", id)
             .put("titulo", titulo)
-            .put("categoriaCode", categoria.code)
+            .put("categoriaCode", categoriaCode)
             .put("rutinaId", rutinaId)
             .put("rutinaNombre", rutinaNombre)
-            .put("dia", dia?.name)
+            .put("dia", dia)
             .put("horario", horario)
             .put("notas", notas)
             .put("photoPath", photoPath)
             .put("completada", completada)
+            .put("updatedAt", updatedAt)
+            .toString()
+    }
+
+    private fun deletePayloadJson(updatedAt: Long): String {
+        return JSONObject()
+            .put("updatedAt", updatedAt)
             .toString()
     }
 }

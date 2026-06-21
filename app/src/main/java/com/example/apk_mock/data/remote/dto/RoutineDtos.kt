@@ -12,6 +12,19 @@ data class RoutineDto(
     val updatedAt: Long? = null
 )
 
+data class RoutineSyncDto(
+    val id: String,
+    val deleted: Boolean = false,
+    val nombre: String? = null,
+    val icono: String? = null,
+    val direccion: String? = null,
+    val diasSemana: List<String>? = null,
+    val horarioInicio: String? = null,
+    val horarioFin: String? = null,
+    val descripcion: String? = null,
+    val updatedAt: Long
+)
+
 data class RoutineRequestDto(
     val id: String,
     val nombre: String,

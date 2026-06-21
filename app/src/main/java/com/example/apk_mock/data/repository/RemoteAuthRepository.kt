@@ -8,7 +8,9 @@ import com.example.apk_mock.data.remote.dto.RegisterRequestDto
 import com.example.apk_mock.data.remote.dto.SendResetCodeRequestDto
 import com.example.apk_mock.data.remote.dto.UserDto
 import com.example.apk_mock.data.remote.dto.VerifyResetCodeRequestDto
+import com.example.apk_mock.data.local.LocalUserDataCleaner
 import com.example.apk_mock.data.secure.SecureSessionStorage
+import com.example.apk_mock.data.sync.SyncScheduler
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.AuthResult
 import com.example.apk_mock.domain.repository.ProfileResult
@@ -22,7 +24,9 @@ import java.io.IOException
 
 class RemoteAuthRepository(
     private val authApi: AuthApi,
-    private val sessionStorage: SecureSessionStorage
+    private val sessionStorage: SecureSessionStorage,
+    private val syncScheduler: SyncScheduler,
+    private val localUserDataCleaner: LocalUserDataCleaner
 ) : AuthRepository, UserSessionProvider {
 
     override suspend fun register(name: String, email: String, password: String): AuthResult {
@@ -66,7 +70,10 @@ class RemoteAuthRepository(
     }
 
     override suspend fun logout() {
-        withContext(Dispatchers.IO) { sessionStorage.clear() }
+        withContext(Dispatchers.IO) {
+            syncScheduler.cancelPendingSync()
+            sessionStorage.clear()
+        }
     }
 
     override suspend fun sendResetCode(email: String): ResetResult {
@@ -129,11 +136,16 @@ class RemoteAuthRepository(
 
     override suspend fun deleteCurrentUser(): ProfileResult {
         return withContext(Dispatchers.IO) {
+            val userId = sessionStorage.currentUserId()
             val authorization = sessionStorage.currentAuthorizationHeader()
                 ?: return@withContext ProfileResult.Error("No hay una sesion activa.")
 
             runCatching {
                 authApi.deleteCurrentUser(authorization)
+                syncScheduler.cancelPendingSync()
+                if (userId != null) {
+                    localUserDataCleaner.clearUserData(userId)
+                }
                 sessionStorage.clear()
                 ProfileResult.Success()
             }.getOrElse { error ->

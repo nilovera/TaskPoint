@@ -30,6 +30,13 @@ interface RutinaDao {
     @Upsert
     suspend fun upsertRutinas(rutinas: List<RutinaEntity>)
 
+    @Query("UPDATE rutinas SET syncStatus = :syncStatus WHERE id = :id AND userId = :userId")
+    suspend fun updateSyncStatus(
+        id: String,
+        userId: String,
+        syncStatus: SyncStatus
+    ): Int
+
     @Query("DELETE FROM rutinas WHERE id = :id AND userId = :userId")
     suspend fun deleteRutina(id: String, userId: String): Int
 

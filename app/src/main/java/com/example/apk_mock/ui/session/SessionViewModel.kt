@@ -3,6 +3,8 @@ package com.example.apk_mock.ui.session
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.apk_mock.data.sync.RemoteSyncReconciler
+import com.example.apk_mock.data.sync.SyncScheduler
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.User
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +21,9 @@ sealed interface SessionUiState {
 
 @HiltViewModel
 class SessionViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val remoteSyncReconciler: RemoteSyncReconciler,
+    private val syncScheduler: SyncScheduler
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SessionUiState>(SessionUiState.Checking)
@@ -32,15 +36,24 @@ class SessionViewModel @Inject constructor(
     fun refreshSession() {
         viewModelScope.launch {
             _uiState.value = SessionUiState.Checking
-            _uiState.value = runCatching { authRepository.currentUser() }
+            val state = runCatching { authRepository.currentUser() }
                 .getOrNull()
                 ?.let(SessionUiState::Authenticated)
                 ?: SessionUiState.Unauthenticated
+            _uiState.value = state
+            if (state is SessionUiState.Authenticated) {
+                runCatching { remoteSyncReconciler.reconcileRemoteChanges() }
+                syncScheduler.schedulePendingSync()
+            }
         }
     }
 
     fun onAuthenticated(user: User) {
         _uiState.value = SessionUiState.Authenticated(user)
+        viewModelScope.launch {
+            runCatching { remoteSyncReconciler.reconcileRemoteChanges() }
+            syncScheduler.schedulePendingSync()
+        }
     }
 
     fun onSessionEnded() {

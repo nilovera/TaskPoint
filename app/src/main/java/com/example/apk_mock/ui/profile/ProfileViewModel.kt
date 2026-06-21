@@ -13,8 +13,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ProfileUiState(
-    val name: String = "Nicolas Perez",
-    val email: String = "nico@ejemplo.com",
+    val name: String = "",
+    val email: String = "",
     val passwordMask: String = "********",
     val currentPassword: String = "",
     val newPassword: String = "",

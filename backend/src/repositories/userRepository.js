@@ -59,7 +59,22 @@ export async function updateUserPassword(id, passwordHash) {
 
 export async function deleteUser(id) {
   const firestore = getFirestore();
-  await firestore.collection(COLLECTION).doc(id).delete();
+  const userDocument = firestore.collection(COLLECTION).doc(id);
+
+  await deleteCollection(userDocument.collection("tasks"));
+  await deleteCollection(userDocument.collection("routines"));
+  await userDocument.delete();
+}
+
+async function deleteCollection(collection) {
+  while (true) {
+    const snapshot = await collection.limit(400).get();
+    if (snapshot.empty) return;
+
+    const batch = getFirestore().batch();
+    snapshot.docs.forEach(document => batch.delete(document.ref));
+    await batch.commit();
+  }
 }
 
 function normalizeEmail(email) {
