@@ -5,6 +5,8 @@ import com.example.apk_mock.data.local.OfferCatalogImporter
 import com.example.apk_mock.data.local.TaskPointDatabase
 import com.example.apk_mock.data.remote.AuthApi
 import com.example.apk_mock.data.remote.RetrofitClient
+import com.example.apk_mock.data.remote.RoutineApi
+import com.example.apk_mock.data.remote.TaskApi
 import com.example.apk_mock.data.repository.RemoteAuthRepository
 import com.example.apk_mock.data.repository.RoomCategoriaRepository
 import com.example.apk_mock.data.repository.RoomOfferRepository
@@ -12,6 +14,7 @@ import com.example.apk_mock.data.repository.RoomRutinaRepository
 import com.example.apk_mock.data.repository.RoomTareaRepository
 import com.example.apk_mock.data.secure.SecureSessionStorage
 import com.example.apk_mock.data.source.TaskPhotoStorage
+import com.example.apk_mock.data.sync.SyncScheduler
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.CategoriaRepository
 import com.example.apk_mock.domain.repository.OfferRepository
@@ -41,6 +44,12 @@ object AppModule {
 
     @Provides
     fun provideAuthApi(retrofitClient: RetrofitClient): AuthApi = retrofitClient.authApi
+
+    @Provides
+    fun provideTaskApi(retrofitClient: RetrofitClient): TaskApi = retrofitClient.taskApi
+
+    @Provides
+    fun provideRoutineApi(retrofitClient: RetrofitClient): RoutineApi = retrofitClient.routineApi
 
     @Provides
     @Singleton
@@ -79,15 +88,17 @@ object AppModule {
     fun provideTareaRepository(
         database: TaskPointDatabase,
         sessionProvider: UserSessionProvider,
-        photoStorage: TaskPhotoStorage
-    ): TareaRepository = RoomTareaRepository(database, sessionProvider, photoStorage)
+        photoStorage: TaskPhotoStorage,
+        syncScheduler: SyncScheduler
+    ): TareaRepository = RoomTareaRepository(database, sessionProvider, photoStorage, syncScheduler)
 
     @Provides
     @Singleton
     fun provideRutinaRepository(
         database: TaskPointDatabase,
-        sessionProvider: UserSessionProvider
-    ): RutinaRepository = RoomRutinaRepository(database, sessionProvider)
+        sessionProvider: UserSessionProvider,
+        syncScheduler: SyncScheduler
+    ): RutinaRepository = RoomRutinaRepository(database, sessionProvider, syncScheduler)
 
     @Provides
     @Singleton

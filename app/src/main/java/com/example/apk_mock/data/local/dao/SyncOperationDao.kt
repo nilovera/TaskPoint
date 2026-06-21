@@ -12,13 +12,21 @@ interface SyncOperationDao {
     @Query("SELECT * FROM sync_operations WHERE userId = :userId AND status IN (:statuses) ORDER BY createdAt ASC")
     fun observeOperations(
         userId: String,
-        statuses: List<SyncOperationStatus> = listOf(SyncOperationStatus.PENDING, SyncOperationStatus.FAILED)
+        statuses: List<SyncOperationStatus> = listOf(
+            SyncOperationStatus.PENDING,
+            SyncOperationStatus.FAILED,
+            SyncOperationStatus.IN_PROGRESS
+        )
     ): Flow<List<SyncOperationEntity>>
 
     @Query("SELECT * FROM sync_operations WHERE userId = :userId AND status IN (:statuses) ORDER BY createdAt ASC LIMIT :limit")
     suspend fun getOperations(
         userId: String,
-        statuses: List<SyncOperationStatus> = listOf(SyncOperationStatus.PENDING, SyncOperationStatus.FAILED),
+        statuses: List<SyncOperationStatus> = listOf(
+            SyncOperationStatus.PENDING,
+            SyncOperationStatus.FAILED,
+            SyncOperationStatus.IN_PROGRESS
+        ),
         limit: Int = 50
     ): List<SyncOperationEntity>
 

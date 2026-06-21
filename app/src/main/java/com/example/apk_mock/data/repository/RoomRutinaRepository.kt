@@ -9,6 +9,7 @@ import com.example.apk_mock.data.local.TaskPointDatabase
 import com.example.apk_mock.data.local.entity.SyncOperationEntity
 import com.example.apk_mock.data.mapper.toDomain
 import com.example.apk_mock.data.mapper.toEntity
+import com.example.apk_mock.data.sync.SyncScheduler
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
@@ -23,7 +24,8 @@ import org.json.JSONObject
 
 class RoomRutinaRepository(
     private val database: TaskPointDatabase,
-    private val sessionProvider: UserSessionProvider
+    private val sessionProvider: UserSessionProvider,
+    private val syncScheduler: SyncScheduler
 ) : RutinaRepository {
 
     private val rutinaDao = database.rutinaDao()
@@ -78,16 +80,18 @@ class RoomRutinaRepository(
 
         withContext(Dispatchers.IO) {
             database.withTransaction {
-                rutinaDao.upsertRutina(rutina.toEntity(userId, SyncStatus.PENDING_CREATE))
+                val entity = rutina.toEntity(userId, SyncStatus.PENDING_CREATE)
+                rutinaDao.upsertRutina(entity)
                 syncOperationDao.upsertOperation(
                     syncOperation(
                         userId = userId,
                         entityId = rutina.id,
                         operationType = SyncOperationType.CREATE,
-                        payloadJson = rutina.toPayloadJson()
+                        payloadJson = entity.toPayloadJson()
                     )
                 )
             }
+            syncScheduler.schedulePendingSync()
         }
 
         return RutinaResult.Success(rutina)
@@ -123,16 +127,18 @@ class RoomRutinaRepository(
             )
 
             database.withTransaction {
-                rutinaDao.upsertRutina(updated.toEntity(userId, SyncStatus.PENDING_UPDATE))
+                val entity = updated.toEntity(userId, SyncStatus.PENDING_UPDATE)
+                rutinaDao.upsertRutina(entity)
                 syncOperationDao.upsertOperation(
                     syncOperation(
                         userId = userId,
                         entityId = updated.id,
                         operationType = SyncOperationType.UPDATE,
-                        payloadJson = updated.toPayloadJson()
+                        payloadJson = entity.toPayloadJson()
                     )
                 )
             }
+            syncScheduler.schedulePendingSync()
 
             RutinaResult.Success(updated)
         }
@@ -161,6 +167,7 @@ class RoomRutinaRepository(
                 )
             }
 
+            syncScheduler.schedulePendingSync()
             RutinaResult.Success(removed)
         }
     }
@@ -182,16 +189,17 @@ class RoomRutinaRepository(
         )
     }
 
-    private fun Rutina.toPayloadJson(): String {
+    private fun com.example.apk_mock.data.local.entity.RutinaEntity.toPayloadJson(): String {
         return JSONObject()
             .put("id", id)
             .put("nombre", nombre)
-            .put("icono", icono.name)
+            .put("icono", icono)
             .put("direccion", direccion)
-            .put("diasSemana", JSONArray(diasSemana.map { it.name }))
+            .put("diasSemana", JSONArray(diasSemana.split(",").filter { it.isNotBlank() }))
             .put("horarioInicio", horarioInicio)
             .put("horarioFin", horarioFin)
             .put("descripcion", descripcion)
+            .put("updatedAt", updatedAt)
             .toString()
     }
 }
