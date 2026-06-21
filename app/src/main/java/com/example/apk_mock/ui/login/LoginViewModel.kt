@@ -1,22 +1,31 @@
 package com.example.apk_mock.ui.login
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.AuthResult
+import com.example.apk_mock.domain.repository.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class LoginUiState(
     val email: String = "",
     val password: String = "",
     val errorMessage: String? = null,
+    val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
-    val loggedInName: String = ""
+    val loggedInUser: User? = null
 )
 
-class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val repository: AuthRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
@@ -31,9 +40,14 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
             return
         }
 
-        when (val r = repository.login(state.email.trim(), state.password)) {
-            is AuthResult.Success -> _uiState.update { it.copy(isSuccess = true, loggedInName = r.user.name) }
-            is AuthResult.Error   -> _uiState.update { it.copy(errorMessage = r.message) }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            when (val r = repository.login(state.email.trim(), state.password)) {
+                is AuthResult.Success -> _uiState.update {
+                    it.copy(isLoading = false, isSuccess = true, loggedInUser = r.user)
+                }
+                is AuthResult.Error -> _uiState.update { it.copy(isLoading = false, errorMessage = r.message) }
+            }
         }
     }
 

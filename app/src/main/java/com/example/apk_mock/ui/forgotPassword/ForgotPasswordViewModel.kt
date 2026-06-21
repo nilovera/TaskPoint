@@ -1,12 +1,16 @@
 package com.example.apk_mock.ui.forgotPassword
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.ResetResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 // ── UiState ──────────────────────────────────────────────────────────────────
 
@@ -14,6 +18,7 @@ data class ForgotPasswordUiState(
     // Step 1 – email
     val email: String = "",
     val emailError: String? = null,
+    val isLoading: Boolean = false,
     val codeSent: Boolean = false,
 
     // Step 2 – code (6 digits as list)
@@ -30,7 +35,8 @@ data class ForgotPasswordUiState(
 
 // ── ViewModel ─────────────────────────────────────────────────────────────────
 
-class ForgotPasswordViewModel(
+@HiltViewModel
+class ForgotPasswordViewModel @Inject constructor(
     private val repository: AuthRepository
 ) : ViewModel() {
 
@@ -47,10 +53,13 @@ class ForgotPasswordViewModel(
             return
         }
 
-        when (val r = repository.sendResetCode(email)) {
-            is ResetResult.CodeSent  -> _uiState.update { it.copy(codeSent = true, emailError = null) }
-            is ResetResult.Error     -> _uiState.update { it.copy(emailError = r.message) }
-            else                     -> Unit
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, emailError = null) }
+            when (val r = repository.sendResetCode(email)) {
+                is ResetResult.CodeSent -> _uiState.update { it.copy(isLoading = false, codeSent = true) }
+                is ResetResult.Error -> _uiState.update { it.copy(isLoading = false, emailError = r.message) }
+                else -> _uiState.update { it.copy(isLoading = false) }
+            }
         }
     }
 
@@ -68,10 +77,13 @@ class ForgotPasswordViewModel(
             return
         }
 
-        when (val r = repository.verifyResetCode(_uiState.value.email.trim(), code)) {
-            is ResetResult.CodeValid -> _uiState.update { it.copy(codeVerified = true, codeError = null) }
-            is ResetResult.Error     -> _uiState.update { it.copy(codeError = r.message) }
-            else                     -> Unit
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, codeError = null) }
+            when (val r = repository.verifyResetCode(_uiState.value.email.trim(), code)) {
+                is ResetResult.CodeValid -> _uiState.update { it.copy(isLoading = false, codeVerified = true) }
+                is ResetResult.Error -> _uiState.update { it.copy(isLoading = false, codeError = r.message) }
+                else -> _uiState.update { it.copy(isLoading = false) }
+            }
         }
     }
 
@@ -90,10 +102,13 @@ class ForgotPasswordViewModel(
             return
         }
 
-        when (val r = repository.changePassword(s.email.trim(), s.newPassword)) {
-            is ResetResult.PasswordChanged -> _uiState.update { it.copy(passwordChanged = true) }
-            is ResetResult.Error           -> _uiState.update { it.copy(newPasswordError = r.message) }
-            else                           -> Unit
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, newPasswordError = null) }
+            when (val r = repository.changePassword(s.email.trim(), s.newPassword)) {
+                is ResetResult.PasswordChanged -> _uiState.update { it.copy(isLoading = false, passwordChanged = true) }
+                is ResetResult.Error -> _uiState.update { it.copy(isLoading = false, newPasswordError = r.message) }
+                else -> _uiState.update { it.copy(isLoading = false) }
+            }
         }
     }
 

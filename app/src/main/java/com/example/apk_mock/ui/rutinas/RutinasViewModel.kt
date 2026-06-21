@@ -1,6 +1,8 @@
 package com.example.apk_mock.ui.rutinas
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
@@ -11,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 import java.time.LocalTime
 
 // ── UiState lista de rutinas ──────────────────────────────────────────────────
@@ -66,7 +70,8 @@ data class DetalleRutinaUiState(
     val isDeleted: Boolean = false
 )
 
-class RutinasViewModel(
+@HiltViewModel
+class RutinasViewModel @Inject constructor(
     private val rutinaRepository: RutinaRepository,
     private val tareaRepository: TareaRepository
 ) : ViewModel() {
@@ -86,7 +91,9 @@ class RutinasViewModel(
     val detalleState: StateFlow<DetalleRutinaUiState> = _detalleState.asStateFlow()
 
     fun refreshRutinas() {
-        _listState.update { it.copy(rutinas = rutinaRepository.getRutinas()) }
+        viewModelScope.launch {
+            _listState.update { it.copy(rutinas = rutinaRepository.getRutinas()) }
+        }
     }
 
     fun onFiltroDia(dia: DiaSemana?) {
@@ -101,13 +108,15 @@ class RutinasViewModel(
     fun consumeSnackbar() = _listState.update { it.copy(snackbarMessage = null) }
 
     fun loadDetalleRutina(rutinaId: String) {
-        val rutina = rutinaRepository.getRutinaById(rutinaId.trim())
-        _detalleState.update {
-            it.copy(
-                rutina = rutina,
-                errorMessage = if (rutina == null) "La rutina no existe o no pertenece a tu cuenta." else null,
-                isDeleted = false
-            )
+        viewModelScope.launch {
+            val rutina = rutinaRepository.getRutinaById(rutinaId.trim())
+            _detalleState.update {
+                it.copy(
+                    rutina = rutina,
+                    errorMessage = if (rutina == null) "La rutina no existe o no pertenece a tu cuenta." else null,
+                    isDeleted = false
+                )
+            }
         }
     }
 
@@ -118,15 +127,17 @@ class RutinasViewModel(
             return
         }
 
-        when (val result = rutinaRepository.eliminarRutina(id)) {
-            is RutinaResult.Success -> {
-                tareaRepository.eliminarTareasDeRutina(id)
-                refreshRutinas()
-                _listState.update { it.copy(snackbarMessage = "Rutina eliminada correctamente.") }
-                _detalleState.update { DetalleRutinaUiState(isDeleted = true) }
-            }
-            is RutinaResult.Error -> {
-                _detalleState.update { it.copy(errorMessage = result.message) }
+        viewModelScope.launch {
+            when (val result = rutinaRepository.eliminarRutina(id)) {
+                is RutinaResult.Success -> {
+                    tareaRepository.eliminarTareasDeRutina(id)
+                    refreshRutinas()
+                    _listState.update { it.copy(snackbarMessage = "Rutina eliminada correctamente.") }
+                    _detalleState.update { DetalleRutinaUiState(isDeleted = true) }
+                }
+                is RutinaResult.Error -> {
+                    _detalleState.update { it.copy(errorMessage = result.message) }
+                }
             }
         }
     }
@@ -161,28 +172,30 @@ class RutinasViewModel(
     fun onDescripcionChange(v: String) = _formState.update { it.copy(descripcion = v, descripcionError = null) }
 
     fun loadEditarRutina(rutinaId: String) {
-        val rutina = rutinaRepository.getRutinaById(rutinaId.trim())
-        if (rutina == null) {
+        viewModelScope.launch {
+            val rutina = rutinaRepository.getRutinaById(rutinaId.trim())
+            if (rutina == null) {
+                _editState.update {
+                    EditarRutinaUiState(
+                        rutinaId = rutinaId,
+                        errorMessage = "La rutina no existe o no pertenece a tu cuenta."
+                    )
+                }
+                return@launch
+            }
+
             _editState.update {
                 EditarRutinaUiState(
-                    rutinaId = rutinaId,
-                    errorMessage = "La rutina no existe o no pertenece a tu cuenta."
+                    rutinaId = rutina.id,
+                    nombre = rutina.nombre,
+                    iconoSeleccionado = rutina.icono,
+                    direccion = rutina.direccion,
+                    diasSeleccionados = rutina.diasSemana.toSet(),
+                    horarioInicio = rutina.horarioInicio,
+                    horarioFin = rutina.horarioFin,
+                    descripcion = rutina.descripcion
                 )
             }
-            return
-        }
-
-        _editState.update {
-            EditarRutinaUiState(
-                rutinaId = rutina.id,
-                nombre = rutina.nombre,
-                iconoSeleccionado = rutina.icono,
-                direccion = rutina.direccion,
-                diasSeleccionados = rutina.diasSemana.toSet(),
-                horarioInicio = rutina.horarioInicio,
-                horarioFin = rutina.horarioFin,
-                descripcion = rutina.descripcion
-            )
         }
     }
 
@@ -213,21 +226,23 @@ class RutinasViewModel(
             return
         }
 
-        when (val r = rutinaRepository.crearRutina(
-            input.nombre,
-            s.iconoSeleccionado,
-            input.direccion,
-            input.dias,
-            input.horarioInicio,
-            input.horarioFin,
-            input.descripcion
-        )) {
-            is RutinaResult.Success -> {
-                _formState.update { CrearRutinaUiState(isSuccess = true) }
-                refreshRutinas()
-                _listState.update { it.copy(snackbarMessage = "Rutina creada correctamente.") }
+        viewModelScope.launch {
+            when (val r = rutinaRepository.crearRutina(
+                input.nombre,
+                s.iconoSeleccionado,
+                input.direccion,
+                input.dias,
+                input.horarioInicio,
+                input.horarioFin,
+                input.descripcion
+            )) {
+                is RutinaResult.Success -> {
+                    _formState.update { CrearRutinaUiState(isSuccess = true) }
+                    refreshRutinas()
+                    _listState.update { it.copy(snackbarMessage = "Rutina creada correctamente.") }
+                }
+                is RutinaResult.Error -> applyFieldError(r.message)
             }
-            is RutinaResult.Error -> applyFieldError(r.message)
         }
     }
 
@@ -252,25 +267,27 @@ class RutinasViewModel(
             return
         }
 
-        when (val result = rutinaRepository.editarRutina(
-            rutinaId,
-            input.nombre,
-            s.iconoSeleccionado,
-            input.direccion,
-            input.dias,
-            input.horarioInicio,
-            input.horarioFin,
-            input.descripcion
-        )) {
-            is RutinaResult.Success -> {
-                tareaRepository.actualizarNombreRutina(result.rutina.id, result.rutina.nombre)
-                refreshRutinas()
-                _detalleState.update {
-                    it.copy(rutina = result.rutina)
+        viewModelScope.launch {
+            when (val result = rutinaRepository.editarRutina(
+                rutinaId,
+                input.nombre,
+                s.iconoSeleccionado,
+                input.direccion,
+                input.dias,
+                input.horarioInicio,
+                input.horarioFin,
+                input.descripcion
+            )) {
+                is RutinaResult.Success -> {
+                    tareaRepository.actualizarNombreRutina(result.rutina.id, result.rutina.nombre)
+                    refreshRutinas()
+                    _detalleState.update {
+                        it.copy(rutina = result.rutina)
+                    }
+                    _editState.update { it.copy(isSuccess = true) }
                 }
-                _editState.update { it.copy(isSuccess = true) }
+                is RutinaResult.Error -> applyEditFieldError(result.message)
             }
-            is RutinaResult.Error -> applyEditFieldError(result.message)
         }
     }
 

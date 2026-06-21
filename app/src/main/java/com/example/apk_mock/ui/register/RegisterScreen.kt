@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.apk_mock.domain.repository.User
 import com.example.apk_mock.ui.components.AppTextField
 import com.example.apk_mock.ui.components.AuthBottomLink
 import com.example.apk_mock.ui.components.AuthErrorBanner
@@ -33,6 +34,7 @@ import com.example.apk_mock.ui.theme.TaskPointTheme
 @Composable
 fun RegisterScreen(
     viewModel: RegisterViewModel,
+    onRegisterSuccess: (User) -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -41,7 +43,7 @@ fun RegisterScreen(
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             viewModel.onSuccessConsumed()
-            onNavigateToLogin()
+            state.registeredUser?.let(onRegisterSuccess)
         }
     }
 

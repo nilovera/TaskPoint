@@ -9,7 +9,9 @@ import androidx.compose.ui.Modifier
 import com.example.apk_mock.ui.navigation.AppNavigation
 import com.example.apk_mock.ui.theme.APKMockTheme
 import androidx.compose.material3.Surface
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

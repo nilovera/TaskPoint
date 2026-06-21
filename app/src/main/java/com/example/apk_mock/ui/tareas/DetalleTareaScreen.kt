@@ -25,6 +25,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,14 +60,22 @@ fun DetalleTareaScreen(
     onTaskEditedMessageShown: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    LaunchedEffect(Unit) { viewModel.refreshTareas() }
+    val detailState by viewModel.detailState.collectAsState()
+    LaunchedEffect(taskId) { viewModel.loadTaskDetail(taskId) }
 
-    val tarea = viewModel.getTareaById(taskId)
-    val rutina = tarea?.let { viewModel.getRutinaForTarea(it) }
-    val offers = tarea?.let { viewModel.getOffersForTarea(it) }.orEmpty()
+    val tarea = detailState.tarea
+    val rutina = detailState.rutina
+    val offers = detailState.offers
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showSavedOverlay by remember { mutableStateOf(false) }
     val colors = TaskPointTheme.colors
+
+    LaunchedEffect(detailState.isDeleted) {
+        if (detailState.isDeleted) {
+            viewModel.consumeTaskDeleted()
+            onTaskDeleted()
+        }
+    }
 
     LaunchedEffect(showTaskEditedMessage) {
         if (showTaskEditedMessage) {
@@ -75,6 +84,18 @@ fun DetalleTareaScreen(
             showSavedOverlay = false
             onTaskEditedMessageShown()
         }
+    }
+
+    if (detailState.isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Cargando tarea...", color = colors.textSecondary, fontSize = 16.sp)
+        }
+        return
     }
 
     if (tarea == null) {
@@ -135,10 +156,8 @@ fun DetalleTareaScreen(
             message = "Estas seguro que queres eliminar esta tarea?",
             onDismiss = { showDeleteDialog = false },
             onConfirm = {
-                if (viewModel.onEliminarTarea(tarea.id)) {
-                    showDeleteDialog = false
-                    onTaskDeleted()
-                }
+                showDeleteDialog = false
+                viewModel.onEliminarTarea(tarea.id)
             }
         )
     }

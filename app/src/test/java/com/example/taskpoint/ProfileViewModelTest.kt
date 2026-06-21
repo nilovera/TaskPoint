@@ -6,11 +6,29 @@ import com.example.apk_mock.domain.repository.ProfileResult
 import com.example.apk_mock.domain.repository.ResetResult
 import com.example.apk_mock.domain.repository.User
 import com.example.apk_mock.ui.profile.ProfileViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ProfileViewModelTest {
+
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
 
     @Test
     fun changingPasswordWithWrongCurrentPasswordShowsCurrentPasswordError() {
@@ -30,7 +48,7 @@ class ProfileViewModelTest {
         viewModel.onSavePasswordClick()
 
         val state = viewModel.uiState.value
-        assertEquals("La contraseña ingresada es incorrecta.", state.currentPasswordError)
+        assertEquals("La contrasena ingresada es incorrecta.", state.currentPasswordError)
         assertFalse(state.showPasswordSavedMessage)
         assertFalse(repository.passwordWasChanged)
     }
@@ -53,7 +71,7 @@ class ProfileViewModelTest {
         viewModel.onSavePasswordClick()
 
         val state = viewModel.uiState.value
-        assertEquals("Las contraseñas ingresadas no coinciden entre si.", state.confirmPasswordError)
+        assertEquals("Las contrasenas ingresadas no coinciden entre si.", state.confirmPasswordError)
         assertEquals(null, state.currentPasswordError)
         assertFalse(state.showPasswordSavedMessage)
         assertFalse(repository.passwordWasChanged)
@@ -66,41 +84,41 @@ private class FakeAuthRepository(
     var passwordWasChanged = false
         private set
 
-    override fun register(name: String, email: String, password: String): AuthResult =
+    override suspend fun register(name: String, email: String, password: String): AuthResult =
         AuthResult.Error("No usado en este test.")
 
-    override fun login(email: String, password: String): AuthResult =
+    override suspend fun login(email: String, password: String): AuthResult =
         AuthResult.Error("No usado en este test.")
 
-    override fun currentUser(): User? = savedUser
+    override suspend fun currentUser(): User? = savedUser
 
-    override fun logout() {
+    override suspend fun logout() {
         savedUser = null
     }
 
-    override fun sendResetCode(email: String): ResetResult =
+    override suspend fun sendResetCode(email: String): ResetResult =
         ResetResult.Error("No usado en este test.")
 
-    override fun verifyResetCode(email: String, code: String): ResetResult =
+    override suspend fun verifyResetCode(email: String, code: String): ResetResult =
         ResetResult.Error("No usado en este test.")
 
-    override fun changePassword(email: String, newPassword: String): ResetResult =
+    override suspend fun changePassword(email: String, newPassword: String): ResetResult =
         ResetResult.Error("No usado en este test.")
 
-    override fun changeCurrentPassword(
+    override suspend fun changeCurrentPassword(
         currentPassword: String,
         newPassword: String
     ): ProfileResult {
         val user = savedUser ?: return ProfileResult.Error("No hay una sesion activa.")
         if (user.password != currentPassword) {
-            return ProfileResult.Error("La contraseña ingresada es incorrecta.")
+            return ProfileResult.Error("La contrasena ingresada es incorrecta.")
         }
         passwordWasChanged = true
         savedUser = user.copy(password = newPassword)
         return ProfileResult.Success(savedUser)
     }
 
-    override fun deleteCurrentUser(): ProfileResult {
+    override suspend fun deleteCurrentUser(): ProfileResult {
         savedUser = null
         return ProfileResult.Success()
     }
