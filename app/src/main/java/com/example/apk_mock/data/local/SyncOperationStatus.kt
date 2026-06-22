@@ -4,5 +4,6 @@ enum class SyncOperationStatus {
     PENDING,
     IN_PROGRESS,
     COMPLETED,
-    FAILED
+    FAILED_RETRYABLE,
+    FAILED_PERMANENT
 }

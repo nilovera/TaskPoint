@@ -62,6 +62,7 @@ import com.example.apk_mock.ui.tareas.EditarTareaScreen
 import com.example.apk_mock.ui.tareas.TareasScreen
 import com.example.apk_mock.ui.tareas.TareasViewModel
 import com.example.apk_mock.ui.theme.TaskPointTheme
+import com.example.apk_mock.domain.model.ThemePreference
 
 // ── Modelo de ítem del bottom bar ─────────────────────────────────────────────
 private data class BottomNavItem(
@@ -83,14 +84,13 @@ private val bottomBarRoutes = tabRoutes + profileRoutes + Routes.RUTINA_DETALLE_
 private const val CAPTURED_PHOTO_PATH_KEY = "captured_photo_path"
 
 @Composable
-fun AppNavigation() {
-    val navController = rememberNavController()
-    val currentBackStack by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStack?.destination?.route
+fun AppNavigation(
+    onboardingCompleted: Boolean,
+    onOnboardingCompleted: () -> Unit,
+    themePreference: ThemePreference,
+    onThemePreferenceChange: (ThemePreference) -> Unit
+) {
     val colors = TaskPointTheme.colors
-
-    // Estado del nombre del usuario: se setea al hacer login y persiste
-    var userName by remember { mutableStateOf("") }
 
     // ViewModels de tabs: viven aquí para persistir al cambiar de tab
     val rutinasViewModel: RutinasViewModel = hiltViewModel()
@@ -100,24 +100,11 @@ fun AppNavigation() {
     val sessionViewModel: SessionViewModel = hiltViewModel()
     val sessionState by sessionViewModel.uiState.collectAsState()
 
-    val navigateToLoginAfterSessionEnd: () -> Unit = {
-        userName = ""
-        navController.navigate(Routes.LOGIN) {
-            popUpTo(Routes.HOME) { inclusive = true }
-            launchSingleTop = true
-        }
-    }
-
     LaunchedEffect(profileState.sessionEnded) {
         if (profileState.sessionEnded) {
             profileViewModel.onSessionEndedConsumed()
             sessionViewModel.onSessionEnded()
-            navigateToLoginAfterSessionEnd()
         }
-    }
-
-    LaunchedEffect(sessionState) {
-        userName = (sessionState as? SessionUiState.Authenticated)?.user?.name.orEmpty()
     }
 
     if (sessionState is SessionUiState.Checking) {
@@ -132,13 +119,26 @@ fun AppNavigation() {
         return
     }
 
-    val startDestination = if (sessionState is SessionUiState.Authenticated) {
-        Routes.HOME
-    } else {
-        Routes.ONBOARDING
+    val startDestination = when {
+        sessionState is SessionUiState.Authenticated -> Routes.HOME
+        onboardingCompleted -> Routes.LOGIN
+        else -> Routes.ONBOARDING
     }
+    val userName = (sessionState as? SessionUiState.Authenticated)?.user?.name.orEmpty()
+    val navigationSessionKey = when (val state = sessionState) {
+        is SessionUiState.Authenticated -> "authenticated:${state.user.id}"
+        SessionUiState.Unauthenticated -> "unauthenticated"
+        SessionUiState.Checking -> "checking"
+    }
+    val isInitialDataSyncInProgress =
+        (sessionState as? SessionUiState.Authenticated)?.isInitialDataSyncInProgress == true
 
-    Scaffold(
+    key(navigationSessionKey) {
+        val navController = rememberNavController()
+        val currentBackStack by navController.currentBackStackEntryAsState()
+        val currentRoute = currentBackStack?.destination?.route
+
+        Scaffold(
         containerColor = colors.background,
         bottomBar = {
             // El bottom bar aparece en tabs y en el flujo de perfil.
@@ -162,16 +162,19 @@ fun AppNavigation() {
             composable(Routes.ONBOARDING) {
                 OnboardingScreen(
                     onFinish = {
+                        onOnboardingCompleted()
                         navController.navigate(Routes.REGISTER) {
                             popUpTo(Routes.ONBOARDING) { inclusive = true }
                         }
                     },
                     onSkip = {
+                        onOnboardingCompleted()
                         navController.navigate(Routes.REGISTER) {
                             popUpTo(Routes.ONBOARDING) { inclusive = true }
                         }
                     },
                     onLogin = {
+                        onOnboardingCompleted()
                         navController.navigate(Routes.LOGIN) {
                             popUpTo(Routes.ONBOARDING) { inclusive = true }
                         }
@@ -184,11 +187,7 @@ fun AppNavigation() {
                 RegisterScreen(
                     viewModel = vm,
                     onRegisterSuccess = { user ->
-                        userName = user.name
                         sessionViewModel.onAuthenticated(user)
-                        navController.navigate(Routes.HOME) {
-                            popUpTo(Routes.REGISTER) { inclusive = true }
-                        }
                     },
                     onNavigateToLogin = {
                         navController.navigate(Routes.LOGIN) {
@@ -203,11 +202,7 @@ fun AppNavigation() {
                 LoginScreen(
                     viewModel = vm,
                     onNavigateToHome = { user ->
-                        userName = user.name
                         sessionViewModel.onAuthenticated(user)
-                        navController.navigate(Routes.HOME) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
                     },
                     onNavigateToRegister = {
                         navController.navigate(Routes.REGISTER) {
@@ -235,6 +230,7 @@ fun AppNavigation() {
                     userName = userName,
                     rutinasViewModel = rutinasViewModel,
                     tareasViewModel = tareasViewModel,
+                    isInitialDataSyncInProgress = isInitialDataSyncInProgress,
                     onCrearRutina = { navController.navigate(Routes.CREAR_RUTINA) },
                     onCrearTarea = {
                         tareasViewModel.resetCreateForm()
@@ -250,6 +246,7 @@ fun AppNavigation() {
                 RutinasScreen(
                     viewModel = rutinasViewModel,
                     userName = userName,
+                    isInitialDataSyncInProgress = isInitialDataSyncInProgress,
                     onNavigateToCrear = { navController.navigate(Routes.CREAR_RUTINA) },
                     onRutinaClick = { rutina -> navController.navigate(Routes.rutinaDetalle(rutina.id)) },
                     onProfile = { navController.navigate(Routes.PROFILE) },
@@ -273,6 +270,7 @@ fun AppNavigation() {
                 TareasScreen(
                     viewModel = tareasViewModel,
                     userName = userName,
+                    isInitialDataSyncInProgress = isInitialDataSyncInProgress,
                     onNavigateToCrear = {
                         tareasViewModel.resetCreateForm()
                         navController.navigate(Routes.CREAR_TAREA)
@@ -349,6 +347,8 @@ fun AppNavigation() {
                         }
                     },
                     onChangePassword = { navController.navigate(Routes.PROFILE_PASSWORD) },
+                    themePreference = themePreference,
+                    onThemePreferenceChange = onThemePreferenceChange,
                     innerPadding = innerPadding
                 )
             }
@@ -468,6 +468,7 @@ fun AppNavigation() {
                 )
             }
         }
+    }
     }
 }
 

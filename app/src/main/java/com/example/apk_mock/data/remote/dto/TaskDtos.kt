@@ -27,3 +27,22 @@ data class TaskRequestDto(
     val completada: Boolean,
     val updatedAt: Long? = null
 )
+
+data class TaskSyncDto(
+    val id: String,
+    val deleted: Boolean = false,
+    val titulo: String? = null,
+    val categoriaCode: String? = null,
+    val rutinaId: String? = null,
+    val rutinaNombre: String? = null,
+    val dia: String? = null,
+    val horario: String? = null,
+    val notas: String? = null,
+    val photoPath: String? = null,
+    val completada: Boolean? = null,
+    val updatedAt: Long
+)
+
+data class DeleteRequestDto(
+    val updatedAt: Long
+)

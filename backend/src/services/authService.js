@@ -1,19 +1,29 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { randomInt } from "node:crypto";
 import { env } from "../config/env.js";
+import { sendPasswordResetCode } from "./emailService.js";
 import {
   createUser,
+  deletePasswordReset,
   deleteUser,
   findUserByEmail,
   findUserById,
+  getPasswordReset,
+  incrementPasswordResetAttempts,
+  markPasswordResetVerified,
+  savePasswordReset,
   updateUserPassword
 } from "../repositories/userRepository.js";
 import { httpError } from "../utils/httpError.js";
 
 const SALT_ROUNDS = 12;
-const DEV_RESET_CODE = "123456";
-const pendingResetEmails = new Set();
-const verifiedResetEmails = new Set();
+const RESET_CODE_LENGTH = 6;
+const RESET_CODE_TTL_MS = 15 * 60 * 1000;
+const RESET_VERIFIED_TTL_MS = 10 * 60 * 1000;
+const RESET_REQUEST_COOLDOWN_MS = 60 * 1000;
+const MAX_RESET_ATTEMPTS = 5;
+const RESET_REQUEST_MESSAGE = "Si existe una cuenta con ese correo, recibira un codigo de recuperacion.";
 
 export async function registerUser({ name, email, password }) {
   validateRegisterInput({ name, email, password });
@@ -35,16 +45,11 @@ export async function registerUser({ name, email, password }) {
 
 export async function loginUser({ email, password }) {
   if (!email || !password) {
-    throw httpError(400, "Email y contraseña son obligatorios.");
+    throw httpError(400, "Email y contrasena son obligatorios.");
   }
 
   const user = await findUserByEmail(email);
-  if (!user) {
-    throw httpError(401, "Credenciales incorrectas.");
-  }
-
-  const passwordMatches = await bcrypt.compare(password, user.passwordHash);
-  if (!passwordMatches) {
+  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
     throw httpError(401, "Credenciales incorrectas.");
   }
 
@@ -60,55 +65,85 @@ export async function getCurrentUser(userId) {
 }
 
 export async function requestPasswordReset(email) {
+  if (!email || !isValidEmail(email)) return { message: RESET_REQUEST_MESSAGE };
   const user = await findUserByEmail(email);
-  if (!user) {
-    throw httpError(404, "No existe una cuenta con ese correo.");
+  // The response stays generic so this endpoint cannot reveal registered emails.
+  if (!user) return { message: RESET_REQUEST_MESSAGE };
+
+  const now = Date.now();
+  const previousReset = await getPasswordReset(user.id);
+  if (previousReset?.requestedAt && now - previousReset.requestedAt < RESET_REQUEST_COOLDOWN_MS) {
+    return { message: RESET_REQUEST_MESSAGE };
   }
 
-  pendingResetEmails.add(normalizeEmail(email));
-  console.log(`TaskPoint reset code for ${email}: ${DEV_RESET_CODE}`);
+  const code = createResetCode();
+  await savePasswordReset(user.id, {
+    codeHash: await bcrypt.hash(code, SALT_ROUNDS),
+    attempts: 0,
+    requestedAt: now,
+    expiresAt: now + RESET_CODE_TTL_MS,
+    verifiedAt: null
+  });
 
-  return { message: "Codigo de recuperacion enviado." };
+  try {
+    await sendPasswordResetCode({ email: user.email, code });
+  } catch (error) {
+    await deletePasswordReset(user.id);
+    throw error;
+  }
+
+  return { message: RESET_REQUEST_MESSAGE };
 }
 
 export async function verifyPasswordResetCode({ email, code }) {
-  const emailLower = normalizeEmail(email);
-  if (!pendingResetEmails.has(emailLower)) {
-    throw httpError(400, "Primero solicita el codigo de recuperacion.");
+  if (!email || !isValidEmail(email)) throw invalidResetCodeError();
+  const user = await findUserByEmail(email);
+  const reset = user ? await getPasswordReset(user.id) : null;
+  if (!user || !reset) throw invalidResetCodeError();
+
+  const now = Date.now();
+  if (reset.expiresAt <= now || reset.attempts >= MAX_RESET_ATTEMPTS) {
+    await deletePasswordReset(user.id);
+    throw invalidResetCodeError();
   }
 
-  if (code !== DEV_RESET_CODE) {
-    throw httpError(400, "Codigo incorrecto. Intenta de nuevo.");
+  const codeMatches = typeof code === "string" && await bcrypt.compare(code, reset.codeHash);
+  if (!codeMatches) {
+    await incrementPasswordResetAttempts(user.id);
+    throw invalidResetCodeError();
   }
 
-  pendingResetEmails.delete(emailLower);
-  verifiedResetEmails.add(emailLower);
+  await markPasswordResetVerified(user.id, now);
   return { message: "Codigo verificado." };
 }
 
 export async function resetPassword({ email, newPassword }) {
-  const emailLower = normalizeEmail(email);
-  if (!verifiedResetEmails.has(emailLower)) {
-    throw httpError(400, "Verifica el codigo antes de cambiar la contraseña.");
-  }
-
   validatePassword(newPassword);
+  if (!email || !isValidEmail(email)) {
+    throw httpError(400, "No se pudo restablecer la contrasena.");
+  }
 
   const user = await findUserByEmail(email);
   if (!user) {
-    throw httpError(404, "Usuario no encontrado.");
+    throw httpError(400, "No se pudo restablecer la contrasena.");
+  }
+
+  const reset = await getPasswordReset(user.id);
+  const verifiedAt = reset?.verifiedAt;
+  if (!verifiedAt || Date.now() - verifiedAt > RESET_VERIFIED_TTL_MS) {
+    throw httpError(400, "Verifica un codigo vigente antes de cambiar la contrasena.");
   }
 
   const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
   await updateUserPassword(user.id, passwordHash);
-  verifiedResetEmails.delete(emailLower);
+  await deletePasswordReset(user.id);
 
-  return { message: "Contraseña actualizada." };
+  return { message: "Contrasena actualizada." };
 }
 
 export async function changeCurrentPassword(userId, { currentPassword, newPassword }) {
   if (!currentPassword) {
-    throw httpError(400, "La contraseña actual es obligatoria.");
+    throw httpError(400, "La contrasena actual es obligatoria.");
   }
   validatePassword(newPassword);
 
@@ -117,15 +152,14 @@ export async function changeCurrentPassword(userId, { currentPassword, newPasswo
     throw httpError(404, "Usuario no encontrado.");
   }
 
-  const passwordMatches = await bcrypt.compare(currentPassword, user.passwordHash);
-  if (!passwordMatches) {
-    throw httpError(401, "La contraseña ingresada es incorrecta.");
+  if (!(await bcrypt.compare(currentPassword, user.passwordHash))) {
+    throw httpError(401, "La contrasena ingresada es incorrecta.");
   }
 
   const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
   await updateUserPassword(user.id, passwordHash);
 
-  return { message: "Contraseña actualizada." };
+  return { message: "Contrasena actualizada." };
 }
 
 export async function deleteCurrentUser(userId) {
@@ -149,10 +183,7 @@ export function verifyToken(token) {
 function createAuthResponse(user) {
   return {
     token: jwt.sign(
-      {
-        sub: user.id,
-        email: user.email
-      },
+      { sub: user.id, email: user.email },
       env.jwt.secret,
       { expiresIn: env.jwt.expiresIn }
     ),
@@ -161,11 +192,7 @@ function createAuthResponse(user) {
 }
 
 function sanitizeUser(user) {
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email
-  };
+  return { id: user.id, name: user.name, email: user.email };
 }
 
 function validateRegisterInput({ name, email, password }) {
@@ -180,14 +207,19 @@ function validateRegisterInput({ name, email, password }) {
 
 function validatePassword(password) {
   if (!password || password.length < 6) {
-    throw httpError(400, "La contraseña debe tener al menos 6 caracteres.");
+    throw httpError(400, "La contrasena debe tener al menos 6 caracteres.");
   }
+}
+
+function invalidResetCodeError() {
+  return httpError(400, "El codigo es invalido o vencio.");
+}
+
+function createResetCode() {
+  const upperBound = 10 ** RESET_CODE_LENGTH;
+  return randomInt(0, upperBound).toString().padStart(RESET_CODE_LENGTH, "0");
 }
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function normalizeEmail(email) {
-  return email.trim().toLowerCase();
 }

@@ -57,9 +57,77 @@ export async function updateUserPassword(id, passwordHash) {
   return findUserById(id);
 }
 
+export async function getPasswordReset(userId) {
+  const document = await getFirestore()
+    .collection(COLLECTION)
+    .doc(userId)
+    .collection("password_resets")
+    .doc("active")
+    .get();
+  return document.exists ? document.data() : null;
+}
+
+export async function savePasswordReset(userId, reset) {
+  await getFirestore()
+    .collection(COLLECTION)
+    .doc(userId)
+    .collection("password_resets")
+    .doc("active")
+    .set(reset);
+}
+
+export async function incrementPasswordResetAttempts(userId) {
+  const document = getFirestore()
+    .collection(COLLECTION)
+    .doc(userId)
+    .collection("password_resets")
+    .doc("active");
+  await getFirestore().runTransaction(async transaction => {
+    const snapshot = await transaction.get(document);
+    if (!snapshot.exists) return;
+    transaction.update(document, {
+      attempts: (snapshot.data().attempts || 0) + 1
+    });
+  });
+}
+
+export async function markPasswordResetVerified(userId, verifiedAt) {
+  await getFirestore()
+    .collection(COLLECTION)
+    .doc(userId)
+    .collection("password_resets")
+    .doc("active")
+    .update({ verifiedAt });
+}
+
+export async function deletePasswordReset(userId) {
+  await getFirestore()
+    .collection(COLLECTION)
+    .doc(userId)
+    .collection("password_resets")
+    .doc("active")
+    .delete();
+}
+
 export async function deleteUser(id) {
   const firestore = getFirestore();
-  await firestore.collection(COLLECTION).doc(id).delete();
+  const userDocument = firestore.collection(COLLECTION).doc(id);
+
+  await deleteCollection(userDocument.collection("tasks"));
+  await deleteCollection(userDocument.collection("routines"));
+  await deleteCollection(userDocument.collection("password_resets"));
+  await userDocument.delete();
+}
+
+async function deleteCollection(collection) {
+  while (true) {
+    const snapshot = await collection.limit(400).get();
+    if (snapshot.empty) return;
+
+    const batch = getFirestore().batch();
+    snapshot.docs.forEach(document => batch.delete(document.ref));
+    await batch.commit();
+  }
 }
 
 function normalizeEmail(email) {

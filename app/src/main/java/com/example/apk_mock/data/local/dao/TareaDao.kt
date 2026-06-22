@@ -36,6 +36,13 @@ interface TareaDao {
     @Upsert
     suspend fun upsertTareas(tareas: List<TareaEntity>)
 
+    @Query("UPDATE tareas SET syncStatus = :syncStatus WHERE id = :id AND userId = :userId")
+    suspend fun updateSyncStatus(
+        id: String,
+        userId: String,
+        syncStatus: SyncStatus
+    ): Int
+
     @Query("UPDATE tareas SET rutinaNombre = :nuevoNombre, syncStatus = :syncStatus, updatedAt = :updatedAt WHERE rutinaId = :rutinaId AND userId = :userId")
     suspend fun updateRutinaNombre(
         rutinaId: String,

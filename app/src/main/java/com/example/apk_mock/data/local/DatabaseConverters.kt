@@ -20,7 +20,11 @@ class DatabaseConverters {
 
     @TypeConverter
     fun stringToSyncOperationStatus(value: String): SyncOperationStatus {
-        return SyncOperationStatus.valueOf(value)
+        return if (value == "FAILED") {
+            SyncOperationStatus.FAILED_RETRYABLE
+        } else {
+            SyncOperationStatus.valueOf(value)
+        }
     }
 
     @TypeConverter

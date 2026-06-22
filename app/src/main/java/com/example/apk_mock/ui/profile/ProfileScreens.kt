@@ -2,9 +2,11 @@ package com.example.apk_mock.ui.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +41,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.apk_mock.domain.model.ThemePreference
 import com.example.apk_mock.ui.components.AppDeleteConfirmDialog
 import com.example.apk_mock.ui.components.AppLogoutConfirmDialog
 import com.example.apk_mock.ui.components.AppTopBar
@@ -58,6 +63,8 @@ fun ProfileScreen(
     userName: String,
     onBack: () -> Unit,
     onChangePassword: () -> Unit,
+    themePreference: ThemePreference,
+    onThemePreferenceChange: (ThemePreference) -> Unit,
     innerPadding: PaddingValues = PaddingValues()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -111,6 +118,12 @@ fun ProfileScreen(
             )
 
             Spacer(Modifier.height(12.dp))
+            ThemePreferenceSelector(
+                selected = themePreference,
+                onSelected = onThemePreferenceChange
+            )
+
+            Spacer(Modifier.height(12.dp))
             ProfileSectionLabel("Cuenta")
             Spacer(Modifier.height(6.dp))
             ProfileActionButton(
@@ -159,6 +172,36 @@ fun ProfileScreen(
             }
         )
     }
+}
+
+@Composable
+private fun ThemePreferenceSelector(
+    selected: ThemePreference,
+    onSelected: (ThemePreference) -> Unit
+) {
+    val colors = TaskPointTheme.colors
+
+    ProfileSectionLabel("Apariencia")
+    Spacer(Modifier.height(6.dp))
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        ThemePreference.entries.forEach { preference ->
+            FilterChip(
+                selected = selected == preference,
+                onClick = { onSelected(preference) },
+                label = { Text(preference.label(), fontSize = 14.sp) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = colors.primary,
+                    selectedLabelColor = Color.White
+                )
+            )
+        }
+    }
+}
+
+private fun ThemePreference.label(): String = when (this) {
+    ThemePreference.SYSTEM -> "Sistema"
+    ThemePreference.LIGHT -> "Claro"
+    ThemePreference.DARK -> "Oscuro"
 }
 
 @Composable

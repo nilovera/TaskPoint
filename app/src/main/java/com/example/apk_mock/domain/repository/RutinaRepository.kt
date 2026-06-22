@@ -3,6 +3,7 @@ package com.example.apk_mock.domain.repository
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
+import kotlinx.coroutines.flow.Flow
 
 sealed class RutinaResult {
     data class Success(val rutina: Rutina) : RutinaResult()
@@ -11,6 +12,8 @@ sealed class RutinaResult {
 
 interface RutinaRepository {
     suspend fun getRutinas(): List<Rutina>
+    /** Fuente observable de Room; no consulta la red directamente. */
+    suspend fun observeRutinas(): Flow<List<Rutina>>
     suspend fun getRutinaById(id: String): Rutina?
     suspend fun crearRutina(
         nombre: String,

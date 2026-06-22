@@ -12,7 +12,9 @@ import com.example.apk_mock.domain.repository.TareaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import java.time.LocalTime
@@ -21,6 +23,7 @@ import java.time.LocalTime
 data class RutinasListUiState(
     val rutinas: List<Rutina> = emptyList(),
     val filtrodia: DiaSemana? = null,        // null = "Todas"
+    val isLoading: Boolean = false,
     val snackbarMessage: String? = null
 )
 
@@ -90,9 +93,23 @@ class RutinasViewModel @Inject constructor(
     private val _detalleState = MutableStateFlow(DetalleRutinaUiState())
     val detalleState: StateFlow<DetalleRutinaUiState> = _detalleState.asStateFlow()
 
+    private var listObservationJob: Job? = null
+
+    init {
+        refreshRutinas()
+    }
+
     fun refreshRutinas() {
-        viewModelScope.launch {
-            _listState.update { it.copy(rutinas = rutinaRepository.getRutinas()) }
+        listObservationJob?.cancel()
+        listObservationJob = viewModelScope.launch {
+            _listState.update { it.copy(isLoading = true) }
+            rutinaRepository.observeRutinas()
+                .catch {
+                    _listState.update { state -> state.copy(isLoading = false) }
+                }
+                .collect { rutinas ->
+                    _listState.update { it.copy(rutinas = rutinas, isLoading = false) }
+                }
         }
     }
 

@@ -79,6 +79,7 @@ fun HomeScreen(
     userName: String,
     rutinasViewModel: RutinasViewModel,
     tareasViewModel: TareasViewModel,
+    isInitialDataSyncInProgress: Boolean = false,
     onCrearRutina: () -> Unit,
     onCrearTarea: () -> Unit = {},
     onProfile: () -> Unit = {},
@@ -90,7 +91,7 @@ fun HomeScreen(
     val isOnline = rememberIsOnline()
     val today = LocalDate.now()
     val todayDia = today.toDiaSemana()
-    val displayName = userName.ifBlank { "Nicolas Perez" }
+    val displayName = userName.ifBlank { "Usuario" }
     val rutinas = rutinasState.rutinas
     val todayTasks = tareasState.tareas.filter { it.dia == todayDia || it.dia == null }
     val canCreateTask = rutinas.isNotEmpty()
@@ -142,6 +143,14 @@ fun HomeScreen(
             }
 
             when {
+                rutinas.isEmpty() && isInitialDataSyncInProgress -> {
+                    item {
+                        AppEmptyStateCard(
+                            message = "Cargando tus rutinas\ny tareas..."
+                        )
+                    }
+                }
+
                 rutinas.isEmpty() -> {
                     item {
                         EmptyTasksCard(showCreateButton = false, onCrearTarea = onCrearTarea)

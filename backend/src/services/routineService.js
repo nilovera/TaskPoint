@@ -1,13 +1,17 @@
-import { deleteRoutine, listRoutines, saveRoutineLastWriteWins } from "../repositories/routineRepository.js";
+import { deleteRoutineLastWriteWins, listRoutineSyncRecords, listRoutines, saveRoutineLastWriteWins } from "../repositories/routineRepository.js";
 import { httpError } from "../utils/httpError.js";
 
 export function getRoutines(userId) {
   return listRoutines(userId);
 }
 
+export function getRoutineSyncRecords(userId) {
+  return listRoutineSyncRecords(userId);
+}
+
 export async function createRoutine(userId, input) {
   const routine = normalizeRoutine(input);
-  return saveRoutineLastWriteWins(userId, routine);
+  return ensureRoutineWasNotDeleted(await saveRoutineLastWriteWins(userId, routine));
 }
 
 export async function updateRoutine(userId, routineId, input) {
@@ -15,13 +19,27 @@ export async function updateRoutine(userId, routineId, input) {
   if (input?.id && input.id !== routineId) {
     throw httpError(400, "El id del cuerpo no coincide con la ruta.");
   }
-  return (await saveRoutineLastWriteWins(userId, routine)).routine;
+  return ensureRoutineWasNotDeleted(await saveRoutineLastWriteWins(userId, routine));
 }
 
-export async function removeRoutine(userId, routineId) {
+export async function removeRoutine(userId, routineId, input) {
   validateId(routineId);
-  const deleted = await deleteRoutine(userId, routineId);
-  if (!deleted) throw httpError(404, "Rutina no encontrada.");
+  const result = await deleteRoutineLastWriteWins(
+    userId,
+    routineId,
+    normalizeTimestamp(input?.updatedAt, Date.now())
+  );
+  if (!result.applied && !result.deleted) {
+    throw httpError(409, "Existe una version remota mas nueva de la rutina.");
+  }
+  return result;
+}
+
+function ensureRoutineWasNotDeleted(result) {
+  if (result.deleted) {
+    throw httpError(409, "La rutina fue eliminada en una version remota mas nueva.");
+  }
+  return result;
 }
 
 function normalizeRoutine(input) {

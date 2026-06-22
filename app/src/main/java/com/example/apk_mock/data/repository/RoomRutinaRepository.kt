@@ -9,6 +9,7 @@ import com.example.apk_mock.data.local.TaskPointDatabase
 import com.example.apk_mock.data.local.entity.SyncOperationEntity
 import com.example.apk_mock.data.mapper.toDomain
 import com.example.apk_mock.data.mapper.toEntity
+import com.example.apk_mock.data.sync.SyncScheduler
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
@@ -17,13 +18,18 @@ import com.example.apk_mock.domain.repository.RutinaResult
 import com.example.apk_mock.domain.repository.UserSessionProvider
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
 class RoomRutinaRepository(
     private val database: TaskPointDatabase,
-    private val sessionProvider: UserSessionProvider
+    private val sessionProvider: UserSessionProvider,
+    private val syncScheduler: SyncScheduler
 ) : RutinaRepository {
 
     private val rutinaDao = database.rutinaDao()
@@ -39,6 +45,20 @@ class RoomRutinaRepository(
                 )
             }
         }
+    }
+
+    override suspend fun observeRutinas(): Flow<List<Rutina>> {
+        val userId = sessionProvider.currentUserId() ?: return flowOf(emptyList())
+        return combine(
+            rutinaDao.observeRutinas(userId),
+            tareaDao.observeTareas(userId)
+        ) { rutinas, tareas ->
+            rutinas.map { rutina ->
+                rutina.toDomain(
+                    cantidadTareas = tareas.count { tarea -> tarea.rutinaId == rutina.id }
+                )
+            }
+        }.flowOn(Dispatchers.IO)
     }
 
     override suspend fun getRutinaById(id: String): Rutina? {
@@ -78,16 +98,18 @@ class RoomRutinaRepository(
 
         withContext(Dispatchers.IO) {
             database.withTransaction {
-                rutinaDao.upsertRutina(rutina.toEntity(userId, SyncStatus.PENDING_CREATE))
+                val entity = rutina.toEntity(userId, SyncStatus.PENDING_CREATE)
+                rutinaDao.upsertRutina(entity)
                 syncOperationDao.upsertOperation(
                     syncOperation(
                         userId = userId,
                         entityId = rutina.id,
                         operationType = SyncOperationType.CREATE,
-                        payloadJson = rutina.toPayloadJson()
+                        payloadJson = entity.toPayloadJson()
                     )
                 )
             }
+            syncScheduler.schedulePendingSync()
         }
 
         return RutinaResult.Success(rutina)
@@ -123,16 +145,18 @@ class RoomRutinaRepository(
             )
 
             database.withTransaction {
-                rutinaDao.upsertRutina(updated.toEntity(userId, SyncStatus.PENDING_UPDATE))
+                val entity = updated.toEntity(userId, SyncStatus.PENDING_UPDATE)
+                rutinaDao.upsertRutina(entity)
                 syncOperationDao.upsertOperation(
                     syncOperation(
                         userId = userId,
                         entityId = updated.id,
                         operationType = SyncOperationType.UPDATE,
-                        payloadJson = updated.toPayloadJson()
+                        payloadJson = entity.toPayloadJson()
                     )
                 )
             }
+            syncScheduler.schedulePendingSync()
 
             RutinaResult.Success(updated)
         }
@@ -148,6 +172,7 @@ class RoomRutinaRepository(
             val removed = current.toDomain(
                 cantidadTareas = tareaDao.countTareasByRutina(current.id, userId)
             )
+            val deletedAt = System.currentTimeMillis()
 
             database.withTransaction {
                 rutinaDao.deleteRutina(id, userId)
@@ -156,11 +181,12 @@ class RoomRutinaRepository(
                         userId = userId,
                         entityId = id,
                         operationType = SyncOperationType.DELETE,
-                        payloadJson = null
+                        payloadJson = deletePayloadJson(deletedAt)
                     )
                 )
             }
 
+            syncScheduler.schedulePendingSync()
             RutinaResult.Success(removed)
         }
     }
@@ -182,16 +208,23 @@ class RoomRutinaRepository(
         )
     }
 
-    private fun Rutina.toPayloadJson(): String {
+    private fun com.example.apk_mock.data.local.entity.RutinaEntity.toPayloadJson(): String {
         return JSONObject()
             .put("id", id)
             .put("nombre", nombre)
-            .put("icono", icono.name)
+            .put("icono", icono)
             .put("direccion", direccion)
-            .put("diasSemana", JSONArray(diasSemana.map { it.name }))
+            .put("diasSemana", JSONArray(diasSemana.split(",").filter { it.isNotBlank() }))
             .put("horarioInicio", horarioInicio)
             .put("horarioFin", horarioFin)
             .put("descripcion", descripcion)
+            .put("updatedAt", updatedAt)
+            .toString()
+    }
+
+    private fun deletePayloadJson(updatedAt: Long): String {
+        return JSONObject()
+            .put("updatedAt", updatedAt)
             .toString()
     }
 }
