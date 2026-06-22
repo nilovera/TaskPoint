@@ -18,6 +18,10 @@ import com.example.apk_mock.domain.repository.RutinaResult
 import com.example.apk_mock.domain.repository.UserSessionProvider
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -41,6 +45,20 @@ class RoomRutinaRepository(
                 )
             }
         }
+    }
+
+    override suspend fun observeRutinas(): Flow<List<Rutina>> {
+        val userId = sessionProvider.currentUserId() ?: return flowOf(emptyList())
+        return combine(
+            rutinaDao.observeRutinas(userId),
+            tareaDao.observeTareas(userId)
+        ) { rutinas, tareas ->
+            rutinas.map { rutina ->
+                rutina.toDomain(
+                    cantidadTareas = tareas.count { tarea -> tarea.rutinaId == rutina.id }
+                )
+            }
+        }.flowOn(Dispatchers.IO)
     }
 
     override suspend fun getRutinaById(id: String): Rutina? {

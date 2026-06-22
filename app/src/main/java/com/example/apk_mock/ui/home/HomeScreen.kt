@@ -79,6 +79,7 @@ fun HomeScreen(
     userName: String,
     rutinasViewModel: RutinasViewModel,
     tareasViewModel: TareasViewModel,
+    isInitialDataSyncInProgress: Boolean = false,
     onCrearRutina: () -> Unit,
     onCrearTarea: () -> Unit = {},
     onProfile: () -> Unit = {},
@@ -142,6 +143,14 @@ fun HomeScreen(
             }
 
             when {
+                rutinas.isEmpty() && isInitialDataSyncInProgress -> {
+                    item {
+                        AppEmptyStateCard(
+                            message = "Cargando tus rutinas\ny tareas..."
+                        )
+                    }
+                }
+
                 rutinas.isEmpty() -> {
                     item {
                         EmptyTasksCard(showCreateButton = false, onCrearTarea = onCrearTarea)

@@ -16,7 +16,10 @@ import javax.inject.Inject
 sealed interface SessionUiState {
     data object Checking : SessionUiState
     data object Unauthenticated : SessionUiState
-    data class Authenticated(val user: User) : SessionUiState
+    data class Authenticated(
+        val user: User,
+        val isInitialDataSyncInProgress: Boolean = false
+    ) : SessionUiState
 }
 
 @HiltViewModel
@@ -36,27 +39,44 @@ class SessionViewModel @Inject constructor(
     fun refreshSession() {
         viewModelScope.launch {
             _uiState.value = SessionUiState.Checking
-            val state = runCatching { authRepository.currentUser() }
-                .getOrNull()
-                ?.let(SessionUiState::Authenticated)
-                ?: SessionUiState.Unauthenticated
-            _uiState.value = state
-            if (state is SessionUiState.Authenticated) {
-                runCatching { remoteSyncReconciler.reconcileRemoteChanges() }
-                syncScheduler.schedulePendingSync()
+            val user = runCatching { authRepository.currentUser() }.getOrNull()
+            if (user == null) {
+                _uiState.value = SessionUiState.Unauthenticated
+                return@launch
             }
+            synchronizeInitialData(user)
         }
     }
 
     fun onAuthenticated(user: User) {
-        _uiState.value = SessionUiState.Authenticated(user)
+        // Se publica antes de navegar a Home para que nunca se interprete una
+        // base local aun vacia como el estado definitivo del usuario.
+        _uiState.value = SessionUiState.Authenticated(
+            user = user,
+            isInitialDataSyncInProgress = true
+        )
         viewModelScope.launch {
-            runCatching { remoteSyncReconciler.reconcileRemoteChanges() }
-            syncScheduler.schedulePendingSync()
+            synchronizeInitialData(user)
         }
     }
 
     fun onSessionEnded() {
         _uiState.value = SessionUiState.Unauthenticated
+    }
+
+    private suspend fun synchronizeInitialData(user: User) {
+        _uiState.value = SessionUiState.Authenticated(
+            user = user,
+            isInitialDataSyncInProgress = true
+        )
+        try {
+            runCatching { remoteSyncReconciler.reconcileRemoteChanges() }
+            runCatching { syncScheduler.schedulePendingSync() }
+        } finally {
+            val currentState = _uiState.value as? SessionUiState.Authenticated
+            if (currentState?.user?.id == user.id) {
+                _uiState.value = SessionUiState.Authenticated(user = user)
+            }
+        }
     }
 }

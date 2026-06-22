@@ -137,6 +137,8 @@ fun AppNavigation() {
     } else {
         Routes.ONBOARDING
     }
+    val isInitialDataSyncInProgress =
+        (sessionState as? SessionUiState.Authenticated)?.isInitialDataSyncInProgress == true
 
     Scaffold(
         containerColor = colors.background,
@@ -235,6 +237,7 @@ fun AppNavigation() {
                     userName = userName,
                     rutinasViewModel = rutinasViewModel,
                     tareasViewModel = tareasViewModel,
+                    isInitialDataSyncInProgress = isInitialDataSyncInProgress,
                     onCrearRutina = { navController.navigate(Routes.CREAR_RUTINA) },
                     onCrearTarea = {
                         tareasViewModel.resetCreateForm()
@@ -250,6 +253,7 @@ fun AppNavigation() {
                 RutinasScreen(
                     viewModel = rutinasViewModel,
                     userName = userName,
+                    isInitialDataSyncInProgress = isInitialDataSyncInProgress,
                     onNavigateToCrear = { navController.navigate(Routes.CREAR_RUTINA) },
                     onRutinaClick = { rutina -> navController.navigate(Routes.rutinaDetalle(rutina.id)) },
                     onProfile = { navController.navigate(Routes.PROFILE) },
@@ -273,6 +277,7 @@ fun AppNavigation() {
                 TareasScreen(
                     viewModel = tareasViewModel,
                     userName = userName,
+                    isInitialDataSyncInProgress = isInitialDataSyncInProgress,
                     onNavigateToCrear = {
                         tareasViewModel.resetCreateForm()
                         navController.navigate(Routes.CREAR_TAREA)

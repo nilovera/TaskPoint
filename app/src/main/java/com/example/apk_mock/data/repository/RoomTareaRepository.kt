@@ -20,6 +20,10 @@ import com.example.apk_mock.domain.repository.TareaResult
 import com.example.apk_mock.domain.repository.UserSessionProvider
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
@@ -38,6 +42,13 @@ class RoomTareaRepository(
         return withContext(Dispatchers.IO) {
             tareaDao.getTareas(userId).toTareaDomainList()
         }
+    }
+
+    override suspend fun observeTareas(): Flow<List<Tarea>> {
+        val userId = sessionProvider.currentUserId() ?: return flowOf(emptyList())
+        return tareaDao.observeTareas(userId)
+            .map { entities -> entities.toTareaDomainList() }
+            .flowOn(Dispatchers.IO)
     }
 
     override suspend fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String): Int {

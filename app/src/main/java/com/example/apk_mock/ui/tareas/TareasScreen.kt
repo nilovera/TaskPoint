@@ -52,6 +52,7 @@ import kotlinx.coroutines.delay
 fun TareasScreen(
     viewModel: TareasViewModel,
     userName: String,
+    isInitialDataSyncInProgress: Boolean = false,
     onNavigateToCrear: () -> Unit,
     onProfile: () -> Unit = {},
     onLogout: () -> Unit = {},
@@ -123,7 +124,9 @@ fun TareasScreen(
                 FiltrosDias(seleccionado = listState.filtroDia, onSelect = { viewModel.onFiltroDia(it) })
                 Spacer(Modifier.height(12.dp))
 
-                if (tareas.isEmpty()) {
+                if (tareas.isEmpty() && isInitialDataSyncInProgress) {
+                    AppEmptyStateCard(message = "Cargando tus tareas...")
+                } else if (tareas.isEmpty()) {
                     EmptyTasksBlock(
                         canCreateTask = canCreateTask,
                         onNavigateToCrear = onNavigateToCrear

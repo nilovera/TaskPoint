@@ -36,6 +36,7 @@ import kotlinx.coroutines.delay
 fun RutinasScreen(
     viewModel: RutinasViewModel,
     userName: String,
+    isInitialDataSyncInProgress: Boolean = false,
     onNavigateToCrear: () -> Unit,
     onRutinaClick: (Rutina) -> Unit = {},
     onProfile: () -> Unit = {},
@@ -95,7 +96,10 @@ fun RutinasScreen(
                 onLogout = onLogout
             )
 
-            if (rutinas.isEmpty()) {
+            if (rutinas.isEmpty() && isInitialDataSyncInProgress) {
+                Spacer(Modifier.height(12.dp))
+                AppEmptyStateCard(message = "Cargando tus rutinas...")
+            } else if (rutinas.isEmpty()) {
                 // ── Empty state ────────────────────────────────────────────────
                 Spacer(Modifier.height(12.dp))
                 AppEmptyStateCard(
