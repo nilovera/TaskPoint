@@ -10,6 +10,14 @@ export const env = {
     secret: process.env.JWT_SECRET || "taskpoint-dev-secret",
     expiresIn: process.env.JWT_EXPIRES_IN || "7d"
   },
+  email: {
+    host: process.env.SMTP_HOST || "",
+    port: Number(process.env.SMTP_PORT || 465),
+    secure: process.env.SMTP_SECURE !== "false",
+    user: process.env.SMTP_USER || "",
+    password: process.env.SMTP_PASSWORD || "",
+    from: process.env.SMTP_FROM || ""
+  },
   firebase: {
     serviceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH || "",
     projectId: process.env.FIREBASE_PROJECT_ID || "",

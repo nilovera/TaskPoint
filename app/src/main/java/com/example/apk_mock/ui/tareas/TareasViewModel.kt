@@ -18,7 +18,10 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -80,23 +83,34 @@ class TareasViewModel @Inject constructor(
     private val _detailState = MutableStateFlow(TaskDetailUiState())
     val detailState: StateFlow<TaskDetailUiState> = _detailState.asStateFlow()
 
+    private var listObservationJob: Job? = null
+
+    init {
+        refreshTareas()
+    }
+
     fun refreshTareas() {
-        viewModelScope.launch {
+        listObservationJob?.cancel()
+        listObservationJob = viewModelScope.launch {
             _listState.update { it.copy(isLoading = true, errorMessage = null) }
-            runCatching {
-                val tareas = tareaRepository.getTareas()
-                val rutinas = rutinaRepository.getRutinas()
-                tareas to rutinas
-            }.onSuccess { (tareas, rutinas) ->
+            combine(
+                tareaRepository.observeTareas(),
+                rutinaRepository.observeRutinas()
+            ) { tareas, rutinas ->
+                tareas to rutinas.size
+            }.catch {
+                _listState.update { state ->
+                    state.copy(isLoading = false, errorMessage = "No se pudieron cargar las tareas.")
+                }
+            }.collect { (tareas, rutinasDisponibles) ->
                 _listState.update {
                     it.copy(
                         tareas = tareas,
-                        rutinasDisponibles = rutinas.size,
-                        isLoading = false
+                        rutinasDisponibles = rutinasDisponibles,
+                        isLoading = false,
+                        errorMessage = null
                     )
                 }
-            }.onFailure {
-                _listState.update { state -> state.copy(isLoading = false, errorMessage = "No se pudieron cargar las tareas.") }
             }
         }
     }
