@@ -28,7 +28,7 @@ import com.example.apk_mock.data.local.entity.TareaEntity
         SyncOperationEntity::class,
         TareaEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(DatabaseConverters::class)
@@ -69,6 +69,13 @@ abstract class TaskPointDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `rutinas` ADD COLUMN `latitude` REAL")
+                db.execSQL("ALTER TABLE `rutinas` ADD COLUMN `longitude` REAL")
+            }
+        }
+
         @Volatile
         private var instance: TaskPointDatabase? = null
 
@@ -79,7 +86,7 @@ abstract class TaskPointDatabase : RoomDatabase() {
                     TaskPointDatabase::class.java,
                     DATABASE_NAME
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                     .also { instance = it }
             }

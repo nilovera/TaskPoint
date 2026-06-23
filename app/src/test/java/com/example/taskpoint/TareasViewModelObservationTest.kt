@@ -132,5 +132,9 @@ private object EmptyCategoriaRepository : CategoriaRepository {
 }
 
 private object EmptyOfferRepository : OfferRepository {
-    override suspend fun getOffersByCategory(categoryCode: String): List<StoreOffer> = emptyList()
+    override suspend fun getOffersByCategory(
+        categoryCode: String,
+        originLatitude: Double,
+        originLongitude: Double
+    ): List<StoreOffer> = emptyList()
 }

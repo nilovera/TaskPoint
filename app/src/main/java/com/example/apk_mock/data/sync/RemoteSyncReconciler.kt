@@ -148,6 +148,8 @@ class RemoteSyncReconciler @Inject constructor(
                 nombre = nombre,
                 icono = icono,
                 direccion = direccion,
+                latitude = remote.latitude,
+                longitude = remote.longitude,
                 diasSemana = dias.joinToString(separator = ","),
                 horarioInicio = horarioInicio,
                 horarioFin = horarioFin,

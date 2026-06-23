@@ -16,6 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -159,7 +164,17 @@ fun FiltrosDias(seleccionado: DiaSemana?, onSelect: (DiaSemana?) -> Unit) {
                 shape = RoundedCornerShape(20.dp),
                 color = if (isSelected) colors.primary else colors.surface,
                 border = if (isSelected) null else BorderStroke(1.dp, colors.border),
-                modifier = Modifier.height(32.dp)
+                modifier = Modifier
+                    .heightIn(min = 48.dp)
+                    .semantics {
+                        contentDescription = if (dia == null) {
+                            "Mostrar rutinas de todos los días"
+                        } else {
+                            "Mostrar rutinas de ${dia.label}"
+                        }
+                        selected = isSelected
+                        role = Role.RadioButton
+                    }
             ) {
                 Box(Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
                     Text(
@@ -181,6 +196,18 @@ fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
     val isLight = colors.background.luminance() > 0.5f
     val dayChipContainer = colors.primary.copy(alpha = if (isLight) 0.16f else 0.18f)
     val countChipContainer = if (isLight) colors.primary else colors.primary.copy(alpha = 0.28f)
+    val accessibilityDescription = buildString {
+        append("Rutina ${rutina.nombre}.")
+        append(" Horario ${rutina.horarioInicio} a ${rutina.horarioFin}.")
+        if (rutina.direccion.isNotBlank()) append(" Dirección ${rutina.direccion}.")
+        if (rutina.diasSemana.isNotEmpty()) {
+            append(" Días ${rutina.diasSemana.distinct().joinToString { it.label }}.")
+        }
+        append(
+            if (rutina.cantidadTareas == 1) " Tiene 1 tarea."
+            else " Tiene ${rutina.cantidadTareas} tareas."
+        )
+    }
 
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -188,7 +215,14 @@ fun RutinaCard(rutina: Rutina, onClick: () -> Unit = {}) {
         border = BorderStroke(1.dp, colors.border),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .semantics(mergeDescendants = true) {
+                contentDescription = accessibilityDescription
+            }
+            .clickable(
+                role = Role.Button,
+                onClickLabel = "Abrir rutina ${rutina.nombre}",
+                onClick = onClick
+            )
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp),

@@ -293,6 +293,8 @@ class SyncProcessor @Inject constructor(
                 nombre = remote.nombre,
                 icono = remote.icono,
                 direccion = remote.direccion,
+                latitude = remote.latitude,
+                longitude = remote.longitude,
                 diasSemana = remote.diasSemana.joinToString(separator = ","),
                 horarioInicio = remote.horarioInicio,
                 horarioFin = remote.horarioFin,
@@ -387,6 +389,8 @@ class SyncProcessor @Inject constructor(
             nombre = payload.requiredString("nombre"),
             icono = payload.requiredString("icono"),
             direccion = payload.requiredString("direccion"),
+            latitude = payload.doubleOrNull("latitude"),
+            longitude = payload.doubleOrNull("longitude"),
             diasSemana = payload.getJSONArray("diasSemana").let { days ->
                 List(days.length()) { index -> days.getString(index) }
             },
@@ -421,6 +425,11 @@ class SyncProcessor @Inject constructor(
     private fun JSONObject.stringOrNull(name: String): String? {
         if (!has(name) || isNull(name)) return null
         return optString(name).trim().takeIf { it.isNotEmpty() }
+    }
+
+    private fun JSONObject.doubleOrNull(name: String): Double? {
+        if (!has(name) || isNull(name)) return null
+        return optDouble(name, Double.NaN).takeIf { it.isFinite() }
     }
 
     private fun HttpException.toSyncMessage(): String {

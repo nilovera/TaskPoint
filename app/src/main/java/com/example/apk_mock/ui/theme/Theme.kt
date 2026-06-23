@@ -1,8 +1,12 @@
 package com.example.apk_mock.ui.theme
 
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -10,6 +14,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import com.example.apk_mock.domain.model.ThemePreference
 
 @Immutable
@@ -135,8 +140,21 @@ fun APKMockTheme(
         ThemePreference.LIGHT -> false
         ThemePreference.DARK -> true
     }
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    val taskPointColors = if (darkTheme) DarkTaskPointColors else LightTaskPointColors
+    val fallbackColorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val fallbackTaskPointColors = if (darkTheme) DarkTaskPointColors else LightTaskPointColors
+    val useDynamicColor =
+        themePreference == ThemePreference.SYSTEM && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val context = LocalContext.current
+    val colorScheme = when {
+        useDynamicColor && darkTheme -> dynamicDarkColorScheme(context)
+        useDynamicColor -> dynamicLightColorScheme(context)
+        else -> fallbackColorScheme
+    }
+    val taskPointColors = if (useDynamicColor) {
+        colorScheme.toTaskPointColors(fallbackTaskPointColors)
+    } else {
+        fallbackTaskPointColors
+    }
 
     CompositionLocalProvider(LocalTaskPointColors provides taskPointColors) {
         MaterialTheme(
@@ -145,3 +163,28 @@ fun APKMockTheme(
         )
     }
 }
+
+private fun ColorScheme.toTaskPointColors(fallback: TaskPointColors): TaskPointColors = fallback.copy(
+    background = background,
+    surface = surface,
+    surfaceAlt = surfaceVariant,
+    routineCard = surface,
+    taskCard = surface,
+    subTaskCard = surfaceVariant,
+    border = outlineVariant,
+    fieldBackground = surface,
+    fieldBorder = outline,
+    textPrimary = onBackground,
+    textSecondary = onSurfaceVariant,
+    label = onSurface,
+    placeholder = onSurfaceVariant.copy(alpha = 0.72f),
+    primary = primary,
+    destructive = error,
+    warningBackground = errorContainer,
+    warningText = onErrorContainer,
+    errorBackground = errorContainer,
+    avatarContainer = primaryContainer,
+    avatarIcon = onPrimaryContainer,
+    bottomNavBackground = surface,
+    bottomNavInactive = onSurfaceVariant
+)

@@ -29,6 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -149,7 +153,9 @@ fun TareasScreen(
                                     color = colors.primary,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(top = 12.dp, bottom = 6.dp)
+                                    modifier = Modifier
+                                        .padding(top = 12.dp, bottom = 6.dp)
+                                        .semantics { heading() }
                                 )
                             }
                             items(tareasDelDia.sortedBy { it.horario ?: "" }) { tarea ->
@@ -195,6 +201,13 @@ fun TareaCard(
 ) {
     val categoryColors = tarea.categoria.categoryChipColors()
     val colors = TaskPointTheme.colors
+    val accessibilityDescription = buildString {
+        append("Tarea ${tarea.titulo}.")
+        append(if (tarea.completada) " Completada." else " Pendiente.")
+        tarea.horario?.let { append(" Horario $it.") }
+        tarea.rutinaNombre?.let { append(" Rutina $it.") }
+        append(" Categoría ${tarea.categoria.label}.")
+    }
 
     Surface(
         shape = RoundedCornerShape(12.dp),
@@ -203,7 +216,14 @@ fun TareaCard(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 62.dp)
-            .clickable(onClick = onClick)
+            .semantics(mergeDescendants = true) {
+                contentDescription = accessibilityDescription
+            }
+            .clickable(
+                role = Role.Button,
+                onClickLabel = "Abrir tarea ${tarea.titulo}",
+                onClick = onClick
+            )
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),

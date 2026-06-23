@@ -61,6 +61,7 @@ data class TaskDetailUiState(
     val tarea: Tarea? = null,
     val rutina: Rutina? = null,
     val offers: List<StoreOffer> = emptyList(),
+    val offersLocationPending: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isDeleted: Boolean = false
@@ -129,20 +130,31 @@ class TareasViewModel @Inject constructor(
                 val tarea = tareaRepository.getTareas().find { it.id == taskId }
                     ?: return@runCatching null
                 val rutina = tarea.rutinaId?.let { rutinaRepository.getRutinaById(it) }
-                val offers = if (tarea.categoria.activatesOffers) {
-                    offerRepository.getOffersByCategory(tarea.categoria.code)
+                val routineHasCoordinates = rutina?.latitude != null && rutina.longitude != null
+                val offers = if (tarea.categoria.activatesOffers && routineHasCoordinates) {
+                    offerRepository.getOffersByCategory(
+                        categoryCode = tarea.categoria.code,
+                        originLatitude = rutina.latitude!!,
+                        originLongitude = rutina.longitude!!
+                    )
                 } else {
                     emptyList()
                 }
-                Triple(tarea, rutina, offers)
+                TaskDetailLoaded(
+                    tarea = tarea,
+                    rutina = rutina,
+                    offers = offers,
+                    offersLocationPending = tarea.categoria.activatesOffers && !routineHasCoordinates
+                )
             }.onSuccess { result ->
                 if (result == null) {
                     _detailState.value = TaskDetailUiState(errorMessage = "No se encontro la tarea.")
                 } else {
                     _detailState.value = TaskDetailUiState(
-                        tarea = result.first,
-                        rutina = result.second,
-                        offers = result.third
+                        tarea = result.tarea,
+                        rutina = result.rutina,
+                        offers = result.offers,
+                        offersLocationPending = result.offersLocationPending
                     )
                 }
             }.onFailure {
@@ -373,6 +385,13 @@ class TareasViewModel @Inject constructor(
         }
     }
 }
+
+private data class TaskDetailLoaded(
+    val tarea: Tarea,
+    val rutina: Rutina?,
+    val offers: List<StoreOffer>,
+    val offersLocationPending: Boolean
+)
 
 private val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 

@@ -25,6 +25,10 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -531,9 +535,15 @@ private fun RowScope.BottomNavButton(
         modifier = Modifier
             .weight(1f)
             .height(86.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = item.label
+                this.selected = selected
+            }
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
+                role = Role.Tab,
+                onClickLabel = "Abrir ${item.label}",
                 onClick = onClick
             ),
         contentAlignment = Alignment.Center
@@ -550,7 +560,7 @@ private fun RowScope.BottomNavButton(
         ) {
             Icon(
                 item.icon,
-                contentDescription = item.label,
+                contentDescription = null,
                 tint = if (selected) Color.White else colors.bottomNavInactive,
                 modifier = Modifier.size(iconSize)
             )

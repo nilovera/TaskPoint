@@ -66,6 +66,7 @@ fun DetalleTareaScreen(
     val tarea = detailState.tarea
     val rutina = detailState.rutina
     val offers = detailState.offers
+    val offersLocationPending = detailState.offersLocationPending
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showSavedOverlay by remember { mutableStateOf(false) }
     val colors = TaskPointTheme.colors
@@ -140,12 +141,20 @@ fun DetalleTareaScreen(
         DetailSectionTitle("Notas")
         NotesBlock(text = tarea.notas.ifBlank { "Sin notas." })
         Spacer(Modifier.height(20.dp))
-        if (offers.isNotEmpty()) {
+        if (offers.isNotEmpty() || offersLocationPending) {
             DetailSectionTitle("OFERTAS CERCA DE ESTA RUTINA")
             Spacer(Modifier.height(8.dp))
-            offers.forEach { offer ->
-                OfferCard(offer = offer)
-                Spacer(Modifier.height(10.dp))
+            if (offersLocationPending) {
+                Text(
+                    "Calcularemos las ofertas cercanas cuando se ubique la dirección de la rutina.",
+                    color = colors.textSecondary,
+                    fontSize = 14.sp
+                )
+            } else {
+                offers.forEach { offer ->
+                    OfferCard(offer = offer)
+                    Spacer(Modifier.height(10.dp))
+                }
             }
         }
     }

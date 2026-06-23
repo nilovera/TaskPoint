@@ -9,6 +9,7 @@ import com.example.apk_mock.data.local.TaskPointDatabase
 import com.example.apk_mock.data.local.entity.SyncOperationEntity
 import com.example.apk_mock.data.mapper.toDomain
 import com.example.apk_mock.data.mapper.toEntity
+import com.example.apk_mock.data.geocoding.RoutineGeocodingScheduler
 import com.example.apk_mock.data.sync.SyncScheduler
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
@@ -29,7 +30,8 @@ import org.json.JSONObject
 class RoomRutinaRepository(
     private val database: TaskPointDatabase,
     private val sessionProvider: UserSessionProvider,
-    private val syncScheduler: SyncScheduler
+    private val syncScheduler: SyncScheduler,
+    private val geocodingScheduler: RoutineGeocodingScheduler
 ) : RutinaRepository {
 
     private val rutinaDao = database.rutinaDao()
@@ -110,6 +112,7 @@ class RoomRutinaRepository(
                 )
             }
             syncScheduler.schedulePendingSync()
+            geocodingScheduler.scheduleRoutine(userId, rutina.id, rutina.direccion)
         }
 
         return RutinaResult.Success(rutina)
@@ -138,6 +141,8 @@ class RoomRutinaRepository(
                 nombre = nombre,
                 icono = icono,
                 direccion = direccion,
+                latitude = if (current.direccion == direccion) current.latitude else null,
+                longitude = if (current.direccion == direccion) current.longitude else null,
                 diasSemana = dias,
                 horarioInicio = horarioInicio,
                 horarioFin = horarioFin,
@@ -157,6 +162,9 @@ class RoomRutinaRepository(
                 )
             }
             syncScheduler.schedulePendingSync()
+            if (updated.latitude == null || updated.longitude == null) {
+                geocodingScheduler.scheduleRoutine(userId, updated.id, updated.direccion)
+            }
 
             RutinaResult.Success(updated)
         }
@@ -214,6 +222,8 @@ class RoomRutinaRepository(
             .put("nombre", nombre)
             .put("icono", icono)
             .put("direccion", direccion)
+            .put("latitude", latitude)
+            .put("longitude", longitude)
             .put("diasSemana", JSONArray(diasSemana.split(",").filter { it.isNotBlank() }))
             .put("horarioInicio", horarioInicio)
             .put("horarioFin", horarioFin)
