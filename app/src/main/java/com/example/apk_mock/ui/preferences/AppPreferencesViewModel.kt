@@ -44,4 +44,5 @@ class AppPreferencesViewModel @Inject constructor(
     fun setThemePreference(themePreference: ThemePreference) {
         viewModelScope.launch { repository.setThemePreference(themePreference) }
     }
+
 }

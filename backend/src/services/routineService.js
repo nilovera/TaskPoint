@@ -44,11 +44,14 @@ function ensureRoutineWasNotDeleted(result) {
 
 function normalizeRoutine(input) {
   const now = Date.now();
+  const coordinates = normalizeCoordinates(input?.latitude, input?.longitude);
   return {
     id: validateId(input?.id),
     nombre: requiredText(input?.nombre, "El nombre es obligatorio."),
     icono: requiredText(input?.icono, "El icono es obligatorio."),
     direccion: requiredText(input?.direccion, "La direccion es obligatoria."),
+    latitude: coordinates.latitude,
+    longitude: coordinates.longitude,
     diasSemana: normalizeDays(input?.diasSemana),
     horarioInicio: requiredText(input?.horarioInicio, "El horario de inicio es obligatorio."),
     horarioFin: requiredText(input?.horarioFin, "El horario de fin es obligatorio."),
@@ -56,6 +59,25 @@ function normalizeRoutine(input) {
     createdAt: now,
     updatedAt: normalizeTimestamp(input?.updatedAt, now)
   };
+}
+
+function normalizeCoordinates(latitude, longitude) {
+  if (latitude === null || latitude === undefined) {
+    if (longitude !== null && longitude !== undefined) {
+      throw httpError(400, "La latitud y longitud deben enviarse juntas.");
+    }
+    return { latitude: null, longitude: null };
+  }
+  if (longitude === null || longitude === undefined) {
+    throw httpError(400, "La latitud y longitud deben enviarse juntas.");
+  }
+  if (
+    typeof latitude !== "number" || !Number.isFinite(latitude) || latitude < -90 || latitude > 90 ||
+    typeof longitude !== "number" || !Number.isFinite(longitude) || longitude < -180 || longitude > 180
+  ) {
+    throw httpError(400, "Las coordenadas no son validas.");
+  }
+  return { latitude, longitude };
 }
 
 function normalizeDays(value) {

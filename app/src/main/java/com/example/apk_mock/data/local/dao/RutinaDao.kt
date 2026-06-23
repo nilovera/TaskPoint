@@ -18,6 +18,9 @@ interface RutinaDao {
     @Query("SELECT * FROM rutinas WHERE id = :id AND userId = :userId LIMIT 1")
     suspend fun getRutinaById(id: String, userId: String): RutinaEntity?
 
+    @Query("SELECT * FROM rutinas WHERE userId = :userId AND (latitude IS NULL OR longitude IS NULL)")
+    suspend fun getRutinasWithoutCoordinates(userId: String): List<RutinaEntity>
+
     @Query("SELECT * FROM rutinas WHERE userId = :userId AND syncStatus != :syncedStatus")
     suspend fun getPendingRutinas(
         userId: String,

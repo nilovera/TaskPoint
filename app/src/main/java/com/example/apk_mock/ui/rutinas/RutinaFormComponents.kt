@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,6 +26,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -118,7 +125,16 @@ private fun RutinaIconoOption(
                 if (selected) Modifier.border(2.dp, selectedBorderColor, shape)
                 else Modifier
             )
-            .clickable(onClick = onClick),
+            .semantics {
+                contentDescription = "Icono ${icono.name.lowercase()}"
+                this.selected = selected
+                role = Role.RadioButton
+            }
+            .clickable(
+                role = Role.RadioButton,
+                onClickLabel = "Seleccionar icono ${icono.name.lowercase()}",
+                onClick = onClick
+            ),
         contentAlignment = Alignment.Center
     ) {
         Text(icono.emoji, fontSize = emojiFontSize)
@@ -148,7 +164,13 @@ internal fun RutinaDiasSelector(
                 shape = RoundedCornerShape(20.dp),
                 color = if (selected) colors.primary else colors.surface,
                 border = if (selected) null else BorderStroke(1.dp, colors.border),
-                modifier = Modifier.height(32.dp)
+                modifier = Modifier
+                    .heightIn(min = 48.dp)
+                    .semantics {
+                        contentDescription = "Día ${dia.label}"
+                        stateDescription = if (selected) "Seleccionado" else "No seleccionado"
+                        role = Role.Checkbox
+                    }
             ) {
                 Box(
                     Modifier.padding(horizontal = horizontalPadding),

@@ -18,6 +18,8 @@ data class RutinaEntity(
     val nombre: String,
     val icono: String,
     val direccion: String,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val diasSemana: String,
     val horarioInicio: String,
     val horarioFin: String,

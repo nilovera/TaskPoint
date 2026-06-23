@@ -5,6 +5,8 @@ data class Rutina(
     val nombre: String,
     val icono: RutinaIcono,
     val direccion: String,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val diasSemana: List<DiaSemana>,
     val horarioInicio: String,
     val horarioFin: String,
