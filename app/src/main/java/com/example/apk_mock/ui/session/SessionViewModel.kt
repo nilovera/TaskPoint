@@ -64,6 +64,13 @@ class SessionViewModel @Inject constructor(
         _uiState.value = SessionUiState.Unauthenticated
     }
 
+    fun logout() {
+        viewModelScope.launch {
+            runCatching { authRepository.logout() }
+            _uiState.value = SessionUiState.Unauthenticated
+        }
+    }
+
     private suspend fun synchronizeInitialData(user: User) {
         _uiState.value = SessionUiState.Authenticated(
             user = user,

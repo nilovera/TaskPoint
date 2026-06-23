@@ -202,12 +202,27 @@ class TareasViewModel @Inject constructor(
     }
 
     fun loadEditFormData(taskId: String) {
+        val normalizedTaskId = taskId.trim()
+        val currentState = _formState.value
+        if (
+            normalizedTaskId.isNotBlank() &&
+            currentState.loadedTaskId == normalizedTaskId &&
+            (currentState.isFormLoaded || currentState.isLoading)
+        ) {
+            return
+        }
+
         viewModelScope.launch {
-            _formState.update { it.copy(isLoading = true) }
+            _formState.update {
+                it.copy(
+                    isLoading = true,
+                    loadedTaskId = normalizedTaskId.ifBlank { it.loadedTaskId }
+                )
+            }
             runCatching {
                 val categorias = categoriaRepository.getCategorias()
                 val rutinas = rutinaRepository.getRutinas()
-                val tarea = tareaRepository.getTareas().find { it.id == taskId }
+                val tarea = tareaRepository.getTareas().find { it.id == normalizedTaskId }
                 Triple(categorias, rutinas, tarea)
             }.onSuccess { (categorias, rutinas, tarea) ->
                 if (tarea == null) {
@@ -230,7 +245,7 @@ class TareasViewModel @Inject constructor(
                     diasDisponibles = rutina?.diasSemana.orEmpty(),
                     horariosDisponibles = rutina?.horariosDisponibles().orEmpty(),
                     isFormLoaded = true,
-                    loadedTaskId = taskId
+                    loadedTaskId = normalizedTaskId
                 )
             }.onFailure {
                 _formState.update { it.copy(isLoading = false) }

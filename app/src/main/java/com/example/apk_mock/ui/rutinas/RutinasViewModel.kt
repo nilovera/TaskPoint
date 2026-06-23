@@ -63,6 +63,8 @@ data class EditarRutinaUiState(
     val horarioFinError: String? = null,
     val descripcionError: String? = null,
     val errorMessage: String? = null,
+    val isFormLoaded: Boolean = false,
+    val isLoading: Boolean = false,
     val isSuccess: Boolean = false
 )
 
@@ -188,13 +190,36 @@ class RutinasViewModel @Inject constructor(
     fun onHorarioFinChange(v: String) = _formState.update { it.copy(horarioFin = v, horarioFinError = null) }
     fun onDescripcionChange(v: String) = _formState.update { it.copy(descripcion = v, descripcionError = null) }
 
+    fun resetEditForm() {
+        _editState.value = EditarRutinaUiState()
+    }
+
     fun loadEditarRutina(rutinaId: String) {
+        val normalizedRutinaId = rutinaId.trim()
+        val currentState = _editState.value
+        if (
+            normalizedRutinaId.isNotBlank() &&
+            currentState.rutinaId == normalizedRutinaId &&
+            (currentState.isFormLoaded || currentState.isLoading)
+        ) {
+            return
+        }
+
         viewModelScope.launch {
-            val rutina = rutinaRepository.getRutinaById(rutinaId.trim())
+            _editState.update {
+                it.copy(
+                    rutinaId = normalizedRutinaId.ifBlank { it.rutinaId },
+                    isLoading = true,
+                    errorMessage = null
+                )
+            }
+
+            val rutina = rutinaRepository.getRutinaById(normalizedRutinaId)
             if (rutina == null) {
                 _editState.update {
                     EditarRutinaUiState(
-                        rutinaId = rutinaId,
+                        rutinaId = normalizedRutinaId,
+                        isLoading = false,
                         errorMessage = "La rutina no existe o no pertenece a tu cuenta."
                     )
                 }
@@ -210,7 +235,9 @@ class RutinasViewModel @Inject constructor(
                     diasSeleccionados = rutina.diasSemana.toSet(),
                     horarioInicio = rutina.horarioInicio,
                     horarioFin = rutina.horarioFin,
-                    descripcion = rutina.descripcion
+                    descripcion = rutina.descripcion,
+                    isFormLoaded = true,
+                    isLoading = false
                 )
             }
         }

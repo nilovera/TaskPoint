@@ -34,7 +34,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -98,11 +97,6 @@ fun HomeScreen(
     val colors = TaskPointTheme.colors
     val sections = remember(rutinas, todayTasks, colors.primary) {
         buildHomeSections(rutinas, todayTasks, colors.primary)
-    }
-
-    LaunchedEffect(Unit) {
-        rutinasViewModel.refreshRutinas()
-        tareasViewModel.refreshTareas()
     }
 
     Scaffold(
