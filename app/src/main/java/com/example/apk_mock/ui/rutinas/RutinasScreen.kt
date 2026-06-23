@@ -52,8 +52,6 @@ fun RutinasScreen(
     val colors = TaskPointTheme.colors
     var overlayMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) { viewModel.refreshRutinas() }
-
     LaunchedEffect(listState.snackbarMessage) {
         listState.snackbarMessage?.let { message ->
             overlayMessage = message

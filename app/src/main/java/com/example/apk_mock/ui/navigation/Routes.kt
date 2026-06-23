@@ -1,6 +1,10 @@
 package com.example.apk_mock.ui.navigation
 
 object Routes {
+    // Graphs
+    const val MAIN_GRAPH     = "main_graph"
+    const val PROFILE_GRAPH  = "profile_graph"
+
     // Onboarding
     const val ONBOARDING      = "onboarding"
 

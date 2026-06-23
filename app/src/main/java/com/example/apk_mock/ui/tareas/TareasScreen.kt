@@ -74,7 +74,6 @@ fun TareasScreen(
     val colors = TaskPointTheme.colors
     var overlayMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) { viewModel.refreshTareas() }
     LaunchedEffect(showTaskCreatedMessage) {
         if (showTaskCreatedMessage) {
             overlayMessage = "Tarea creada correctamente."
