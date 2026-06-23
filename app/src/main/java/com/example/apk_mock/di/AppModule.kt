@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.apk_mock.data.local.OfferCatalogImporter
 import com.example.apk_mock.data.local.LocalUserDataCleaner
 import com.example.apk_mock.data.local.TaskPointDatabase
+import com.example.apk_mock.data.geocoding.RoutineGeocodingScheduler
 import com.example.apk_mock.data.remote.AuthApi
 import com.example.apk_mock.data.remote.RetrofitClient
 import com.example.apk_mock.data.remote.RoutineApi
@@ -77,11 +78,13 @@ object AppModule {
         authApi: AuthApi,
         sessionStorage: SecureSessionStorage,
         syncScheduler: SyncScheduler,
+        geocodingScheduler: RoutineGeocodingScheduler,
         localUserDataCleaner: LocalUserDataCleaner
     ): RemoteAuthRepository = RemoteAuthRepository(
         authApi,
         sessionStorage,
         syncScheduler,
+        geocodingScheduler,
         localUserDataCleaner
     )
 
@@ -105,8 +108,9 @@ object AppModule {
     fun provideRutinaRepository(
         database: TaskPointDatabase,
         sessionProvider: UserSessionProvider,
-        syncScheduler: SyncScheduler
-    ): RutinaRepository = RoomRutinaRepository(database, sessionProvider, syncScheduler)
+        syncScheduler: SyncScheduler,
+        geocodingScheduler: RoutineGeocodingScheduler
+    ): RutinaRepository = RoomRutinaRepository(database, sessionProvider, syncScheduler, geocodingScheduler)
 
     @Provides
     @Singleton

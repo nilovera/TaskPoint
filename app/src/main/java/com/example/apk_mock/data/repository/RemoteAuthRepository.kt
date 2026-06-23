@@ -10,6 +10,7 @@ import com.example.apk_mock.data.remote.dto.UserDto
 import com.example.apk_mock.data.remote.dto.VerifyResetCodeRequestDto
 import com.example.apk_mock.data.local.LocalUserDataCleaner
 import com.example.apk_mock.data.secure.SecureSessionStorage
+import com.example.apk_mock.data.geocoding.RoutineGeocodingScheduler
 import com.example.apk_mock.data.sync.SyncScheduler
 import com.example.apk_mock.domain.repository.AuthRepository
 import com.example.apk_mock.domain.repository.AuthResult
@@ -26,6 +27,7 @@ class RemoteAuthRepository(
     private val authApi: AuthApi,
     private val sessionStorage: SecureSessionStorage,
     private val syncScheduler: SyncScheduler,
+    private val geocodingScheduler: RoutineGeocodingScheduler,
     private val localUserDataCleaner: LocalUserDataCleaner
 ) : AuthRepository, UserSessionProvider {
 
@@ -41,6 +43,7 @@ class RemoteAuthRepository(
                 )
                 val user = response.user.toDomainUser()
                 sessionStorage.saveSession(response.token, user)
+                geocodingScheduler.schedulePendingRoutines(user.id)
                 AuthResult.Success(user)
             }.getOrElse { error ->
                 AuthResult.Error(error.toUserMessage("No se pudo registrar la cuenta."))
@@ -54,6 +57,7 @@ class RemoteAuthRepository(
                 val response = authApi.login(LoginRequestDto(email = email, password = password))
                 val user = response.user.toDomainUser()
                 sessionStorage.saveSession(response.token, user)
+                geocodingScheduler.schedulePendingRoutines(user.id)
                 AuthResult.Success(user)
             }.getOrElse { error ->
                 AuthResult.Error(error.toUserMessage("Correo o contraseña incorrectos."))
@@ -72,6 +76,7 @@ class RemoteAuthRepository(
     override suspend fun logout() {
         withContext(Dispatchers.IO) {
             syncScheduler.cancelPendingSync()
+            geocodingScheduler.cancelPendingGeocoding()
             sessionStorage.clear()
         }
     }
@@ -143,6 +148,7 @@ class RemoteAuthRepository(
             runCatching {
                 authApi.deleteCurrentUser(authorization)
                 syncScheduler.cancelPendingSync()
+                geocodingScheduler.cancelPendingGeocoding()
                 if (userId != null) {
                     localUserDataCleaner.clearUserData(userId)
                 }

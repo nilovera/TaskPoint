@@ -2,6 +2,7 @@ package com.example.apk_mock.data.repository
 
 import com.example.apk_mock.data.local.OfferCatalogImporter
 import com.example.apk_mock.data.local.dao.OfferDao
+import com.example.apk_mock.data.geocoding.distanceMeters
 import com.example.apk_mock.data.mapper.toDomain
 import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.repository.OfferRepository
@@ -13,13 +14,16 @@ class RoomOfferRepository(
     private val offerCatalogImporter: OfferCatalogImporter
 ) : OfferRepository {
 
-    override suspend fun getOffersByCategory(categoryCode: String): List<StoreOffer> {
+    override suspend fun getOffersByCategory(
+        categoryCode: String,
+        originLatitude: Double,
+        originLongitude: Double
+    ): List<StoreOffer> {
         return withContext(Dispatchers.IO) {
             offerCatalogImporter.importIfNeeded()
 
             val storesById = offerDao.getStoresByCategory(categoryCode)
                 .associateBy { it.id }
-            val distanceSequence = listOf(50, 120, 180, 240, 320, 450)
 
             offerDao.getOffersByCategory(categoryCode)
                 .mapNotNull { offerEntity ->
@@ -27,14 +31,20 @@ class RoomOfferRepository(
                     offerEntity.toDomain() to storeEntity.toDomain()
                 }
                 .distinctBy { (_, store) -> store.id }
-                .take(4)
-                .mapIndexed { index, (offer, store) ->
+                .map { (offer, store) ->
                     StoreOffer(
                         store = store,
                         offer = offer,
-                        distanceMeters = distanceSequence.getOrElse(index) { 500 + index * 100 }
+                        distanceMeters = distanceMeters(
+                            originLatitude = originLatitude,
+                            originLongitude = originLongitude,
+                            destinationLatitude = store.latitude,
+                            destinationLongitude = store.longitude
+                        )
                     )
                 }
+                .sortedBy { offer -> offer.distanceMeters }
+                .take(4)
         }
     }
 }

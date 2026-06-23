@@ -18,6 +18,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.apk_mock.ui.theme.TaskPointTheme
 
@@ -36,15 +39,19 @@ fun ProfileMenuButton(
     Box(modifier = modifier) {
         Box(
             modifier = Modifier
-                .size(44.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .background(colors.avatarContainer)
-                .clickable { menuExpanded = true },
+                .semantics { contentDescription = "Abrir menú de perfil de $displayName" }
+                .clickable(
+                    role = Role.Button,
+                    onClickLabel = "Abrir menú de perfil"
+                ) { menuExpanded = true },
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 Icons.Default.Person,
-                contentDescription = "Perfil de $displayName",
+                contentDescription = null,
                 tint = colors.avatarIcon,
                 modifier = Modifier.size(30.dp)
             )
