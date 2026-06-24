@@ -417,9 +417,17 @@ private fun Rutina.horariosDisponibles(): List<String> {
         if (fin.isBefore(inicio)) {
             emptyList()
         } else {
-            generateSequence(inicio) { current -> current.plusMinutes(30).takeIf { !it.isAfter(fin) } }
-                .map { it.format(timeFormatter) }
-                .toList()
+            val horarios = mutableListOf<String>()
+            var current = inicio
+            while (!current.isAfter(fin)) {
+                horarios.add(current.format(timeFormatter))
+                if (current == fin) break
+
+                val next = current.plusMinutes(30)
+                if (!next.isAfter(current)) break
+                current = next
+            }
+            horarios
         }
     }.getOrDefault(emptyList())
 }
