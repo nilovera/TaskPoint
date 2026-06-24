@@ -109,8 +109,15 @@ object AppModule {
         database: TaskPointDatabase,
         sessionProvider: UserSessionProvider,
         syncScheduler: SyncScheduler,
-        geocodingScheduler: RoutineGeocodingScheduler
-    ): RutinaRepository = RoomRutinaRepository(database, sessionProvider, syncScheduler, geocodingScheduler)
+        geocodingScheduler: RoutineGeocodingScheduler,
+        photoStorage: TaskPhotoStorage
+    ): RutinaRepository = RoomRutinaRepository(
+        database,
+        sessionProvider,
+        syncScheduler,
+        geocodingScheduler,
+        photoStorage
+    )
 
     @Provides
     @Singleton

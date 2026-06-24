@@ -11,6 +11,7 @@ import com.example.apk_mock.data.local.entity.TareaEntity
 import com.example.apk_mock.data.mapper.toDomain
 import com.example.apk_mock.data.mapper.toEntity
 import com.example.apk_mock.data.geocoding.RoutineGeocodingScheduler
+import com.example.apk_mock.data.source.TaskPhotoStorage
 import com.example.apk_mock.data.sync.SyncScheduler
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
@@ -33,7 +34,8 @@ class RoomRutinaRepository(
     private val database: TaskPointDatabase,
     private val sessionProvider: UserSessionProvider,
     private val syncScheduler: SyncScheduler,
-    private val geocodingScheduler: RoutineGeocodingScheduler
+    private val geocodingScheduler: RoutineGeocodingScheduler,
+    private val photoStorage: TaskPhotoStorage
 ) : RutinaRepository {
 
     private val rutinaDao = database.rutinaDao()
@@ -222,15 +224,35 @@ class RoomRutinaRepository(
             ?: return RutinaResult.Error("Inicia sesion para eliminar rutinas.")
 
         return withContext(Dispatchers.IO) {
-            val current = rutinaDao.getRutinaById(id, userId)
-                ?: return@withContext RutinaResult.Error("La rutina no existe o no pertenece a tu cuenta.")
-            val removed = current.toDomain(
-                cantidadTareas = tareaDao.countTareasByRutina(current.id, userId)
-            )
-            val deletedAt = System.currentTimeMillis()
+            val deletion = database.withTransaction {
+                val current = rutinaDao.getRutinaById(id, userId)
+                    ?: return@withTransaction RutinaDeletion(
+                        result = RutinaResult.Error("La rutina no existe o no pertenece a tu cuenta.")
+                    )
+                val tareasAsociadas = tareaDao.getTareasByRutina(id, userId)
+                val removed = current.toDomain(
+                    cantidadTareas = tareasAsociadas.size
+                )
+                val deletedAt = System.currentTimeMillis()
 
-            database.withTransaction {
+                tareasAsociadas.forEach { tarea ->
+                    tareaDao.deleteTarea(tarea.id, userId)
+                }
                 rutinaDao.deleteRutina(id, userId)
+
+                if (tareasAsociadas.isNotEmpty()) {
+                    syncOperationDao.upsertOperations(
+                        tareasAsociadas.map { tarea ->
+                            syncOperation(
+                                userId = userId,
+                                entityType = SyncEntityType.TAREA,
+                                entityId = tarea.id,
+                                operationType = SyncOperationType.DELETE,
+                                payloadJson = deletePayloadJson(deletedAt)
+                            )
+                        }
+                    )
+                }
                 syncOperationDao.upsertOperation(
                     syncOperation(
                         userId = userId,
@@ -239,10 +261,21 @@ class RoomRutinaRepository(
                         payloadJson = deletePayloadJson(deletedAt)
                     )
                 )
+
+                RutinaDeletion(
+                    result = RutinaResult.Success(removed),
+                    photoPaths = tareasAsociadas.map { it.photoPath }
+                )
             }
 
-            syncScheduler.schedulePendingSync()
-            RutinaResult.Success(removed)
+            if (deletion.result is RutinaResult.Success) {
+                deletion.photoPaths.forEach { photoPath ->
+                    photoStorage.deletePhoto(photoPath)
+                }
+                syncScheduler.schedulePendingSync()
+            }
+
+            deletion.result
         }
     }
 
@@ -303,3 +336,8 @@ class RoomRutinaRepository(
             .toString()
     }
 }
+
+private data class RutinaDeletion(
+    val result: RutinaResult,
+    val photoPaths: List<String?> = emptyList()
+)

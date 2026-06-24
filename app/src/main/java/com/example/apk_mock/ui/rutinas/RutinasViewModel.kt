@@ -154,7 +154,6 @@ class RutinasViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = rutinaRepository.eliminarRutina(id)) {
                 is RutinaResult.Success -> {
-                    tareaRepository.eliminarTareasDeRutina(id)
                     refreshRutinas()
                     _listState.update { it.copy(snackbarMessage = "Rutina eliminada correctamente.") }
                     _detalleState.update { DetalleRutinaUiState(isDeleted = true) }
