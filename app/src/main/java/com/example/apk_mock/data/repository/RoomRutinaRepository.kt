@@ -7,11 +7,13 @@ import com.example.apk_mock.data.local.SyncOperationType
 import com.example.apk_mock.data.local.SyncStatus
 import com.example.apk_mock.data.local.TaskPointDatabase
 import com.example.apk_mock.data.local.entity.SyncOperationEntity
-import com.example.apk_mock.data.local.entity.TareaEntity
 import com.example.apk_mock.data.mapper.toDomain
 import com.example.apk_mock.data.mapper.toEntity
 import com.example.apk_mock.data.geocoding.RoutineGeocodingScheduler
+import com.example.apk_mock.data.source.TaskPhotoStorage
 import com.example.apk_mock.data.sync.SyncScheduler
+import com.example.apk_mock.data.sync.deleteSyncPayloadJson
+import com.example.apk_mock.data.sync.toSyncPayloadJson
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
@@ -26,14 +28,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONObject
 
 class RoomRutinaRepository(
     private val database: TaskPointDatabase,
     private val sessionProvider: UserSessionProvider,
     private val syncScheduler: SyncScheduler,
-    private val geocodingScheduler: RoutineGeocodingScheduler
+    private val geocodingScheduler: RoutineGeocodingScheduler,
+    private val photoStorage: TaskPhotoStorage
 ) : RutinaRepository {
 
     private val rutinaDao = database.rutinaDao()
@@ -109,7 +110,7 @@ class RoomRutinaRepository(
                         userId = userId,
                         entityId = rutina.id,
                         operationType = SyncOperationType.CREATE,
-                        payloadJson = entity.toPayloadJson()
+                        payloadJson = entity.toSyncPayloadJson()
                     )
                 )
             }
@@ -166,7 +167,7 @@ class RoomRutinaRepository(
                         userId = userId,
                         entityId = updated.id,
                         operationType = SyncOperationType.UPDATE,
-                        payloadJson = entity.toPayloadJson()
+                        payloadJson = entity.toSyncPayloadJson()
                     )
                 )
 
@@ -197,7 +198,7 @@ class RoomRutinaRepository(
                                 entityType = SyncEntityType.TAREA,
                                 entityId = tarea.id,
                                 operationType = SyncOperationType.UPDATE,
-                                payloadJson = tarea.toPayloadJson()
+                                payloadJson = tarea.toSyncPayloadJson()
                             )
                         }
                     )
@@ -222,27 +223,58 @@ class RoomRutinaRepository(
             ?: return RutinaResult.Error("Inicia sesion para eliminar rutinas.")
 
         return withContext(Dispatchers.IO) {
-            val current = rutinaDao.getRutinaById(id, userId)
-                ?: return@withContext RutinaResult.Error("La rutina no existe o no pertenece a tu cuenta.")
-            val removed = current.toDomain(
-                cantidadTareas = tareaDao.countTareasByRutina(current.id, userId)
-            )
-            val deletedAt = System.currentTimeMillis()
+            val deletion = database.withTransaction {
+                val current = rutinaDao.getRutinaById(id, userId)
+                    ?: return@withTransaction RutinaDeletion(
+                        result = RutinaResult.Error("La rutina no existe o no pertenece a tu cuenta.")
+                    )
+                val tareasAsociadas = tareaDao.getTareasByRutina(id, userId)
+                val removed = current.toDomain(
+                    cantidadTareas = tareasAsociadas.size
+                )
+                val deletedAt = System.currentTimeMillis()
 
-            database.withTransaction {
+                tareasAsociadas.forEach { tarea ->
+                    tareaDao.deleteTarea(tarea.id, userId)
+                }
                 rutinaDao.deleteRutina(id, userId)
+
+                if (tareasAsociadas.isNotEmpty()) {
+                    syncOperationDao.upsertOperations(
+                        tareasAsociadas.map { tarea ->
+                            syncOperation(
+                                userId = userId,
+                                entityType = SyncEntityType.TAREA,
+                                entityId = tarea.id,
+                                operationType = SyncOperationType.DELETE,
+                                payloadJson = deleteSyncPayloadJson(deletedAt)
+                            )
+                        }
+                    )
+                }
                 syncOperationDao.upsertOperation(
                     syncOperation(
                         userId = userId,
                         entityId = id,
                         operationType = SyncOperationType.DELETE,
-                        payloadJson = deletePayloadJson(deletedAt)
+                        payloadJson = deleteSyncPayloadJson(deletedAt)
                     )
+                )
+
+                RutinaDeletion(
+                    result = RutinaResult.Success(removed),
+                    photoPaths = tareasAsociadas.map { it.photoPath }
                 )
             }
 
-            syncScheduler.schedulePendingSync()
-            RutinaResult.Success(removed)
+            if (deletion.result is RutinaResult.Success) {
+                deletion.photoPaths.forEach { photoPath ->
+                    photoStorage.deletePhoto(photoPath)
+                }
+                syncScheduler.schedulePendingSync()
+            }
+
+            deletion.result
         }
     }
 
@@ -263,43 +295,9 @@ class RoomRutinaRepository(
             status = SyncOperationStatus.PENDING
         )
     }
-
-    private fun com.example.apk_mock.data.local.entity.RutinaEntity.toPayloadJson(): String {
-        return JSONObject()
-            .put("id", id)
-            .put("nombre", nombre)
-            .put("icono", icono)
-            .put("direccion", direccion)
-            .put("latitude", latitude)
-            .put("longitude", longitude)
-            .put("diasSemana", JSONArray(diasSemana.split(",").filter { it.isNotBlank() }))
-            .put("horarioInicio", horarioInicio)
-            .put("horarioFin", horarioFin)
-            .put("descripcion", descripcion)
-            .put("updatedAt", updatedAt)
-            .toString()
-    }
-
-    private fun TareaEntity.toPayloadJson(): String {
-        return JSONObject()
-            .put("id", id)
-            .put("titulo", titulo)
-            .put("categoriaCode", categoriaCode)
-            .put("rutinaId", rutinaId)
-            .put("rutinaNombre", rutinaNombre)
-            .put("dia", dia)
-            .put("horario", horario)
-            .put("notas", notas)
-            .put("photoPath", photoPath)
-            .put("completada", completada)
-            .put("requiereRevisionHorario", requiereRevisionHorario)
-            .put("updatedAt", updatedAt)
-            .toString()
-    }
-
-    private fun deletePayloadJson(updatedAt: Long): String {
-        return JSONObject()
-            .put("updatedAt", updatedAt)
-            .toString()
-    }
 }
+
+private data class RutinaDeletion(
+    val result: RutinaResult,
+    val photoPaths: List<String?> = emptyList()
+)

@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -99,7 +100,7 @@ fun AppNavigation(
 
     // Solo la sesion vive en el nivel global: decide el graph inicial.
     val sessionViewModel: SessionViewModel = hiltViewModel()
-    val sessionState by sessionViewModel.uiState.collectAsState()
+    val sessionState by sessionViewModel.uiState.collectAsStateWithLifecycle()
 
     if (sessionState is SessionUiState.Checking) {
         Box(
@@ -268,12 +269,12 @@ fun AppNavigation(
                 val taskCreated by currentBackStack
                     ?.savedStateHandle
                     ?.getStateFlow("task_created", false)
-                    ?.collectAsState()
+                    ?.collectAsStateWithLifecycle()
                     ?: remember { mutableStateOf(false) }
                 val taskDeleted by currentBackStack
                     ?.savedStateHandle
                     ?.getStateFlow("task_deleted", false)
-                    ?.collectAsState()
+                    ?.collectAsStateWithLifecycle()
                     ?: remember { mutableStateOf(false) }
 
                 TareasScreen(
@@ -363,7 +364,7 @@ fun AppNavigation(
 
             composable(Routes.PROFILE) {
                 val profileViewModel = profileGraphViewModel(navController)
-                val profileState by profileViewModel.uiState.collectAsState()
+                val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
 
                 LaunchedEffect(profileState.sessionEnded) {
                     if (profileState.sessionEnded) {
@@ -418,7 +419,7 @@ fun AppNavigation(
 
                 val capturedPhotoPath by backStackEntry.savedStateHandle
                     .getStateFlow(CAPTURED_PHOTO_PATH_KEY, "")
-                    .collectAsState()
+                    .collectAsStateWithLifecycle()
 
                 LaunchedEffect(capturedPhotoPath) {
                     if (capturedPhotoPath.isNotBlank()) {
@@ -447,7 +448,7 @@ fun AppNavigation(
                 val taskEdited by currentBackStack
                     ?.savedStateHandle
                     ?.getStateFlow("task_edited", false)
-                    ?.collectAsState()
+                    ?.collectAsStateWithLifecycle()
                     ?: remember { mutableStateOf(false) }
 
                 DetalleTareaScreen(
@@ -478,7 +479,7 @@ fun AppNavigation(
                 val taskId = backStackEntry.arguments?.getString("taskId").orEmpty()
                 val capturedPhotoPath by backStackEntry.savedStateHandle
                     .getStateFlow(CAPTURED_PHOTO_PATH_KEY, "")
-                    .collectAsState()
+                    .collectAsStateWithLifecycle()
 
                 LaunchedEffect(capturedPhotoPath) {
                     if (capturedPhotoPath.isNotBlank()) {

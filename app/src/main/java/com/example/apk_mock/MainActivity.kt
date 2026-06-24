@@ -9,7 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val preferencesViewModel: AppPreferencesViewModel = hiltViewModel()
-            val preferencesState by preferencesViewModel.uiState.collectAsState()
+            val preferencesState by preferencesViewModel.uiState.collectAsStateWithLifecycle()
 
             APKMockTheme(themePreference = preferencesState.themePreference) {
                 Surface(modifier = Modifier.fillMaxSize()) {

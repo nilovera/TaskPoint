@@ -7,11 +7,11 @@ import com.example.apk_mock.data.local.SyncEntityType
 import com.example.apk_mock.data.local.SyncOperationType
 import com.example.apk_mock.data.local.SyncStatus
 import com.example.apk_mock.data.local.TaskPointDatabase
-import com.example.apk_mock.data.local.entity.RutinaEntity
 import com.example.apk_mock.data.local.entity.SyncOperationEntity
 import com.example.apk_mock.data.secure.SecureSessionStorage
 import com.example.apk_mock.data.sync.SyncLog
 import com.example.apk_mock.data.sync.SyncScheduler
+import com.example.apk_mock.data.sync.toSyncPayloadJson
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import java.util.Locale
@@ -20,8 +20,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONObject
 
 internal sealed interface GeocodingResult {
     data object Success : GeocodingResult
@@ -97,28 +95,12 @@ class RoutineGeocodingProcessor @Inject constructor(
                     entityType = SyncEntityType.RUTINA,
                     entityId = routineId,
                     operationType = SyncOperationType.UPDATE,
-                    payloadJson = updated.toPayloadJson()
+                    payloadJson = updated.toSyncPayloadJson()
                 )
             )
         }
         syncScheduler.schedulePendingSync()
         SyncLog.info("geocoding_completed", "routine=${routineId.take(8)}")
         GeocodingResult.Success
-    }
-
-    private fun RutinaEntity.toPayloadJson(): String {
-        return JSONObject()
-            .put("id", id)
-            .put("nombre", nombre)
-            .put("icono", icono)
-            .put("direccion", direccion)
-            .put("latitude", latitude)
-            .put("longitude", longitude)
-            .put("diasSemana", JSONArray(diasSemana.split(",").filter { it.isNotBlank() }))
-            .put("horarioInicio", horarioInicio)
-            .put("horarioFin", horarioFin)
-            .put("descripcion", descripcion)
-            .put("updatedAt", updatedAt)
-            .toString()
     }
 }

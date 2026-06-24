@@ -12,6 +12,8 @@ import com.example.apk_mock.data.mapper.toEntity
 import com.example.apk_mock.data.mapper.toTareaDomainList
 import com.example.apk_mock.data.source.TaskPhotoStorage
 import com.example.apk_mock.data.sync.SyncScheduler
+import com.example.apk_mock.data.sync.deleteSyncPayloadJson
+import com.example.apk_mock.data.sync.toSyncPayloadJson
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
@@ -25,7 +27,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 
 class RoomTareaRepository(
     private val database: TaskPointDatabase,
@@ -66,7 +67,7 @@ class RoomTareaRepository(
                             userId = userId,
                             entityId = entity.id,
                             operationType = SyncOperationType.DELETE,
-                            payloadJson = deletePayloadJson(deletedAt)
+                            payloadJson = deleteSyncPayloadJson(deletedAt)
                         )
                     )
                 }
@@ -116,7 +117,7 @@ class RoomTareaRepository(
                         userId = userId,
                         entityId = tarea.id,
                         operationType = SyncOperationType.CREATE,
-                        payloadJson = entity.toPayloadJson()
+                        payloadJson = entity.toSyncPayloadJson()
                     )
                 )
             }
@@ -164,7 +165,7 @@ class RoomTareaRepository(
                         userId = userId,
                         entityId = updated.id,
                         operationType = SyncOperationType.UPDATE,
-                        payloadJson = entity.toPayloadJson()
+                        payloadJson = entity.toSyncPayloadJson()
                     )
                 )
             }
@@ -195,7 +196,7 @@ class RoomTareaRepository(
                         userId = userId,
                         entityId = taskId,
                         operationType = SyncOperationType.DELETE,
-                        payloadJson = deletePayloadJson(deletedAt)
+                        payloadJson = deleteSyncPayloadJson(deletedAt)
                     )
                 )
             }
@@ -221,28 +222,5 @@ class RoomTareaRepository(
             payloadJson = payloadJson,
             status = SyncOperationStatus.PENDING
         )
-    }
-
-    private fun com.example.apk_mock.data.local.entity.TareaEntity.toPayloadJson(): String {
-        return JSONObject()
-            .put("id", id)
-            .put("titulo", titulo)
-            .put("categoriaCode", categoriaCode)
-            .put("rutinaId", rutinaId)
-            .put("rutinaNombre", rutinaNombre)
-            .put("dia", dia)
-            .put("horario", horario)
-            .put("notas", notas)
-            .put("photoPath", photoPath)
-            .put("completada", completada)
-            .put("requiereRevisionHorario", requiereRevisionHorario)
-            .put("updatedAt", updatedAt)
-            .toString()
-    }
-
-    private fun deletePayloadJson(updatedAt: Long): String {
-        return JSONObject()
-            .put("updatedAt", updatedAt)
-            .toString()
     }
 }

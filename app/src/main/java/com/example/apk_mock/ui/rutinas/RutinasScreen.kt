@@ -3,11 +3,9 @@ package com.example.apk_mock.ui.rutinas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,23 +16,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.domain.model.DiaSemana
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.ui.components.AppEmptyStateCard
 import com.example.apk_mock.ui.components.BottomStatusMessage
 import com.example.apk_mock.ui.components.CreateActionPill
+import com.example.apk_mock.ui.components.FiltrosDias
 import com.example.apk_mock.ui.components.MainScreenHeader
 import com.example.apk_mock.ui.theme.*
-import java.time.LocalDate
-import java.time.format.TextStyle
-import java.util.Locale
 import kotlinx.coroutines.delay
 
 @Composable
@@ -48,7 +41,7 @@ fun RutinasScreen(
     onLogout: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    val listState by viewModel.listState.collectAsState()
+    val listState by viewModel.listState.collectAsStateWithLifecycle()
     val colors = TaskPointTheme.colors
     var overlayMessage by remember { mutableStateOf<String?>(null) }
 
@@ -77,7 +70,7 @@ fun RutinasScreen(
             }
         },
         floatingActionButtonPosition = FabPosition.End
-    ) { selfPadding ->
+    ) { _ ->
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
@@ -85,8 +78,6 @@ fun RutinasScreen(
                     .padding(
                     // top: padding del Scaffold externo + margen visual
                         top = innerPadding.calculateTopPadding() + 8.dp,
-                    // bottom: el Scaffold propio calcula el espacio del FAB
-                        bottom = innerPadding.calculateBottomPadding() + selfPadding.calculateBottomPadding(),
                         start = 20.dp,
                         end = 20.dp
                     )
@@ -123,7 +114,9 @@ fun RutinasScreen(
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(bottom = 112.dp)
+                    contentPadding = PaddingValues(
+                        bottom = innerPadding.calculateBottomPadding() + 48.dp
+                    )
                 ) {
                     items(rutinas) { rutina ->
                         RutinaCard(rutina = rutina, onClick = { onRutinaClick(rutina) })
@@ -146,46 +139,6 @@ fun RutinasScreen(
 
 // ── Componentes reutilizables ─────────────────────────────────────────────────
 
-@Composable
-fun FiltrosDias(seleccionado: DiaSemana?, onSelect: (DiaSemana?) -> Unit) {
-    val opciones: List<DiaSemana?> = listOf(null) + DiaSemana.values().toList()
-    val colors = TaskPointTheme.colors
-
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.horizontalScroll(rememberScrollState())
-    ) {
-        opciones.forEach { dia ->
-            val isSelected = dia == seleccionado
-            Surface(
-                onClick = { onSelect(dia) },
-                shape = RoundedCornerShape(20.dp),
-                color = if (isSelected) colors.primary else colors.surface,
-                border = if (isSelected) null else BorderStroke(1.dp, colors.border),
-                modifier = Modifier
-                    .heightIn(min = 48.dp)
-                    .semantics {
-                        contentDescription = if (dia == null) {
-                            "Mostrar rutinas de todos los días"
-                        } else {
-                            "Mostrar rutinas de ${dia.label}"
-                        }
-                        selected = isSelected
-                        role = Role.RadioButton
-                    }
-            ) {
-                Box(Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = dia?.label ?: "Todas",
-                        fontSize = 16.sp,
-                        color = if (isSelected) Color.White else colors.textSecondary,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                    )
-                }
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

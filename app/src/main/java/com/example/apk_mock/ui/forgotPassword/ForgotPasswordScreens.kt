@@ -18,6 +18,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.apk_mock.ui.components.AppTextField
 import com.example.apk_mock.ui.components.appTextFieldColors
 import com.example.apk_mock.ui.register.PasswordStrengthBar
@@ -32,7 +33,7 @@ fun ForgotPasswordEmailScreen(
     viewModel: ForgotPasswordViewModel,
     onCancel: () -> Unit
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Cuando el código fue enviado, avanzamos al paso 2
     if (state.codeSent) {
@@ -70,7 +71,7 @@ fun ForgotPasswordCodeScreen(
     viewModel: ForgotPasswordViewModel,
     onCancel: () -> Unit
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (state.codeVerified) {
         ForgotPasswordNewPasswordScreen(viewModel = viewModel, onCancel = onCancel)
@@ -110,7 +111,7 @@ fun ForgotPasswordNewPasswordScreen(
     onCancel: () -> Unit,
     onPasswordChanged: (() -> Unit)? = null
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(state.passwordChanged) {
         if (state.passwordChanged) {

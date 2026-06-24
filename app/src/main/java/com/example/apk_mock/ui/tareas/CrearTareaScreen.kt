@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
@@ -88,7 +89,7 @@ private fun TareaFormScreen(
     onCapturePhoto: () -> Unit,
     onSubmit: () -> Unit
 ) {
-    val state by viewModel.formState.collectAsState()
+    val state by viewModel.formState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { loadData() }
 

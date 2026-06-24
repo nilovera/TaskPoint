@@ -27,8 +27,6 @@ class RetrofitClient(
         .build()
 
     val authApi: AuthApi = retrofit.create(AuthApi::class.java)
-    val categoryApi: CategoryApi = retrofit.create(CategoryApi::class.java)
-    val offerApi: OfferApi = retrofit.create(OfferApi::class.java)
     val routineApi: RoutineApi = retrofit.create(RoutineApi::class.java)
     val taskApi: TaskApi = retrofit.create(TaskApi::class.java)
 }

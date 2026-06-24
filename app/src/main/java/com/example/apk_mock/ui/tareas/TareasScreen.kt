@@ -26,7 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,8 +46,8 @@ import com.example.apk_mock.domain.model.Tarea
 import com.example.apk_mock.ui.components.AppEmptyStateCard
 import com.example.apk_mock.ui.components.BottomStatusMessage
 import com.example.apk_mock.ui.components.CreateActionPill
+import com.example.apk_mock.ui.components.FiltrosDias
 import com.example.apk_mock.ui.components.MainScreenHeader
-import com.example.apk_mock.ui.rutinas.FiltrosDias
 import com.example.apk_mock.ui.theme.TaskPointTheme
 import com.example.apk_mock.ui.theme.categoryChipColors
 import com.example.apk_mock.ui.utils.daysFrom
@@ -71,7 +71,7 @@ fun TareasScreen(
     onTaskDeletedMessageShown: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    val listState by viewModel.listState.collectAsState()
+    val listState by viewModel.listState.collectAsStateWithLifecycle()
     val tareas = viewModel.tareasFiltradas()
     val canCreateTask = listState.rutinasDisponibles > 0
     val today = LocalDate.now()
@@ -108,14 +108,13 @@ fun TareasScreen(
             }
         },
         floatingActionButtonPosition = FabPosition.End
-    ) { selfPadding ->
+    ) { _ ->
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(
                         top = innerPadding.calculateTopPadding() + 8.dp,
-                        bottom = innerPadding.calculateBottomPadding() + selfPadding.calculateBottomPadding(),
                         start = 20.dp,
                         end = 20.dp
                     )
@@ -149,8 +148,11 @@ fun TareasScreen(
                         )
 
                     LazyColumn(
+                        modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
-                        contentPadding = PaddingValues(bottom = 112.dp)
+                        contentPadding = PaddingValues(
+                            bottom = innerPadding.calculateBottomPadding() + 48.dp
+                        )
                     ) {
                         agrupadas.forEach { (dia, tareasDelDia) ->
                             item {
@@ -295,4 +297,3 @@ fun TareaCard(
         }
     }
 }
-
