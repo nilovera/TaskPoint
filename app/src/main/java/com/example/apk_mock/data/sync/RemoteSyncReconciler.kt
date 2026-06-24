@@ -111,6 +111,9 @@ class RemoteSyncReconciler @Inject constructor(
                 notas = remote.notas.orEmpty(),
                 photoPath = remote.photoPath,
                 completada = remote.completada ?: false,
+                requiereRevisionHorario = remote.requiereRevisionHorario
+                    ?: local?.requiereRevisionHorario
+                    ?: false,
                 syncStatus = SyncStatus.SYNCED,
                 updatedAt = remote.updatedAt
             )

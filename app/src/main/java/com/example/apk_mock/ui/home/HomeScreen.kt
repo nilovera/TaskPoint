@@ -27,6 +27,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -322,10 +323,20 @@ private fun HomeTaskRow(
         modifier = Modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
-                contentDescription = "Abrir tarea ${tarea.titulo}"
+                contentDescription = if (tarea.requiereRevisionHorario) {
+                    "Abrir tarea ${tarea.titulo}. Deshabilitada hasta revisar su dia y horario."
+                } else {
+                    "Abrir tarea ${tarea.titulo}"
+                }
             }
             .clickable(role = Role.Button, onClick = onClick)
-            .background(color = colors.subTaskCard)
+            .background(
+                color = if (tarea.requiereRevisionHorario) {
+                    colors.warningBackground
+                } else {
+                    colors.subTaskCard
+                }
+            )
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -364,7 +375,22 @@ private fun HomeTaskRow(
             }
         }
 
-        if (tarea.categoria.code == "SUPERMERCADO") {
+        if (tarea.requiereRevisionHorario) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(colors.warningText.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.WarningAmber,
+                    contentDescription = "Requiere revision",
+                    tint = colors.warningText,
+                    modifier = Modifier.size(19.dp)
+                )
+            }
+        } else if (tarea.categoria.code == "SUPERMERCADO") {
             Box(
                 modifier = Modifier
                     .size(34.dp)

@@ -13,6 +13,7 @@ import com.example.apk_mock.domain.repository.RutinaResult
 import com.example.apk_mock.domain.repository.TareaRepository
 import com.example.apk_mock.domain.repository.TareaResult
 import com.example.apk_mock.ui.tareas.TareasViewModel
+import com.example.apk_mock.ui.rutinas.RutinasViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -65,6 +66,25 @@ class TareasViewModelObservationTest {
         assertEquals(1, viewModel.listState.value.rutinasDisponibles)
     }
 
+    @Test
+    fun editingRoutineWarnsBeforeDisablingIncompatibleTasks() = runTest {
+        val tareas = MutableStateFlow(listOf(tarea()))
+        val rutinas = MutableStateFlow(listOf(rutina()))
+        val viewModel = RutinasViewModel(
+            rutinaRepository = FlowRutinaRepository(rutinas),
+            tareaRepository = FlowTareaRepository(tareas)
+        )
+
+        viewModel.loadEditarRutina("rutina-1")
+        advanceUntilIdle()
+        viewModel.onEditDiaToggle(DiaSemana.LUN)
+        viewModel.onEditDiaToggle(DiaSemana.MAR)
+        viewModel.onGuardarCambiosRutina()
+        advanceUntilIdle()
+
+        assertEquals(listOf("tarea-1"), viewModel.editState.value.tareasConConflicto.map { it.id })
+    }
+
     private fun rutina() = Rutina(
         id = "rutina-1",
         nombre = "Trabajo",
@@ -73,7 +93,7 @@ class TareasViewModelObservationTest {
         diasSemana = listOf(DiaSemana.LUN),
         horarioInicio = "09:00",
         horarioFin = "17:00",
-        descripcion = ""
+        descripcion = "Horario laboral"
     )
 
     private fun tarea() = Tarea(
@@ -93,7 +113,6 @@ private class FlowTareaRepository(
 ) : TareaRepository {
     override suspend fun getTareas(): List<Tarea> = tareas.value
     override suspend fun observeTareas(): Flow<List<Tarea>> = tareas
-    override suspend fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String) = 0
     override suspend fun eliminarTareasDeRutina(rutinaId: String) = 0
     override suspend fun crearTarea(
         titulo: String, categoria: CategoriaTarea, rutinaId: String?, rutinaNombre: String?,

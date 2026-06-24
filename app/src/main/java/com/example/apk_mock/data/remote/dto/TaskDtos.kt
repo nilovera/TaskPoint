@@ -11,6 +11,7 @@ data class TaskDto(
     val notas: String,
     val photoPath: String?,
     val completada: Boolean,
+    val requiereRevisionHorario: Boolean = false,
     val updatedAt: Long? = null
 )
 
@@ -25,6 +26,7 @@ data class TaskRequestDto(
     val notas: String,
     val photoPath: String?,
     val completada: Boolean,
+    val requiereRevisionHorario: Boolean,
     val updatedAt: Long? = null
 )
 
@@ -40,6 +42,7 @@ data class TaskSyncDto(
     val notas: String? = null,
     val photoPath: String? = null,
     val completada: Boolean? = null,
+    val requiereRevisionHorario: Boolean? = null,
     val updatedAt: Long
 )
 

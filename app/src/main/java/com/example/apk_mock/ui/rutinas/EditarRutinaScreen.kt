@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.apk_mock.ui.components.AppConfirmDialog
 import com.example.apk_mock.ui.components.AppTextArea
 import com.example.apk_mock.ui.components.AppTextField
 import com.example.apk_mock.ui.components.AppTopBar
@@ -197,6 +198,7 @@ fun EditarRutinaScreen(
 
         Button(
             onClick = viewModel::onGuardarCambiosRutina,
+            enabled = !state.isSaving,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
@@ -222,6 +224,33 @@ fun EditarRutinaScreen(
                 Text(data.visuals.message, fontSize = 13.sp)
             }
         }
+    }
+
+    if (state.tareasConConflicto.isNotEmpty()) {
+        val cantidad = state.tareasConConflicto.size
+        val nombres = state.tareasConConflicto
+            .take(3)
+            .joinToString(separator = "\n") { tarea -> "• ${tarea.titulo}" }
+        val restantes = cantidad - 3
+        val resumenTareas = buildString {
+            append(nombres)
+            if (restantes > 0) append("\n• Y $restantes más")
+        }
+
+        AppConfirmDialog(
+            title = "Tareas fuera de la rutina",
+            message = if (cantidad == 1) {
+                "Este cambio deja 1 tarea fuera de los nuevos días u horarios."
+            } else {
+                "Este cambio deja $cantidad tareas fuera de los nuevos días u horarios."
+            },
+            support = "$resumenTareas\n\nQuedarán deshabilitadas y marcadas para revisión hasta que las edites manualmente.",
+            dismissText = "Volver",
+            confirmText = "Guardar igual",
+            confirmColor = colors.warningText,
+            onDismiss = viewModel::cancelarAdvertenciaHorario,
+            onConfirm = viewModel::confirmarGuardadoConTareasDeshabilitadas
+        )
     }
 }
 

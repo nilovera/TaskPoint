@@ -6,6 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.model.coincideConHorario
 import com.example.apk_mock.domain.repository.RutinaRepository
 import com.example.apk_mock.domain.repository.RutinaResult
 import com.example.apk_mock.domain.repository.TareaRepository
@@ -63,8 +65,10 @@ data class EditarRutinaUiState(
     val horarioFinError: String? = null,
     val descripcionError: String? = null,
     val errorMessage: String? = null,
+    val tareasConConflicto: List<Tarea> = emptyList(),
     val isFormLoaded: Boolean = false,
     val isLoading: Boolean = false,
+    val isSaving: Boolean = false,
     val isSuccess: Boolean = false
 )
 
@@ -96,6 +100,7 @@ class RutinasViewModel @Inject constructor(
     val detalleState: StateFlow<DetalleRutinaUiState> = _detalleState.asStateFlow()
 
     private var listObservationJob: Job? = null
+    private var pendingRoutineUpdate: PendingRoutineUpdate? = null
 
     init {
         refreshRutinas()
@@ -191,6 +196,7 @@ class RutinasViewModel @Inject constructor(
     fun onDescripcionChange(v: String) = _formState.update { it.copy(descripcion = v, descripcionError = null) }
 
     fun resetEditForm() {
+        pendingRoutineUpdate = null
         _editState.value = EditarRutinaUiState()
     }
 
@@ -291,6 +297,8 @@ class RutinasViewModel @Inject constructor(
     }
 
     fun onGuardarCambiosRutina() {
+        if (_editState.value.isSaving) return
+
         val s = _editState.value
         val rutinaId = s.rutinaId.trim()
         if (rutinaId.isBlank()) {
@@ -312,25 +320,94 @@ class RutinasViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            when (val result = rutinaRepository.editarRutina(
-                rutinaId,
-                input.nombre,
-                s.iconoSeleccionado,
-                input.direccion,
-                input.dias,
-                input.horarioInicio,
-                input.horarioFin,
-                input.descripcion
-            )) {
-                is RutinaResult.Success -> {
-                    tareaRepository.actualizarNombreRutina(result.rutina.id, result.rutina.nombre)
-                    refreshRutinas()
-                    _detalleState.update {
-                        it.copy(rutina = result.rutina)
+            _editState.update { it.copy(isSaving = true) }
+            val tareas = runCatching { tareaRepository.getTareas() }
+                .getOrElse {
+                    _editState.update {
+                        it.copy(
+                            isSaving = false,
+                            errorMessage = "No se pudieron revisar las tareas asociadas."
+                        )
                     }
-                    _editState.update { it.copy(isSuccess = true) }
+                    return@launch
                 }
-                is RutinaResult.Error -> applyEditFieldError(result.message)
+            val tareasConConflicto = tareas
+                .filter { tarea -> tarea.rutinaId == rutinaId }
+                .filterNot { tarea -> tarea.requiereRevisionHorario }
+                .filterNot { tarea ->
+                    tarea.coincideConHorario(
+                        diasRutina = input.dias,
+                        horarioInicio = input.horarioInicio,
+                        horarioFin = input.horarioFin
+                    )
+                }
+
+            if (tareasConConflicto.isNotEmpty()) {
+                pendingRoutineUpdate = PendingRoutineUpdate(
+                    rutinaId = rutinaId,
+                    input = input,
+                    icono = s.iconoSeleccionado
+                )
+                _editState.update {
+                    it.copy(
+                        tareasConConflicto = tareasConConflicto,
+                        isSaving = false
+                    )
+                }
+                return@launch
+            }
+
+            guardarCambiosRutina(
+                PendingRoutineUpdate(
+                    rutinaId = rutinaId,
+                    input = input,
+                    icono = s.iconoSeleccionado
+                )
+            )
+        }
+    }
+
+    fun cancelarAdvertenciaHorario() {
+        pendingRoutineUpdate = null
+        _editState.update { it.copy(tareasConConflicto = emptyList(), isSaving = false) }
+    }
+
+    fun confirmarGuardadoConTareasDeshabilitadas() {
+        val pendingUpdate = pendingRoutineUpdate ?: return
+        pendingRoutineUpdate = null
+        _editState.update { it.copy(tareasConConflicto = emptyList(), isSaving = true) }
+        viewModelScope.launch {
+            guardarCambiosRutina(pendingUpdate)
+        }
+    }
+
+    private suspend fun guardarCambiosRutina(update: PendingRoutineUpdate) {
+        when (val result = rutinaRepository.editarRutina(
+            update.rutinaId,
+            update.input.nombre,
+            update.icono,
+            update.input.direccion,
+            update.input.dias,
+            update.input.horarioInicio,
+            update.input.horarioFin,
+            update.input.descripcion
+        )) {
+            is RutinaResult.Success -> {
+                refreshRutinas()
+                _detalleState.update {
+                    it.copy(rutina = result.rutina)
+                }
+                _editState.update {
+                    it.copy(
+                        tareasConConflicto = emptyList(),
+                        isSaving = false,
+                        isSuccess = true
+                    )
+                }
+            }
+            is RutinaResult.Error -> {
+                _editState.update { it.copy(isSaving = false) }
+                applyEditFieldError(result.message)
             }
         }
     }
@@ -374,6 +451,12 @@ class RutinasViewModel @Inject constructor(
         }
     }
 }
+
+private data class PendingRoutineUpdate(
+    val rutinaId: String,
+    val input: RutinaInput,
+    val icono: RutinaIcono
+)
 
 private data class RutinaInput(
     val nombre: String,

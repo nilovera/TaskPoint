@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -393,16 +394,27 @@ private fun AssociatedTaskRow(
         modifier = Modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
-                contentDescription = "Abrir tarea ${tarea.titulo}"
+                contentDescription = if (tarea.requiereRevisionHorario) {
+                    "Abrir tarea ${tarea.titulo}. Deshabilitada hasta revisar su dia y horario."
+                } else {
+                    "Abrir tarea ${tarea.titulo}"
+                }
             }
             .clickable(role = Role.Button, onClick = onClick)
+            .background(
+                if (tarea.requiereRevisionHorario) {
+                    colors.warningBackground
+                } else {
+                    Color.Transparent
+                }
+            )
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            Icons.Default.DateRange,
+            if (tarea.requiereRevisionHorario) Icons.Default.WarningAmber else Icons.Default.DateRange,
             contentDescription = null,
-            tint = colors.textSecondary,
+            tint = if (tarea.requiereRevisionHorario) colors.warningText else colors.textSecondary,
             modifier = Modifier.size(18.dp)
         )
         Spacer(Modifier.width(8.dp))
@@ -413,12 +425,20 @@ private fun AssociatedTaskRow(
         ) {
             Text(
                 tarea.titulo,
-                color = colors.textPrimary,
+                color = if (tarea.requiereRevisionHorario) colors.warningText else colors.textPrimary,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            if (tarea.requiereRevisionHorario) {
+                Text(
+                    "Revisar dia y horario",
+                    color = colors.warningText,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
         Surface(shape = RoundedCornerShape(5.dp), color = categoryColors.container) {
             Text(

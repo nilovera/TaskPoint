@@ -30,6 +30,7 @@ data class TareaEntity(
     val notas: String,
     val photoPath: String?,
     val completada: Boolean,
+    val requiereRevisionHorario: Boolean = false,
     val syncStatus: SyncStatus = SyncStatus.SYNCED,
     val updatedAt: Long = System.currentTimeMillis()
 )

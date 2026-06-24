@@ -23,7 +23,8 @@ fun TareaEntity.toDomain(): Tarea {
         horario = horario,
         notas = notas,
         photoPath = photoPath,
-        completada = completada
+        completada = completada,
+        requiereRevisionHorario = requiereRevisionHorario
     )
 }
 
@@ -48,6 +49,7 @@ fun Tarea.toEntity(
         notas = notas,
         photoPath = photoPath,
         completada = completada,
+        requiereRevisionHorario = requiereRevisionHorario,
         syncStatus = syncStatus,
         updatedAt = updatedAt
     )

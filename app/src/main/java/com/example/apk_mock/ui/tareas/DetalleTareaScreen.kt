@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -131,6 +132,10 @@ fun DetalleTareaScreen(
             onDeleteClick = { showDeleteDialog = true }
         )
         Spacer(Modifier.height(22.dp))
+        if (tarea.requiereRevisionHorario) {
+            ScheduleReviewWarning()
+            Spacer(Modifier.height(18.dp))
+        }
         DetailTitle(tarea = tarea)
         Spacer(Modifier.height(18.dp))
         TaskInfoCard(tarea = tarea, rutina = rutina)
@@ -196,6 +201,44 @@ fun DetalleTareaScreen(
                         fontSize = 16.sp
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScheduleReviewWarning() {
+    val colors = TaskPointTheme.colors
+
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = colors.warningBackground,
+        border = BorderStroke(1.dp, colors.warningText),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.WarningAmber,
+                contentDescription = null,
+                tint = colors.warningText,
+                modifier = Modifier.size(22.dp)
+            )
+            Spacer(Modifier.size(10.dp))
+            Column {
+                Text(
+                    "Tarea deshabilitada",
+                    color = colors.warningText,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    "Edita su dia y horario para volver a habilitarla.",
+                    color = colors.warningText,
+                    fontSize = 13.sp
+                )
             }
         }
     }

@@ -7,6 +7,7 @@ import com.example.apk_mock.data.local.SyncOperationType
 import com.example.apk_mock.data.local.SyncStatus
 import com.example.apk_mock.data.local.TaskPointDatabase
 import com.example.apk_mock.data.local.entity.SyncOperationEntity
+import com.example.apk_mock.data.local.entity.TareaEntity
 import com.example.apk_mock.data.mapper.toDomain
 import com.example.apk_mock.data.mapper.toEntity
 import com.example.apk_mock.data.geocoding.RoutineGeocodingScheduler
@@ -14,6 +15,7 @@ import com.example.apk_mock.data.sync.SyncScheduler
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
+import com.example.apk_mock.domain.model.coincideConHorario
 import com.example.apk_mock.domain.repository.RutinaRepository
 import com.example.apk_mock.domain.repository.RutinaResult
 import com.example.apk_mock.domain.repository.UserSessionProvider
@@ -132,25 +134,32 @@ class RoomRutinaRepository(
             ?: return RutinaResult.Error("Inicia sesion para editar rutinas.")
 
         return withContext(Dispatchers.IO) {
-            val current = rutinaDao.getRutinaById(id, userId)
-                ?: return@withContext RutinaResult.Error("La rutina no existe o no pertenece a tu cuenta.")
+            val result = database.withTransaction {
+                val current = rutinaDao.getRutinaById(id, userId)
+                    ?: return@withTransaction RutinaResult.Error(
+                        "La rutina no existe o no pertenece a tu cuenta."
+                    )
+                val tareasAsociadas = tareaDao.getTareasByRutina(id, userId)
+                val updatedAt = System.currentTimeMillis()
+                val updated = current.toDomain(
+                    cantidadTareas = tareasAsociadas.size
+                ).copy(
+                    nombre = nombre,
+                    icono = icono,
+                    direccion = direccion,
+                    latitude = if (current.direccion == direccion) current.latitude else null,
+                    longitude = if (current.direccion == direccion) current.longitude else null,
+                    diasSemana = dias,
+                    horarioInicio = horarioInicio,
+                    horarioFin = horarioFin,
+                    descripcion = descripcion
+                )
 
-            val updated = current.toDomain(
-                cantidadTareas = tareaDao.countTareasByRutina(current.id, userId)
-            ).copy(
-                nombre = nombre,
-                icono = icono,
-                direccion = direccion,
-                latitude = if (current.direccion == direccion) current.latitude else null,
-                longitude = if (current.direccion == direccion) current.longitude else null,
-                diasSemana = dias,
-                horarioInicio = horarioInicio,
-                horarioFin = horarioFin,
-                descripcion = descripcion
-            )
-
-            database.withTransaction {
-                val entity = updated.toEntity(userId, SyncStatus.PENDING_UPDATE)
+                val entity = updated.toEntity(
+                    userId = userId,
+                    syncStatus = SyncStatus.PENDING_UPDATE,
+                    updatedAt = updatedAt
+                )
                 rutinaDao.upsertRutina(entity)
                 syncOperationDao.upsertOperation(
                     syncOperation(
@@ -160,13 +169,51 @@ class RoomRutinaRepository(
                         payloadJson = entity.toPayloadJson()
                     )
                 )
-            }
-            syncScheduler.schedulePendingSync()
-            if (updated.latitude == null || updated.longitude == null) {
-                geocodingScheduler.scheduleRoutine(userId, updated.id, updated.direccion)
+
+                val tareasActualizadas = tareasAsociadas.mapNotNull { tarea ->
+                    val requiereRevision = tarea.requiereRevisionHorario ||
+                        !tarea.toDomain().coincideConHorario(dias, horarioInicio, horarioFin)
+                    val cambioNombre = tarea.rutinaNombre != nombre
+                    val cambioRevision = requiereRevision != tarea.requiereRevisionHorario
+
+                    if (!cambioNombre && !cambioRevision) {
+                        null
+                    } else {
+                        tarea.copy(
+                            rutinaNombre = nombre,
+                            requiereRevisionHorario = requiereRevision,
+                            syncStatus = SyncStatus.PENDING_UPDATE,
+                            updatedAt = updatedAt
+                        )
+                    }
+                }
+
+                if (tareasActualizadas.isNotEmpty()) {
+                    tareaDao.upsertTareas(tareasActualizadas)
+                    syncOperationDao.upsertOperations(
+                        tareasActualizadas.map { tarea ->
+                            syncOperation(
+                                userId = userId,
+                                entityType = SyncEntityType.TAREA,
+                                entityId = tarea.id,
+                                operationType = SyncOperationType.UPDATE,
+                                payloadJson = tarea.toPayloadJson()
+                            )
+                        }
+                    )
+                }
+
+                RutinaResult.Success(updated)
             }
 
-            RutinaResult.Success(updated)
+            if (result is RutinaResult.Success) {
+                syncScheduler.schedulePendingSync()
+                if (result.rutina.latitude == null || result.rutina.longitude == null) {
+                    geocodingScheduler.scheduleRoutine(userId, result.rutina.id, result.rutina.direccion)
+                }
+            }
+
+            result
         }
     }
 
@@ -201,6 +248,7 @@ class RoomRutinaRepository(
 
     private fun syncOperation(
         userId: String,
+        entityType: SyncEntityType = SyncEntityType.RUTINA,
         entityId: String,
         operationType: SyncOperationType,
         payloadJson: String?
@@ -208,7 +256,7 @@ class RoomRutinaRepository(
         return SyncOperationEntity(
             id = UUID.randomUUID().toString(),
             userId = userId,
-            entityType = SyncEntityType.RUTINA,
+            entityType = entityType,
             entityId = entityId,
             operationType = operationType,
             payloadJson = payloadJson,
@@ -228,6 +276,23 @@ class RoomRutinaRepository(
             .put("horarioInicio", horarioInicio)
             .put("horarioFin", horarioFin)
             .put("descripcion", descripcion)
+            .put("updatedAt", updatedAt)
+            .toString()
+    }
+
+    private fun TareaEntity.toPayloadJson(): String {
+        return JSONObject()
+            .put("id", id)
+            .put("titulo", titulo)
+            .put("categoriaCode", categoriaCode)
+            .put("rutinaId", rutinaId)
+            .put("rutinaNombre", rutinaNombre)
+            .put("dia", dia)
+            .put("horario", horario)
+            .put("notas", notas)
+            .put("photoPath", photoPath)
+            .put("completada", completada)
+            .put("requiereRevisionHorario", requiereRevisionHorario)
             .put("updatedAt", updatedAt)
             .toString()
     }

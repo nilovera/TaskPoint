@@ -15,9 +15,8 @@ interface TareaRepository {
     /**
      * Fuente observable de Room para que la UI se actualice cuando una
      * sincronizacion remota inserta o modifica tareas locales.
-     */
+    */
     suspend fun observeTareas(): Flow<List<Tarea>>
-    suspend fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String): Int
     suspend fun eliminarTareasDeRutina(rutinaId: String): Int
     suspend fun crearTarea(
         titulo: String,

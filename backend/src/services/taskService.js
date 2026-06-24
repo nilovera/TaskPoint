@@ -55,6 +55,7 @@ function normalizeTask(input) {
     notas: optionalText(input?.notas) ?? "",
     photoPath: optionalText(input?.photoPath),
     completada: Boolean(input?.completada),
+    requiereRevisionHorario: Boolean(input?.requiereRevisionHorario),
     createdAt: now,
     updatedAt: normalizeTimestamp(input?.updatedAt, now)
   };

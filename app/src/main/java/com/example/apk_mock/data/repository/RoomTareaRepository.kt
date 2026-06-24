@@ -51,37 +51,6 @@ class RoomTareaRepository(
             .flowOn(Dispatchers.IO)
     }
 
-    override suspend fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String): Int {
-        val userId = sessionProvider.currentUserId() ?: return 0
-        return withContext(Dispatchers.IO) {
-            val updatedCount = database.withTransaction {
-                val tareas = tareaDao.getTareasByRutina(rutinaId, userId)
-                val updated = tareas.map { entity ->
-                    entity.copy(
-                        rutinaNombre = nuevoNombre,
-                        syncStatus = SyncStatus.PENDING_UPDATE,
-                        updatedAt = System.currentTimeMillis()
-                    )
-                }
-
-                tareaDao.upsertTareas(updated)
-                syncOperationDao.upsertOperations(
-                    updated.map { entity ->
-                        syncOperation(
-                            userId = userId,
-                            entityId = entity.id,
-                            operationType = SyncOperationType.UPDATE,
-                            payloadJson = entity.toPayloadJson()
-                        )
-                    }
-                )
-                updated.size
-            }
-            if (updatedCount > 0) syncScheduler.schedulePendingSync()
-            updatedCount
-        }
-    }
-
     override suspend fun eliminarTareasDeRutina(rutinaId: String): Int {
         val userId = sessionProvider.currentUserId() ?: return 0
         return withContext(Dispatchers.IO) {
@@ -183,7 +152,8 @@ class RoomTareaRepository(
                 dia = dia,
                 horario = horario,
                 notas = notas,
-                photoPath = photoPath
+                photoPath = photoPath,
+                requiereRevisionHorario = false
             )
 
             database.withTransaction {
@@ -265,6 +235,7 @@ class RoomTareaRepository(
             .put("notas", notas)
             .put("photoPath", photoPath)
             .put("completada", completada)
+            .put("requiereRevisionHorario", requiereRevisionHorario)
             .put("updatedAt", updatedAt)
             .toString()
     }

@@ -10,7 +10,8 @@ data class Tarea(
     val horario: String?,
     val notas: String,
     val photoPath: String? = null,
-    val completada: Boolean = false
+    val completada: Boolean = false,
+    val requiereRevisionHorario: Boolean = false
 )
 
 data class CategoriaTarea(
