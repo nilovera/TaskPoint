@@ -49,7 +49,7 @@ fun ForgotPasswordEmailScreen(
             label = "Correo electrónico",
             value = state.email,
             onValueChange = viewModel::onEmailChange,
-            placeholder = "nico@ejemplo.com",
+            placeholder = "usuario@ejemplo.com",
             keyboardType = KeyboardType.Email,
             isError = state.emailError != null,
             errorMessage = state.emailError

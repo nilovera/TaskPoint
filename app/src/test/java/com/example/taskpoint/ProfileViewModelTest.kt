@@ -36,7 +36,7 @@ class ProfileViewModelTest {
             savedUser = User(
                 id = "user-1",
                 name = "Nicolas Perez",
-                email = "nico@ejemplo.com",
+                email = "usuario@ejemplo.com",
                 password = "correcta123"
             )
         )
@@ -59,7 +59,7 @@ class ProfileViewModelTest {
             savedUser = User(
                 id = "user-1",
                 name = "Nicolas Perez",
-                email = "nico@ejemplo.com",
+                email = "usuario@ejemplo.com",
                 password = "correcta123"
             )
         )
