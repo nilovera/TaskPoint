@@ -103,7 +103,7 @@ fun HomeScreen(
         containerColor = colors.background,
         floatingActionButton = {
             CreateActionPill(
-                text = "Nueva tarea +",
+                text = "Nueva tarea",
                 onClick = onCrearTarea,
                 enabled = canCreateTask,
                 modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
@@ -118,7 +118,9 @@ fun HomeScreen(
                 .padding(horizontal = 20.dp),
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding() + 8.dp,
-                bottom = innerPadding.calculateBottomPadding() + selfPadding.calculateBottomPadding() + 86.dp
+                // Deja lugar para que la última tarjeta pueda desplazarse por encima
+                // del botón de crear y de la navegación inferior.
+                bottom = innerPadding.calculateBottomPadding() + selfPadding.calculateBottomPadding() + 112.dp
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {

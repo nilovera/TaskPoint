@@ -96,7 +96,7 @@ fun TareasScreen(
         floatingActionButton = {
             if (overlayMessage == null) {
                 CreateActionPill(
-                    text = "Nueva tarea +",
+                    text = "Nueva tarea",
                     onClick = onNavigateToCrear,
                     enabled = canCreateTask,
                     modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
@@ -144,7 +144,10 @@ fun TareasScreen(
                             }.thenBy { (dia, _) -> dia?.ordinal ?: Int.MAX_VALUE }
                         )
 
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        contentPadding = PaddingValues(bottom = 112.dp)
+                    ) {
                         agrupadas.forEach { (dia, tareasDelDia) ->
                             item {
                                 Text(
@@ -165,7 +168,6 @@ fun TareasScreen(
                                 Spacer(Modifier.height(8.dp))
                             }
                         }
-                        item { Spacer(Modifier.height(80.dp)) }
                     }
                 }
             }

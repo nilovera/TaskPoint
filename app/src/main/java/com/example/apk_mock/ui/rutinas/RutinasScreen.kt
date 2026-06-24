@@ -70,7 +70,7 @@ fun RutinasScreen(
         floatingActionButton = {
             if (overlayMessage == null) {
                 CreateActionPill(
-                    text = "Nueva rutina +",
+                    text = "Nueva rutina",
                     onClick = onNavigateToCrear,
                     modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
                 )
@@ -122,12 +122,12 @@ fun RutinasScreen(
                 // ── Lista rutinas ──────────────────────────────────────────────
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(bottom = 112.dp)
                 ) {
                     items(rutinas) { rutina ->
                         RutinaCard(rutina = rutina, onClick = { onRutinaClick(rutina) })
                     }
-                    item { Spacer(Modifier.height(80.dp)) }
                 }
             }
 

@@ -134,8 +134,7 @@ fun EditarRutinaScreen(
                 onToggle = viewModel::onEditDiaToggle,
                 spacing = 8.dp,
                 horizontalPadding = 12.dp,
-                selectedFontWeight = FontWeight.Bold,
-                scrollable = true
+                selectedFontWeight = FontWeight.Bold
             )
             if (state.diasError != null) {
                 Spacer(Modifier.height(4.dp))
