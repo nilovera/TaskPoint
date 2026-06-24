@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.model.perteneceARutina
 import com.example.apk_mock.ui.components.AppDeleteConfirmDialog
 import com.example.apk_mock.ui.components.DetailActionTopBar
 import com.example.apk_mock.ui.tareas.TareasViewModel
@@ -106,7 +107,7 @@ fun DetalleRutinaScreen(
     val tareasAsociadas = remember(rutina, tareasState.tareas) {
         if (rutina == null) emptyList()
         else tareasState.tareas
-            .filter { it.rutinaId == rutina.id || it.rutinaNombre == rutina.nombre }
+            .filter { it.perteneceARutina(rutina) }
             .sortedBy { it.horario ?: "" }
     }
 

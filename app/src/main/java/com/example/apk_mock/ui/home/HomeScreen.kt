@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.model.perteneceARutina
 import com.example.apk_mock.ui.components.AppEmptyStateCard
 import com.example.apk_mock.ui.components.CreateActionPill
 import com.example.apk_mock.ui.components.MainScreenHeader
@@ -415,7 +416,7 @@ private fun buildHomeSections(
     fallbackIconColor: Color
 ): List<HomeRoutineSection> {
     val routineSections = rutinas.mapNotNull { rutina ->
-        val routineTasks = tareas.filter { it.rutinaId == rutina.id || it.rutinaNombre == rutina.nombre }
+        val routineTasks = tareas.filter { it.perteneceARutina(rutina) }
         if (routineTasks.isEmpty()) return@mapNotNull null
 
         HomeRoutineSection(

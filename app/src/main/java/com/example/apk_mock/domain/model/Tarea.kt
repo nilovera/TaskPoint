@@ -14,6 +14,15 @@ data class Tarea(
     val requiereRevisionHorario: Boolean = false
 )
 
+fun Tarea.perteneceARutina(rutina: Rutina): Boolean {
+    val assignedRutinaId = rutinaId?.takeIf { it.isNotBlank() }
+    return if (assignedRutinaId != null) {
+        assignedRutinaId == rutina.id
+    } else {
+        rutinaNombre?.takeIf { it.isNotBlank() } == rutina.nombre
+    }
+}
+
 data class CategoriaTarea(
     val id: Int,
     val name: String,
