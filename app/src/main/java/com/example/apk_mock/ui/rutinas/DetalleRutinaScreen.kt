@@ -3,6 +3,7 @@ package com.example.apk_mock.ui.rutinas
 import android.widget.Space
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -62,6 +66,7 @@ fun DetalleRutinaScreen(
     onBack: () -> Unit,
     onDeleted: () -> Unit,
     onEdit: () -> Unit,
+    onTaskClick: (String) -> Unit,
     innerPadding: PaddingValues = PaddingValues()
 ) {
     val detalleState by rutinasViewModel.detalleState.collectAsState()
@@ -148,7 +153,12 @@ fun DetalleRutinaScreen(
                 item { DaysSection(rutina = rutina) }
                 item { TimeSection(rutina = rutina) }
                 item { DescriptionSection(rutina = rutina) }
-                item { TasksSection(tareas = tareasAsociadas) }
+                item {
+                    TasksSection(
+                        tareas = tareasAsociadas,
+                        onTaskClick = { tarea -> onTaskClick(tarea.id) }
+                    )
+                }
             }
         }
     }
@@ -341,7 +351,10 @@ private fun DescriptionSection(rutina: Rutina) {
 }
 
 @Composable
-private fun TasksSection(tareas: List<Tarea>) {
+private fun TasksSection(
+    tareas: List<Tarea>,
+    onTaskClick: (Tarea) -> Unit
+) {
     val colors = TaskPointTheme.colors
 
     DetailSection(title = "Tareas asociadas", contentPadding = PaddingValues(0.dp)) {
@@ -355,7 +368,10 @@ private fun TasksSection(tareas: List<Tarea>) {
         } else {
             Column {
                 tareas.forEachIndexed { index, tarea ->
-                    AssociatedTaskRow(tarea = tarea)
+                    AssociatedTaskRow(
+                        tarea = tarea,
+                        onClick = { onTaskClick(tarea) }
+                    )
                     if (index < tareas.lastIndex) {
                         HorizontalDivider(color = colors.border)
                     }
@@ -366,12 +382,21 @@ private fun TasksSection(tareas: List<Tarea>) {
 }
 
 @Composable
-private fun AssociatedTaskRow(tarea: Tarea) {
+private fun AssociatedTaskRow(
+    tarea: Tarea,
+    onClick: () -> Unit
+) {
     val categoryColors = tarea.categoria.categoryChipColors()
     val colors = TaskPointTheme.colors
 
     Row(
-        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Abrir tarea ${tarea.titulo}"
+            }
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(

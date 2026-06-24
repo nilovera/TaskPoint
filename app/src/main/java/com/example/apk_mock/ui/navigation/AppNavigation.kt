@@ -238,6 +238,9 @@ fun AppNavigation(
                         tareasViewModel.resetCreateForm()
                         navController.navigate(Routes.CREAR_TAREA)
                     },
+                    onTaskClick = { taskId ->
+                        navController.navigate(Routes.detalleTarea(taskId))
+                    },
                     onProfile = { navController.navigate(Routes.PROFILE_GRAPH) },
                     onLogout = sessionViewModel::logout,
                     innerPadding = innerPadding
@@ -321,6 +324,11 @@ fun AppNavigation(
                     onEdit = {
                         rutinasViewModel.resetEditForm()
                         navController.navigate(Routes.editarRutina(rutinaId))
+                    },
+                    onTaskClick = { taskId ->
+                        // La rutina queda en el back stack para que la flecha de la tarea
+                        // regrese a este mismo detalle.
+                        navController.navigate(Routes.detalleTarea(taskId))
                     },
                     innerPadding = innerPadding
                 )
@@ -541,6 +549,11 @@ private fun AppBottomBar(navController: NavController, currentRoute: String?) {
     val selectedRoute = when (currentRoute) {
         in profileRoutes -> Routes.HOME
         Routes.RUTINA_DETALLE_ROUTE -> Routes.RUTINAS
+        Routes.DETALLE_TAREA -> when (navController.previousBackStackEntry?.destination?.route) {
+            Routes.RUTINA_DETALLE_ROUTE -> Routes.RUTINAS
+            Routes.HOME -> Routes.HOME
+            else -> Routes.TAREAS
+        }
         else -> currentRoute
     }
 
@@ -560,7 +573,6 @@ private fun AppBottomBar(navController: NavController, currentRoute: String?) {
     ) {
         bottomNavItems.forEach { item ->
             val selected = selectedRoute == item.route
-                || (currentRoute == Routes.DETALLE_TAREA && item.route == Routes.TAREAS)
             BottomNavButton(
                 item = item,
                 selected = selected,

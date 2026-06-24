@@ -314,13 +314,25 @@ private fun DetailSectionTitle(text: String) {
 
 @Composable
 private fun PhotoBlock(photoPath: String?) {
+    var isPhotoExpanded by remember(photoPath) { mutableStateOf(false) }
+
     TaskPhotoImage(
         photoPath = photoPath,
         contentDescription = "Foto de la tarea",
         modifier = Modifier
             .fillMaxWidth()
-            .height(140.dp)
+            .height(140.dp),
+        onClick = photoPath?.takeIf { it.isNotBlank() }?.let {
+            { isPhotoExpanded = true }
+        }
     )
+
+    if (isPhotoExpanded && !photoPath.isNullOrBlank()) {
+        ExpandedTaskPhotoDialog(
+            photoPath = photoPath,
+            onDismiss = { isPhotoExpanded = false }
+        )
+    }
 }
 
 @Composable

@@ -9,6 +9,7 @@ import android.os.Looper
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -81,6 +85,7 @@ fun HomeScreen(
     isInitialDataSyncInProgress: Boolean = false,
     onCrearRutina: () -> Unit,
     onCrearTarea: () -> Unit = {},
+    onTaskClick: (String) -> Unit = {},
     onProfile: () -> Unit = {},
     onLogout: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
@@ -164,7 +169,10 @@ fun HomeScreen(
 
                 else -> {
                     items(sections, key = { it.rutina?.id ?: it.title }) { section ->
-                        HomeRoutineCard(section = section)
+                        HomeRoutineCard(
+                            section = section,
+                            onTaskClick = { tarea -> onTaskClick(tarea.id) }
+                        )
                     }
                 }
             }
@@ -221,7 +229,10 @@ private fun OfflineBanner() {
 }
 
 @Composable
-private fun HomeRoutineCard(section: HomeRoutineSection) {
+private fun HomeRoutineCard(
+    section: HomeRoutineSection,
+    onTaskClick: (Tarea) -> Unit
+) {
     val colors = TaskPointTheme.colors
 
     Surface(
@@ -268,7 +279,10 @@ private fun HomeRoutineCard(section: HomeRoutineSection) {
             HorizontalDivider(color = colors.border)
 
             section.tareas.forEachIndexed { index, tarea ->
-                HomeTaskRow(tarea = tarea)
+                HomeTaskRow(
+                    tarea = tarea,
+                    onClick = { onTaskClick(tarea) }
+                )
                 if (index < section.tareas.lastIndex) {
                     HorizontalDivider(color = colors.border.copy(alpha = 0.7f))
                 }
@@ -297,13 +311,20 @@ private fun CountChip(count: Int) {
 }
 
 @Composable
-private fun HomeTaskRow(tarea: Tarea) {
+private fun HomeTaskRow(
+    tarea: Tarea,
+    onClick: () -> Unit
+) {
     val categoryColors = tarea.categoria.categoryChipColors()
     val colors = TaskPointTheme.colors
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Abrir tarea ${tarea.titulo}"
+            }
+            .clickable(role = Role.Button, onClick = onClick)
             .background(color = colors.subTaskCard)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
