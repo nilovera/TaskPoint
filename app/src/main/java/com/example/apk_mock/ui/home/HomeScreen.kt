@@ -333,7 +333,9 @@ private fun HomeTaskRow(
             text = tarea.horario ?: "--:--",
             color = colors.textSecondary,
             fontSize = 15.sp,
-            modifier = Modifier.width(42.dp)
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Clip
         )
         Spacer(Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
