@@ -26,7 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,7 +61,7 @@ fun DetalleTareaScreen(
     onTaskEditedMessageShown: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    val detailState by viewModel.detailState.collectAsState()
+    val detailState by viewModel.detailState.collectAsStateWithLifecycle()
     LaunchedEffect(taskId) { viewModel.loadTaskDetail(taskId) }
 
     val tarea = detailState.tarea
@@ -441,4 +441,3 @@ private fun String.displayStoreName(): String {
 private fun String.shortAddress(): String {
     return substringBefore(",")
 }
-

@@ -36,7 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,8 +92,8 @@ fun HomeScreen(
     onLogout: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    val rutinasState by rutinasViewModel.listState.collectAsState()
-    val tareasState by tareasViewModel.listState.collectAsState()
+    val rutinasState by rutinasViewModel.listState.collectAsStateWithLifecycle()
+    val tareasState by tareasViewModel.listState.collectAsStateWithLifecycle()
     val isOnline = rememberIsOnline()
     val today = LocalDate.now()
     val todayDia = today.toDiaSemana()
@@ -492,4 +492,3 @@ private fun Context.hasValidatedConnection(): Boolean {
     return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
         capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 }
-

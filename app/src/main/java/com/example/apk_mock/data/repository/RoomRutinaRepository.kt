@@ -7,12 +7,13 @@ import com.example.apk_mock.data.local.SyncOperationType
 import com.example.apk_mock.data.local.SyncStatus
 import com.example.apk_mock.data.local.TaskPointDatabase
 import com.example.apk_mock.data.local.entity.SyncOperationEntity
-import com.example.apk_mock.data.local.entity.TareaEntity
 import com.example.apk_mock.data.mapper.toDomain
 import com.example.apk_mock.data.mapper.toEntity
 import com.example.apk_mock.data.geocoding.RoutineGeocodingScheduler
 import com.example.apk_mock.data.source.TaskPhotoStorage
 import com.example.apk_mock.data.sync.SyncScheduler
+import com.example.apk_mock.data.sync.deleteSyncPayloadJson
+import com.example.apk_mock.data.sync.toSyncPayloadJson
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.RutinaIcono
@@ -27,8 +28,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONObject
 
 class RoomRutinaRepository(
     private val database: TaskPointDatabase,
@@ -111,7 +110,7 @@ class RoomRutinaRepository(
                         userId = userId,
                         entityId = rutina.id,
                         operationType = SyncOperationType.CREATE,
-                        payloadJson = entity.toPayloadJson()
+                        payloadJson = entity.toSyncPayloadJson()
                     )
                 )
             }
@@ -168,7 +167,7 @@ class RoomRutinaRepository(
                         userId = userId,
                         entityId = updated.id,
                         operationType = SyncOperationType.UPDATE,
-                        payloadJson = entity.toPayloadJson()
+                        payloadJson = entity.toSyncPayloadJson()
                     )
                 )
 
@@ -199,7 +198,7 @@ class RoomRutinaRepository(
                                 entityType = SyncEntityType.TAREA,
                                 entityId = tarea.id,
                                 operationType = SyncOperationType.UPDATE,
-                                payloadJson = tarea.toPayloadJson()
+                                payloadJson = tarea.toSyncPayloadJson()
                             )
                         }
                     )
@@ -248,7 +247,7 @@ class RoomRutinaRepository(
                                 entityType = SyncEntityType.TAREA,
                                 entityId = tarea.id,
                                 operationType = SyncOperationType.DELETE,
-                                payloadJson = deletePayloadJson(deletedAt)
+                                payloadJson = deleteSyncPayloadJson(deletedAt)
                             )
                         }
                     )
@@ -258,7 +257,7 @@ class RoomRutinaRepository(
                         userId = userId,
                         entityId = id,
                         operationType = SyncOperationType.DELETE,
-                        payloadJson = deletePayloadJson(deletedAt)
+                        payloadJson = deleteSyncPayloadJson(deletedAt)
                     )
                 )
 
@@ -295,45 +294,6 @@ class RoomRutinaRepository(
             payloadJson = payloadJson,
             status = SyncOperationStatus.PENDING
         )
-    }
-
-    private fun com.example.apk_mock.data.local.entity.RutinaEntity.toPayloadJson(): String {
-        return JSONObject()
-            .put("id", id)
-            .put("nombre", nombre)
-            .put("icono", icono)
-            .put("direccion", direccion)
-            .put("latitude", latitude)
-            .put("longitude", longitude)
-            .put("diasSemana", JSONArray(diasSemana.split(",").filter { it.isNotBlank() }))
-            .put("horarioInicio", horarioInicio)
-            .put("horarioFin", horarioFin)
-            .put("descripcion", descripcion)
-            .put("updatedAt", updatedAt)
-            .toString()
-    }
-
-    private fun TareaEntity.toPayloadJson(): String {
-        return JSONObject()
-            .put("id", id)
-            .put("titulo", titulo)
-            .put("categoriaCode", categoriaCode)
-            .put("rutinaId", rutinaId)
-            .put("rutinaNombre", rutinaNombre)
-            .put("dia", dia)
-            .put("horario", horario)
-            .put("notas", notas)
-            .put("photoPath", photoPath)
-            .put("completada", completada)
-            .put("requiereRevisionHorario", requiereRevisionHorario)
-            .put("updatedAt", updatedAt)
-            .toString()
-    }
-
-    private fun deletePayloadJson(updatedAt: Long): String {
-        return JSONObject()
-            .put("updatedAt", updatedAt)
-            .toString()
     }
 }
 

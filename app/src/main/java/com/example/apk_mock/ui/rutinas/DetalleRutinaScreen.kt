@@ -36,7 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,8 +71,8 @@ fun DetalleRutinaScreen(
     onTaskClick: (String) -> Unit,
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    val detalleState by rutinasViewModel.detalleState.collectAsState()
-    val tareasState by tareasViewModel.listState.collectAsState()
+    val detalleState by rutinasViewModel.detalleState.collectAsStateWithLifecycle()
+    val tareasState by tareasViewModel.listState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val colors = TaskPointTheme.colors
@@ -490,4 +490,3 @@ private fun MissingRoutineState(onBack: () -> Unit) {
         }
     }
 }
-

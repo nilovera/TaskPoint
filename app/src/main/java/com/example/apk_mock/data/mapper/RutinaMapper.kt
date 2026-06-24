@@ -46,10 +46,6 @@ fun Rutina.toEntity(
     )
 }
 
-fun List<RutinaEntity>.toRutinaDomainList(): List<Rutina> {
-    return map { it.toDomain() }
-}
-
 private fun String.toRutinaIcono(): RutinaIcono {
     return RutinaIcono.entries.firstOrNull { it.name == this } ?: RutinaIcono.OTRO
 }

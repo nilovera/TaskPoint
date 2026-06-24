@@ -27,7 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,7 +67,7 @@ fun ProfileScreen(
     onThemePreferenceChange: (ThemePreference) -> Unit,
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     val colors = TaskPointTheme.colors
@@ -211,7 +211,7 @@ fun ChangePasswordScreen(
     onPasswordChanged: () -> Unit,
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val colors = TaskPointTheme.colors
 
     LaunchedEffect(state.navigateToProfileAfterPasswordSave) {
@@ -428,4 +428,3 @@ private fun PasswordErrorBanner(text: String) {
         )
     }
 }
-

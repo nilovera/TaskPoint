@@ -35,9 +35,6 @@ object Routes {
     fun detalleTarea(taskId: String): String = "detalle_tarea/$taskId"
     fun editarTarea(taskId: String): String = "editar_tarea/$taskId"
 
-    // Arg para pasar el nombre del usuario a las tabs
-    const val ARG_NAME        = "name"
-
     fun rutinaDetalle(rutinaId: String) = "$RUTINA_DETALLE/$rutinaId"
     fun editarRutina(rutinaId: String) = "$EDITAR_RUTINA/$rutinaId"
 
