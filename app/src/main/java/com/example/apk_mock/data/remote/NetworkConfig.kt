@@ -7,5 +7,5 @@ object NetworkConfig {
     //const val DEFAULT_BASE_URL = "http://IP_DE_LA_PC:8080/"
 
     // Celular TaskPoint
-    // const val DEFAULT_BASE_URL = "http://192.168.1.212:8080/"
+    //const val DEFAULT_BASE_URL = "http://192.168.1.212:8080/"
 }

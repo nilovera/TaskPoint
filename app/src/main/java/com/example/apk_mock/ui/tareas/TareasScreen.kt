@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.model.diasOrdenados
 import com.example.apk_mock.ui.components.AppEmptyStateCard
 import com.example.apk_mock.ui.components.BottomStatusMessage
 import com.example.apk_mock.ui.components.CreateActionPill
@@ -139,7 +140,8 @@ fun TareasScreen(
                     )
                 } else {
                     val agrupadas = tareas
-                        .groupBy { it.dia }
+                        .asTaskDayPairs(listState.filtroDia)
+                        .groupBy({ it.first }, { it.second })
                         .toList()
                         .sortedWith(
                             compareBy<Pair<DiaSemana?, List<Tarea>>> { (dia, _) ->
@@ -184,6 +186,19 @@ fun TareasScreen(
                     bottomPadding = innerPadding.calculateBottomPadding() + 16.dp
                 )
             }
+        }
+    }
+}
+
+private fun List<Tarea>.asTaskDayPairs(filtroDia: DiaSemana?): List<Pair<DiaSemana?, Tarea>> {
+    if (filtroDia != null) return map { tarea -> filtroDia to tarea }
+
+    return flatMap { tarea ->
+        val dias = tarea.diasOrdenados
+        if (dias.isEmpty()) {
+            listOf(null to tarea)
+        } else {
+            dias.map { dia -> dia to tarea }
         }
     }
 }

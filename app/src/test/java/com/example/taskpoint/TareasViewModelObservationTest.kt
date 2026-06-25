@@ -85,24 +85,87 @@ class TareasViewModelObservationTest {
         assertEquals(listOf("tarea-1"), viewModel.editState.value.tareasConConflicto.map { it.id })
     }
 
-    private fun rutina() = Rutina(
+    @Test
+    fun dayFilterIncludesTasksAssignedToThatDayAmongMultipleDays() = runTest {
+        val tareas = MutableStateFlow(listOf(tarea(dias = listOf(DiaSemana.LUN, DiaSemana.MIE))))
+        val rutinas = MutableStateFlow(listOf(rutina(diasSemana = listOf(DiaSemana.LUN, DiaSemana.MIE))))
+        val viewModel = TareasViewModel(
+            tareaRepository = FlowTareaRepository(tareas),
+            rutinaRepository = FlowRutinaRepository(rutinas),
+            categoriaRepository = EmptyCategoriaRepository,
+            offerRepository = EmptyOfferRepository
+        )
+
+        advanceUntilIdle()
+        viewModel.onFiltroDia(DiaSemana.MIE)
+
+        assertEquals(listOf("tarea-1"), viewModel.tareasFiltradas().map { it.id })
+    }
+
+    @Test
+    fun creatingTaskWithMultipleDaysSendsAllSelectedDays() = runTest {
+        val categoria = CategoriaTarea(1, "Trabajo", "TRABAJO", "", false)
+        val rutina = rutina(diasSemana = listOf(DiaSemana.LUN, DiaSemana.MIE))
+        val tareaRepository = CapturingTareaRepository()
+        val viewModel = TareasViewModel(
+            tareaRepository = tareaRepository,
+            rutinaRepository = FlowRutinaRepository(MutableStateFlow(listOf(rutina))),
+            categoriaRepository = StaticCategoriaRepository(listOf(categoria)),
+            offerRepository = EmptyOfferRepository
+        )
+
+        viewModel.loadFormData()
+        advanceUntilIdle()
+
+        viewModel.onTituloChange("Comprar comida")
+        viewModel.onCategoriaSelect(categoria)
+        viewModel.onRutinaSelect(rutina)
+        viewModel.onDiaToggle(DiaSemana.LUN)
+        viewModel.onDiaToggle(DiaSemana.MIE)
+        viewModel.onHorarioChange("10:30")
+        viewModel.onCrearTarea()
+        advanceUntilIdle()
+
+        assertEquals(listOf(DiaSemana.LUN, DiaSemana.MIE), tareaRepository.createdDias)
+    }
+
+    @Test
+    fun selectingSingleDayRoutineKeepsOnlyAvailableDaySelected() = runTest {
+        val rutina = rutina(diasSemana = listOf(DiaSemana.LUN))
+        val viewModel = TareasViewModel(
+            tareaRepository = FlowTareaRepository(MutableStateFlow(emptyList())),
+            rutinaRepository = FlowRutinaRepository(MutableStateFlow(listOf(rutina))),
+            categoriaRepository = EmptyCategoriaRepository,
+            offerRepository = EmptyOfferRepository
+        )
+
+        viewModel.loadFormData()
+        advanceUntilIdle()
+
+        viewModel.onRutinaSelect(rutina)
+        viewModel.onDiaToggle(DiaSemana.MAR)
+
+        assertEquals(setOf(DiaSemana.LUN), viewModel.formState.value.diasSeleccionados)
+    }
+
+    private fun rutina(diasSemana: List<DiaSemana> = listOf(DiaSemana.LUN)) = Rutina(
         id = "rutina-1",
         nombre = "Trabajo",
         icono = RutinaIcono.TRABAJO,
         direccion = "Oficina",
-        diasSemana = listOf(DiaSemana.LUN),
+        diasSemana = diasSemana,
         horarioInicio = "09:00",
         horarioFin = "17:00",
         descripcion = "Horario laboral"
     )
 
-    private fun tarea() = Tarea(
+    private fun tarea(dias: List<DiaSemana> = listOf(DiaSemana.LUN)) = Tarea(
         id = "tarea-1",
         titulo = "Cambio de cinta",
         categoria = CategoriaTarea(1, "Trabajo", "TRABAJO", "", false),
         rutinaId = "rutina-1",
         rutinaNombre = "Trabajo",
-        dia = DiaSemana.LUN,
+        dias = dias,
         horario = "10:30",
         notas = ""
     )
@@ -116,12 +179,12 @@ private class FlowTareaRepository(
     override suspend fun eliminarTareasDeRutina(rutinaId: String) = 0
     override suspend fun crearTarea(
         titulo: String, categoria: CategoriaTarea, rutinaId: String?, rutinaNombre: String?,
-        dia: DiaSemana?, horario: String?, notas: String, photoPath: String?
+        dias: List<DiaSemana>, horario: String?, notas: String, photoPath: String?
     ): TareaResult = TareaResult.Error("No usado en este test.")
 
     override suspend fun editarTarea(
         taskId: String, titulo: String, categoria: CategoriaTarea, rutinaId: String?, rutinaNombre: String?,
-        dia: DiaSemana?, horario: String?, notas: String, photoPath: String?
+        dias: List<DiaSemana>, horario: String?, notas: String, photoPath: String?
     ): TareaResult = TareaResult.Error("No usado en este test.")
 
     override suspend fun eliminarTarea(taskId: String): TareaResult = TareaResult.Error("No usado en este test.")
@@ -148,6 +211,62 @@ private class FlowRutinaRepository(
 
 private object EmptyCategoriaRepository : CategoriaRepository {
     override suspend fun getCategorias(): List<CategoriaTarea> = emptyList()
+}
+
+private class StaticCategoriaRepository(
+    private val categorias: List<CategoriaTarea>
+) : CategoriaRepository {
+    override suspend fun getCategorias(): List<CategoriaTarea> = categorias
+}
+
+private class CapturingTareaRepository : TareaRepository {
+    private val tareas = MutableStateFlow<List<Tarea>>(emptyList())
+    var createdDias: List<DiaSemana>? = null
+        private set
+
+    override suspend fun getTareas(): List<Tarea> = tareas.value
+    override suspend fun observeTareas(): Flow<List<Tarea>> = tareas
+    override suspend fun eliminarTareasDeRutina(rutinaId: String) = 0
+
+    override suspend fun crearTarea(
+        titulo: String,
+        categoria: CategoriaTarea,
+        rutinaId: String?,
+        rutinaNombre: String?,
+        dias: List<DiaSemana>,
+        horario: String?,
+        notas: String,
+        photoPath: String?
+    ): TareaResult {
+        createdDias = dias
+        val tarea = Tarea(
+            id = "created-task",
+            titulo = titulo,
+            categoria = categoria,
+            rutinaId = rutinaId,
+            rutinaNombre = rutinaNombre,
+            dias = dias,
+            horario = horario,
+            notas = notas,
+            photoPath = photoPath
+        )
+        tareas.value = listOf(tarea)
+        return TareaResult.Success(tarea)
+    }
+
+    override suspend fun editarTarea(
+        taskId: String,
+        titulo: String,
+        categoria: CategoriaTarea,
+        rutinaId: String?,
+        rutinaNombre: String?,
+        dias: List<DiaSemana>,
+        horario: String?,
+        notas: String,
+        photoPath: String?
+    ): TareaResult = TareaResult.Error("No usado en este test.")
+
+    override suspend fun eliminarTarea(taskId: String): TareaResult = TareaResult.Error("No usado en este test.")
 }
 
 private object EmptyOfferRepository : OfferRepository {

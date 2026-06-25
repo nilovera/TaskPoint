@@ -54,9 +54,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.model.ocurreEn
 import com.example.apk_mock.domain.model.perteneceARutina
 import com.example.apk_mock.ui.components.AppEmptyStateCard
 import com.example.apk_mock.ui.components.CreateActionPill
@@ -99,7 +99,7 @@ fun HomeScreen(
     val todayDia = today.toDiaSemana()
     val displayName = userName.ifBlank { "Usuario" }
     val rutinas = rutinasState.rutinas
-    val todayTasks = tareasState.tareas.filter { it.dia == todayDia || it.dia == null }
+    val todayTasks = tareasState.tareas.filter { it.dias.isEmpty() || it.ocurreEn(todayDia) }
     val canCreateTask = rutinas.isNotEmpty()
     val colors = TaskPointTheme.colors
     val sections = remember(rutinas, todayTasks, colors.primary) {

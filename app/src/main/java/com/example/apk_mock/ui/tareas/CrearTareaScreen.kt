@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -111,7 +112,7 @@ private fun TareaFormScreen(
         onTituloChange = viewModel::onTituloChange,
         onCategoriaSelect = viewModel::onCategoriaSelect,
         onRutinaSelect = viewModel::onRutinaSelect,
-        onDiaSelect = viewModel::onDiaSelect,
+        onDiaToggle = viewModel::onDiaToggle,
         onHorarioChange = viewModel::onHorarioChange,
         onNotasChange = viewModel::onNotasChange,
         onPhotoClick = onCapturePhoto,
@@ -132,7 +133,7 @@ private fun TareaFormContent(
     onTituloChange: (String) -> Unit,
     onCategoriaSelect: (CategoriaTarea) -> Unit,
     onRutinaSelect: (Rutina?) -> Unit,
-    onDiaSelect: (DiaSemana?) -> Unit,
+    onDiaToggle: (DiaSemana) -> Unit,
     onHorarioChange: (String) -> Unit,
     onNotasChange: (String) -> Unit,
     onPhotoClick: () -> Unit,
@@ -218,34 +219,16 @@ private fun TareaFormContent(
 
             Spacer(Modifier.height(20.dp))
 
-            FormFieldLabel("Día", required = true)
-            DropdownField(
-                placeholder = if (state.rutinaSeleccionadaId == null) {
-                    "Seleccioná una rutina primero"
-                } else {
-                    "Seleccioná un día"
-                },
-                selectedText = state.diaSeleccionado?.label,
-                isError = state.diaError != null,
-                errorMessage = state.diaError
-            ) { dismissMenu ->
-                state.diasDisponibles.forEach { dia ->
-                    DropdownMenuItem(
-                        text = { Text(dia.label, color = colors.textPrimary, fontSize = 14.sp) },
-                        onClick = {
-                            onDiaSelect(dia)
-                            dismissMenu()
-                        },
-                        modifier = Modifier.background(colors.fieldBackground)
-                    )
-                }
-                if (state.diasDisponibles.isEmpty()) {
-                    DropdownMenuItem(
-                        text = { Text("Seleccioná una rutina para ver los días", color = colors.textSecondary, fontSize = 14.sp) },
-                        onClick = { dismissMenu() },
-                        modifier = Modifier.background(colors.fieldBackground)
-                    )
-                }
+            FormFieldLabel("Días", required = true)
+            DiasSelector(
+                dias = state.diasDisponibles,
+                seleccionados = state.diasSeleccionados,
+                onToggle = onDiaToggle,
+                hasRutina = state.rutinaSeleccionadaId != null
+            )
+            if (state.diaError != null) {
+                Spacer(Modifier.height(4.dp))
+                Text(state.diaError, color = colors.destructive, fontSize = 12.sp)
             }
 
             Spacer(Modifier.height(20.dp))
@@ -354,35 +337,111 @@ private fun TareaFormContent(
 
 // Componentes reutilizables
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CategoriaSelector(
     categorias: List<CategoriaTarea>,
     seleccionada: CategoriaTarea?,
     onSelect: (CategoriaTarea) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        categorias.chunked(3).forEach { fila ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                fila.forEach { cat ->
-                    val selected = cat == seleccionada
-                    val categoryColors = cat.categoryChipColors(selected = selected)
-                    Surface(
-                        onClick = { onSelect(cat) },
-                        shape = RoundedCornerShape(8.dp),
-                        color = categoryColors.container,
-                        border = categoryColors.border?.let {
-                            androidx.compose.foundation.BorderStroke(width = 1.dp, color = it)
-                        }
-                    ) {
-                        Box(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
-                            Text(
-                                cat.label,
-                                fontSize = 12.sp,
-                                color = categoryColors.content,
-                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-                            )
-                        }
-                    }
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        categorias.forEach { cat ->
+            val selected = cat == seleccionada
+            val categoryColors = cat.categoryChipColors(selected = selected)
+            Surface(
+                onClick = { onSelect(cat) },
+                shape = RoundedCornerShape(8.dp),
+                color = categoryColors.container,
+                border = categoryColors.border?.let {
+                    androidx.compose.foundation.BorderStroke(width = 1.dp, color = it)
+                },
+                modifier = Modifier.heightIn(min = 36.dp)
+            ) {
+                Box(
+                    Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        cat.label,
+                        fontSize = 12.sp,
+                        color = categoryColors.content,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DiasSelector(
+    dias: List<DiaSemana>,
+    seleccionados: Set<DiaSemana>,
+    onToggle: (DiaSemana) -> Unit,
+    hasRutina: Boolean
+) {
+    val colors = TaskPointTheme.colors
+
+    if (dias.isEmpty()) {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = colors.fieldBackground,
+            border = BorderStroke(1.dp, colors.fieldBorder),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+        ) {
+            Box(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    if (hasRutina) "Sin días disponibles" else "Seleccioná una rutina primero",
+                    color = colors.placeholder,
+                    fontSize = 14.sp
+                )
+            }
+        }
+        return
+    }
+
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        dias.forEach { dia ->
+            val selected = dia in seleccionados
+            Surface(
+                onClick = { onToggle(dia) },
+                shape = RoundedCornerShape(20.dp),
+                color = if (selected) colors.primary else colors.surface,
+                border = if (selected) null else BorderStroke(1.dp, colors.border),
+                modifier = Modifier
+                    .width(64.dp)
+                    .heightIn(min = 44.dp)
+            ) {
+                Box(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        dia.label,
+                        color = if (selected) Color.White else colors.textPrimary,
+                        fontSize = 13.sp,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false
+                    )
                 }
             }
         }

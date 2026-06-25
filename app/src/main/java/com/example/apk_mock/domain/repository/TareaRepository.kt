@@ -23,7 +23,7 @@ interface TareaRepository {
         categoria: CategoriaTarea,
         rutinaId: String?,
         rutinaNombre: String?,
-        dia: DiaSemana?,
+        dias: List<DiaSemana>,
         horario: String?,
         notas: String,
         photoPath: String?
@@ -35,7 +35,7 @@ interface TareaRepository {
         categoria: CategoriaTarea,
         rutinaId: String?,
         rutinaNombre: String?,
-        dia: DiaSemana?,
+        dias: List<DiaSemana>,
         horario: String?,
         notas: String,
         photoPath: String?

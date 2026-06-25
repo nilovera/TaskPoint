@@ -6,13 +6,18 @@ data class Tarea(
     val categoria: CategoriaTarea,
     val rutinaId: String?,
     val rutinaNombre: String?,
-    val dia: DiaSemana?,
+    val dias: List<DiaSemana>,
     val horario: String?,
     val notas: String,
     val photoPath: String? = null,
     val completada: Boolean = false,
     val requiereRevisionHorario: Boolean = false
 )
+
+val Tarea.diasOrdenados: List<DiaSemana>
+    get() = dias.distinct().sortedBy { it.ordinal }
+
+fun Tarea.ocurreEn(dia: DiaSemana): Boolean = dia in dias
 
 fun Tarea.perteneceARutina(rutina: Rutina): Boolean {
     val assignedRutinaId = rutinaId?.takeIf { it.isNotBlank() }

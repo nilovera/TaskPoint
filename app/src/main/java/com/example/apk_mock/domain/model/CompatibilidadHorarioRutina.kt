@@ -8,14 +8,14 @@ fun Tarea.coincideConHorario(
     horarioInicio: String,
     horarioFin: String
 ): Boolean {
-    val diaTarea = dia ?: return false
+    val diasTarea = dias.takeIf { it.isNotEmpty() } ?: return false
     val horarioTarea = horario?.let { value ->
         runCatching { LocalTime.parse(value) }.getOrNull()
     } ?: return false
     val inicio = runCatching { LocalTime.parse(horarioInicio) }.getOrNull() ?: return false
     val fin = runCatching { LocalTime.parse(horarioFin) }.getOrNull() ?: return false
 
-    if (diaTarea !in diasRutina || horarioTarea.isBefore(inicio) || horarioTarea.isAfter(fin)) {
+    if (!diasRutina.containsAll(diasTarea) || horarioTarea.isBefore(inicio) || horarioTarea.isAfter(fin)) {
         return false
     }
 

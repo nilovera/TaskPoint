@@ -8,6 +8,8 @@ import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.model.diasOrdenados
+import com.example.apk_mock.domain.model.ocurreEn
 import com.example.apk_mock.domain.repository.CategoriaRepository
 import com.example.apk_mock.domain.repository.OfferRepository
 import com.example.apk_mock.domain.repository.RutinaRepository
@@ -38,7 +40,7 @@ data class CrearTareaUiState(
     val categoriaSeleccionada: CategoriaTarea? = null,
     val rutinaSeleccionadaId: String? = null,
     val rutinaSeleccionadaNombre: String? = null,
-    val diaSeleccionado: DiaSemana? = null,
+    val diasSeleccionados: Set<DiaSemana> = emptySet(),
     val horario: String? = null,
     val notas: String = "",
     val photoPath: String? = null,
@@ -120,7 +122,7 @@ class TareasViewModel @Inject constructor(
 
     fun tareasFiltradas(): List<Tarea> {
         val state = _listState.value
-        return state.filtroDia?.let { filtro -> state.tareas.filter { it.dia == filtro } } ?: state.tareas
+        return state.filtroDia?.let { filtro -> state.tareas.filter { it.ocurreEn(filtro) } } ?: state.tareas
     }
 
     fun loadTaskDetail(taskId: String) {
@@ -243,18 +245,23 @@ class TareasViewModel @Inject constructor(
                 }
                 val rutina = rutinas.find { it.id == tarea.rutinaId }
                 val categoria = categorias.find { it.code == tarea.categoria.code } ?: tarea.categoria
+                val diasDisponibles = rutina?.diasSemana.normalizedDias()
+                val diasSeleccionados = tarea.diasOrdenados
+                    .filter { dia -> dia in diasDisponibles }
+                    .ifEmpty { if (diasDisponibles.size == 1) diasDisponibles else emptyList() }
+                    .toSet()
                 _formState.value = CrearTareaUiState(
                     titulo = tarea.titulo,
                     categoriaSeleccionada = categoria,
                     rutinaSeleccionadaId = rutina?.id ?: tarea.rutinaId,
                     rutinaSeleccionadaNombre = rutina?.nombre ?: tarea.rutinaNombre,
-                    diaSeleccionado = tarea.dia,
+                    diasSeleccionados = diasSeleccionados,
                     horario = tarea.horario,
                     notas = tarea.notas,
                     photoPath = tarea.photoPath,
                     categoriasDisponibles = categorias,
                     rutinasDisponibles = rutinas,
-                    diasDisponibles = rutina?.diasSemana.orEmpty(),
+                    diasDisponibles = diasDisponibles,
                     horariosDisponibles = rutina?.horariosDisponibles().orEmpty(),
                     isFormLoaded = true,
                     loadedTaskId = normalizedTaskId
@@ -268,19 +275,30 @@ class TareasViewModel @Inject constructor(
     fun onTituloChange(value: String) = _formState.update { it.copy(titulo = value, tituloError = null) }
     fun onCategoriaSelect(category: CategoriaTarea) = _formState.update { it.copy(categoriaSeleccionada = category, categoriaError = null) }
     fun onRutinaSelect(rutina: Rutina?) = _formState.update {
+        val diasDisponibles = rutina?.diasSemana.normalizedDias()
         it.copy(
             rutinaSeleccionadaId = rutina?.id,
             rutinaSeleccionadaNombre = rutina?.nombre,
-            diaSeleccionado = null,
+            diasSeleccionados = if (diasDisponibles.size == 1) diasDisponibles.toSet() else emptySet(),
             horario = null,
-            diasDisponibles = rutina?.diasSemana.orEmpty(),
+            diasDisponibles = diasDisponibles,
             horariosDisponibles = rutina?.horariosDisponibles().orEmpty(),
             rutinaError = null,
             diaError = null,
             horarioError = null
         )
     }
-    fun onDiaSelect(dia: DiaSemana?) = _formState.update { it.copy(diaSeleccionado = dia, diaError = null) }
+    fun onDiaToggle(dia: DiaSemana) = _formState.update { state ->
+        if (dia !in state.diasDisponibles) {
+            state
+        } else if (state.diasDisponibles.size == 1) {
+            state.copy(diasSeleccionados = setOf(dia), diaError = null)
+        } else {
+            val next = state.diasSeleccionados.toMutableSet()
+            if (dia in next) next.remove(dia) else next.add(dia)
+            state.copy(diasSeleccionados = next, diaError = null)
+        }
+    }
     fun onHorarioChange(value: String) = _formState.update { it.copy(horario = value, horarioError = null) }
     fun onNotasChange(value: String) = _formState.update { it.copy(notas = value) }
     fun onPhotoCaptured(photoPath: String) = _formState.update { it.copy(photoPath = photoPath) }
@@ -298,7 +316,7 @@ class TareasViewModel @Inject constructor(
                 categoria,
                 state.rutinaSeleccionadaId,
                 state.rutinaSeleccionadaNombre,
-                state.diaSeleccionado,
+                state.diasSeleccionados.toSortedDias(),
                 state.horario,
                 state.notas,
                 state.photoPath
@@ -332,7 +350,7 @@ class TareasViewModel @Inject constructor(
                 categoria,
                 state.rutinaSeleccionadaId,
                 state.rutinaSeleccionadaNombre,
-                state.diaSeleccionado,
+                state.diasSeleccionados.toSortedDias(),
                 state.horario,
                 state.notas,
                 state.photoPath
@@ -352,8 +370,13 @@ class TareasViewModel @Inject constructor(
     fun consumeSuccess() = _formState.update { it.copy(isSuccess = false) }
 
     private fun validateSchedule(state: CrearTareaUiState): Boolean {
-        if (state.diaSeleccionado != null && state.diaSeleccionado !in state.diasDisponibles) {
-            _formState.update { it.copy(diaError = "Selecciona un dia de la rutina asociada.") }
+        val diasSeleccionados = state.diasSeleccionados
+        if (state.diasDisponibles.size == 1 && diasSeleccionados.size > 1) {
+            _formState.update { it.copy(diaError = "La rutina seleccionada solo tiene un dia disponible.") }
+            return false
+        }
+        if (!state.diasDisponibles.containsAll(diasSeleccionados)) {
+            _formState.update { it.copy(diaError = "Selecciona dias de la rutina asociada.") }
             return false
         }
         if (!state.horario.isNullOrBlank() && state.horario !in state.horariosDisponibles) {
@@ -377,8 +400,8 @@ class TareasViewModel @Inject constructor(
             applyFieldError("Selecciona una rutina asociada.")
             return null
         }
-        if (state.diaSeleccionado == null) {
-            applyFieldError("Selecciona un dia.")
+        if (state.diasSeleccionados.isEmpty()) {
+            applyFieldError("Selecciona al menos un dia.")
             return null
         }
         if (state.horario.isNullOrBlank()) {
@@ -430,4 +453,12 @@ private fun Rutina.horariosDisponibles(): List<String> {
             horarios
         }
     }.getOrDefault(emptyList())
+}
+
+private fun List<DiaSemana>?.normalizedDias(): List<DiaSemana> {
+    return orEmpty().distinct().sortedBy { it.ordinal }
+}
+
+private fun Set<DiaSemana>.toSortedDias(): List<DiaSemana> {
+    return distinct().sortedBy { it.ordinal }
 }

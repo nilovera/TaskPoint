@@ -39,10 +39,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.model.diasOrdenados
 import com.example.apk_mock.ui.components.AppDeleteConfirmDialog
 import com.example.apk_mock.ui.components.DetailActionTopBar
 import com.example.apk_mock.ui.theme.TaskPointTheme
@@ -302,7 +302,7 @@ private fun TaskInfoCard(tarea: Tarea, rutina: Rutina?) {
             DividerLine()
             InfoRow(Icons.Default.LocationOn, "Dirección", rutina?.direccion ?: "Sin dirección")
             DividerLine()
-            InfoRow(Icons.Default.DateRange, "Día", tarea.dia?.displayName() ?: "Sin día")
+            InfoRow(Icons.Default.DateRange, "Días", tarea.diasDisplayName())
             DividerLine()
             InfoRow(Icons.Default.AccessTime, "Horario", tarea.horario ?: "Sin horario")
         }
@@ -440,4 +440,10 @@ private fun String.displayStoreName(): String {
 
 private fun String.shortAddress(): String {
     return substringBefore(",")
+}
+
+private fun Tarea.diasDisplayName(): String {
+    return diasOrdenados
+        .joinToString(separator = ", ") { it.displayName() }
+        .ifBlank { "Sin día" }
 }

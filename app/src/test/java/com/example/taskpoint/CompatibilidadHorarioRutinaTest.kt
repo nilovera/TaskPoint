@@ -22,6 +22,28 @@ class CompatibilidadHorarioRutinaTest {
     }
 
     @Test
+    fun taskWithMultipleDaysIsCompatibleWhenAllDaysRemain() {
+        assertTrue(
+            tarea(listOf(DiaSemana.LUN, DiaSemana.MIE), "10:30").coincideConHorario(
+                diasRutina = listOf(DiaSemana.LUN, DiaSemana.MIE, DiaSemana.VIE),
+                horarioInicio = "09:00",
+                horarioFin = "12:00"
+            )
+        )
+    }
+
+    @Test
+    fun removedOneOfMultipleDaysMakesTaskIncompatible() {
+        assertFalse(
+            tarea(listOf(DiaSemana.LUN, DiaSemana.MIE), "10:30").coincideConHorario(
+                diasRutina = listOf(DiaSemana.LUN),
+                horarioInicio = "09:00",
+                horarioFin = "12:00"
+            )
+        )
+    }
+
+    @Test
     fun removedDayMakesTaskIncompatible() {
         assertFalse(
             tarea(DiaSemana.LUN, "10:30").coincideConHorario(
@@ -54,13 +76,15 @@ class CompatibilidadHorarioRutinaTest {
         )
     }
 
-    private fun tarea(dia: DiaSemana?, horario: String?) = Tarea(
+    private fun tarea(dia: DiaSemana?, horario: String?) = tarea(listOfNotNull(dia), horario)
+
+    private fun tarea(dias: List<DiaSemana>, horario: String?) = Tarea(
         id = "tarea-1",
         titulo = "Tarea",
         categoria = CategoriaTarea(1, "Trabajo", "TRABAJO", "", false),
         rutinaId = "rutina-1",
         rutinaNombre = "Trabajo",
-        dia = dia,
+        dias = dias,
         horario = horario,
         notas = ""
     )

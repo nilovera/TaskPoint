@@ -88,7 +88,7 @@ class RoomTareaRepository(
         categoria: CategoriaTarea,
         rutinaId: String?,
         rutinaNombre: String?,
-        dia: DiaSemana?,
+        dias: List<DiaSemana>,
         horario: String?,
         notas: String,
         photoPath: String?
@@ -102,7 +102,7 @@ class RoomTareaRepository(
             categoria = categoria,
             rutinaId = rutinaId,
             rutinaNombre = rutinaNombre,
-            dia = dia,
+            dias = dias.normalizedDias(),
             horario = horario,
             notas = notas,
             photoPath = photoPath
@@ -133,7 +133,7 @@ class RoomTareaRepository(
         categoria: CategoriaTarea,
         rutinaId: String?,
         rutinaNombre: String?,
-        dia: DiaSemana?,
+        dias: List<DiaSemana>,
         horario: String?,
         notas: String,
         photoPath: String?
@@ -150,7 +150,7 @@ class RoomTareaRepository(
                 categoria = categoria,
                 rutinaId = rutinaId,
                 rutinaNombre = rutinaNombre,
-                dia = dia,
+                dias = dias.normalizedDias(),
                 horario = horario,
                 notas = notas,
                 photoPath = photoPath,
@@ -223,4 +223,8 @@ class RoomTareaRepository(
             status = SyncOperationStatus.PENDING
         )
     }
+}
+
+private fun List<DiaSemana>.normalizedDias(): List<DiaSemana> {
+    return distinct().sortedBy { it.ordinal }
 }

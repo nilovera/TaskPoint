@@ -19,7 +19,7 @@ fun TareaEntity.toDomain(): Tarea {
         ),
         rutinaId = rutinaId,
         rutinaNombre = rutinaNombre,
-        dia = dia?.toDiaSemanaOrNull(),
+        dias = dia.toDiasSemana(),
         horario = horario,
         notas = notas,
         photoPath = photoPath,
@@ -44,7 +44,7 @@ fun Tarea.toEntity(
         categoriaActivatesOffers = categoria.activatesOffers,
         rutinaId = rutinaId,
         rutinaNombre = rutinaNombre,
-        dia = dia?.name,
+        dia = dias.toStorageValue(),
         horario = horario,
         notas = notas,
         photoPath = photoPath,
@@ -61,4 +61,19 @@ fun List<TareaEntity>.toTareaDomainList(): List<Tarea> {
 
 private fun String.toDiaSemanaOrNull(): DiaSemana? {
     return enumValues<DiaSemana>().firstOrNull { it.name == this }
+}
+
+private fun String?.toDiasSemana(): List<DiaSemana> {
+    if (isNullOrBlank()) return emptyList()
+    return split(",")
+        .mapNotNull { value -> value.trim().toDiaSemanaOrNull() }
+        .distinct()
+        .sortedBy { it.ordinal }
+}
+
+private fun List<DiaSemana>.toStorageValue(): String? {
+    return distinct()
+        .sortedBy { it.ordinal }
+        .joinToString(separator = ",") { it.name }
+        .takeIf { it.isNotBlank() }
 }
