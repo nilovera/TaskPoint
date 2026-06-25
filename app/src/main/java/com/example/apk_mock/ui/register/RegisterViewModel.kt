@@ -97,7 +97,7 @@ class RegisterViewModel @Inject constructor(
         if (state.email.isBlank()) {
             return RegisterValidationError(RegisterField.Email, "Ingresá tu correo electrónico.")
         }
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(state.email).matches()) {
+        if (!state.email.trim().isValidEmail()) {
             return RegisterValidationError(RegisterField.Email, "Ingresá un correo válido.")
         }
         if (state.password.isBlank()) {
@@ -127,3 +127,10 @@ private data class RegisterValidationError(
     val field: RegisterField,
     val message: String
 )
+
+private fun String.isValidEmail(): Boolean {
+    return Regex(
+        pattern = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$",
+        option = RegexOption.IGNORE_CASE
+    ).matches(this)
+}

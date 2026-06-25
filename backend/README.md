@@ -43,6 +43,34 @@ El backend queda disponible en:
 http://localhost:8080
 ```
 
+## Configuración de IP
+
+Por default, la app Android debe usar la IP especial del emulador:
+
+```text
+http://10.0.2.2:8080
+```
+
+Esa direccion permite que el emulador acceda al backend que esta corriendo en la misma PC. Aunque el backend se levante como `localhost`, dentro del emulador `localhost` apunta al propio emulador, no a la computadora.
+
+Si se quiere probar la app desde un celular fisico, se debe reemplazar esa URL por la IPv4 de la PC donde esta corriendo el backend, por ejemplo:
+
+```text
+http://192.168.x.x:8080
+```
+
+En ese caso, la PC y el celular tienen que estar conectados a la misma red WiFi, y el firewall de la PC debe permitir conexiones entrantes al puerto `8080`.
+
+### ¿Cómo saber la IP de la PC?
+
+En Windows, abrir una terminal y ejecutar:
+
+```powershell
+ipconfig
+```
+
+Buscar la red que se esta usando, por ejemplo WiFi, y copiar el valor de `Dirección IPv4`. Esa direccion es la que se debe usar en la app cuando se prueba desde un celular fisico.
+
 Esperar el mensaje `Firebase is ready.` antes de abrir la app. Si Firebase no puede conectarse, el backend no inicia para evitar que el primer login falle por una conexion en frio.
 
 Para comprobarlo:

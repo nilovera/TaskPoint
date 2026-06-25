@@ -275,6 +275,7 @@ class SyncProcessor @Inject constructor(
                 notas = remote.notas,
                 photoPath = remote.photoPath,
                 completada = remote.completada,
+                requiereRevisionHorario = remote.requiereRevisionHorario,
                 syncStatus = SyncStatus.SYNCED,
                 updatedAt = remote.updatedAt ?: operation.payloadUpdatedAt()
             )
@@ -378,6 +379,7 @@ class SyncProcessor @Inject constructor(
             notas = payload.stringOrNull("notas") ?: "",
             photoPath = payload.stringOrNull("photoPath"),
             completada = payload.optBoolean("completada", false),
+            requiereRevisionHorario = payload.optBoolean("requiereRevisionHorario", false),
             updatedAt = payloadUpdatedAt()
         )
     }

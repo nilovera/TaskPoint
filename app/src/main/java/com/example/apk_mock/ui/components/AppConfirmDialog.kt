@@ -5,11 +5,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -43,7 +46,8 @@ object AppConfirmDialogDefaults {
     val TopPadding = 92.dp
     val BottomPadding = 128.dp
     val CardPadding = 22.dp
-    val ButtonGap = 52.dp
+    val ButtonGap = 12.dp
+    val ButtonContentHorizontalPadding = 10.dp
 }
 
 @Composable
@@ -128,27 +132,48 @@ fun AppConfirmDialog(
                         OutlinedButton(
                             onClick = onDismiss,
                             modifier = Modifier
-                                .height(AppConfirmDialogDefaults.ButtonHeight)
+                                .heightIn(min = AppConfirmDialogDefaults.ButtonHeight)
                                 .weight(1f),
                             shape = RoundedCornerShape(buttonCornerRadius),
                             border = BorderStroke(1.dp, colors.border),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 containerColor = dismissContainerColor,
                                 contentColor = colors.textPrimary
+                            ),
+                            contentPadding = PaddingValues(
+                                horizontal = AppConfirmDialogDefaults.ButtonContentHorizontalPadding
                             )
                         ) {
-                            Text(dismissText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                dismissText,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                softWrap = false
+                            )
                         }
                         Spacer(Modifier.width(AppConfirmDialogDefaults.ButtonGap))
                         Button(
                             onClick = onConfirm,
                             modifier = Modifier
-                                .height(AppConfirmDialogDefaults.ButtonHeight)
+                                .heightIn(min = AppConfirmDialogDefaults.ButtonHeight)
                                 .weight(1f),
                             shape = RoundedCornerShape(buttonCornerRadius),
-                            colors = ButtonDefaults.buttonColors(containerColor = confirmColor)
+                            colors = ButtonDefaults.buttonColors(containerColor = confirmColor),
+                            contentPadding = PaddingValues(
+                                horizontal = AppConfirmDialogDefaults.ButtonContentHorizontalPadding
+                            )
                         ) {
-                            Text(confirmText, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text(
+                                confirmText,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                softWrap = false
+                            )
                         }
                     }
                 }

@@ -33,12 +33,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.apk_mock.ui.forgotPassword.ForgotPasswordEmailScreen
@@ -83,7 +85,7 @@ private val bottomNavItems = listOf(
 
 // ── Rutas donde se muestra el bottom bar ─────────────────────────────────────
 private val tabRoutes = setOf(Routes.HOME, Routes.RUTINAS, Routes.TAREAS)
-private val profileRoutes = setOf(Routes.PROFILE, Routes.PROFILE_PASSWORD)
+private val profileRoutes = setOf(Routes.PROFILE, Routes.PROFILE_PASSWORD, Routes.PROFILE_GRAPH)
 private val bottomBarRoutes = tabRoutes + profileRoutes + Routes.RUTINA_DETALLE_ROUTE + Routes.DETALLE_TAREA
 private const val CAPTURED_PHOTO_PATH_KEY = "captured_photo_path"
 
@@ -96,20 +98,9 @@ fun AppNavigation(
 ) {
     val colors = TaskPointTheme.colors
 
-    // ViewModels de tabs: viven aquí para persistir al cambiar de tab
-    val rutinasViewModel: RutinasViewModel = hiltViewModel()
-    val tareasViewModel: TareasViewModel = hiltViewModel()
-    val profileViewModel: ProfileViewModel = hiltViewModel()
-    val profileState by profileViewModel.uiState.collectAsState()
+    // Solo la sesion vive en el nivel global: decide el graph inicial.
     val sessionViewModel: SessionViewModel = hiltViewModel()
-    val sessionState by sessionViewModel.uiState.collectAsState()
-
-    LaunchedEffect(profileState.sessionEnded) {
-        if (profileState.sessionEnded) {
-            profileViewModel.onSessionEndedConsumed()
-            sessionViewModel.onSessionEnded()
-        }
-    }
+    val sessionState by sessionViewModel.uiState.collectAsStateWithLifecycle()
 
     if (sessionState is SessionUiState.Checking) {
         Box(
@@ -124,7 +115,7 @@ fun AppNavigation(
     }
 
     val startDestination = when {
-        sessionState is SessionUiState.Authenticated -> Routes.HOME
+        sessionState is SessionUiState.Authenticated -> Routes.MAIN_GRAPH
         onboardingCompleted -> Routes.LOGIN
         else -> Routes.ONBOARDING
     }
@@ -229,7 +220,15 @@ fun AppNavigation(
 
             // ── Tabs principales (con bottom bar) ─────────────────────────────
 
+            navigation(
+                route = Routes.MAIN_GRAPH,
+                startDestination = Routes.HOME
+            ) {
+
             composable(Routes.HOME) {
+                val rutinasViewModel = mainRutinasViewModel(navController)
+                val tareasViewModel = mainTareasViewModel(navController)
+
                 HomeScreen(
                     userName = userName,
                     rutinasViewModel = rutinasViewModel,
@@ -240,35 +239,42 @@ fun AppNavigation(
                         tareasViewModel.resetCreateForm()
                         navController.navigate(Routes.CREAR_TAREA)
                     },
-                    onProfile = { navController.navigate(Routes.PROFILE) },
-                    onLogout = profileViewModel::onLogoutConfirmed,
+                    onTaskClick = { taskId ->
+                        navController.navigate(Routes.detalleTarea(taskId))
+                    },
+                    onProfile = { navController.navigate(Routes.PROFILE_GRAPH) },
+                    onLogout = sessionViewModel::logout,
                     innerPadding = innerPadding
                 )
             }
 
             composable(Routes.RUTINAS) {
+                val rutinasViewModel = mainRutinasViewModel(navController)
+
                 RutinasScreen(
                     viewModel = rutinasViewModel,
                     userName = userName,
                     isInitialDataSyncInProgress = isInitialDataSyncInProgress,
                     onNavigateToCrear = { navController.navigate(Routes.CREAR_RUTINA) },
                     onRutinaClick = { rutina -> navController.navigate(Routes.rutinaDetalle(rutina.id)) },
-                    onProfile = { navController.navigate(Routes.PROFILE) },
-                    onLogout = profileViewModel::onLogoutConfirmed,
+                    onProfile = { navController.navigate(Routes.PROFILE_GRAPH) },
+                    onLogout = sessionViewModel::logout,
                     innerPadding = innerPadding
                 )
             }
 
             composable(Routes.TAREAS) {
+                val tareasViewModel = mainTareasViewModel(navController)
+
                 val taskCreated by currentBackStack
                     ?.savedStateHandle
                     ?.getStateFlow("task_created", false)
-                    ?.collectAsState()
+                    ?.collectAsStateWithLifecycle()
                     ?: remember { mutableStateOf(false) }
                 val taskDeleted by currentBackStack
                     ?.savedStateHandle
                     ?.getStateFlow("task_deleted", false)
-                    ?.collectAsState()
+                    ?.collectAsStateWithLifecycle()
                     ?: remember { mutableStateOf(false) }
 
                 TareasScreen(
@@ -279,8 +285,8 @@ fun AppNavigation(
                         tareasViewModel.resetCreateForm()
                         navController.navigate(Routes.CREAR_TAREA)
                     },
-                    onProfile = { navController.navigate(Routes.PROFILE) },
-                    onLogout = profileViewModel::onLogoutConfirmed,
+                    onProfile = { navController.navigate(Routes.PROFILE_GRAPH) },
+                    onLogout = sessionViewModel::logout,
                     onNavigateToDetalle = { taskId -> navController.navigate(Routes.detalleTarea(taskId)) },
                     showTaskCreatedMessage = taskCreated,
                     onTaskCreatedMessageShown = {
@@ -300,6 +306,8 @@ fun AppNavigation(
                 route = Routes.RUTINA_DETALLE_ROUTE,
                 arguments = listOf(navArgument(Routes.ARG_RUTINA_ID) { type = NavType.StringType })
             ) { entry ->
+                val rutinasViewModel = mainRutinasViewModel(navController)
+                val tareasViewModel = mainTareasViewModel(navController)
                 val rutinaId = entry.arguments?.getString(Routes.ARG_RUTINA_ID).orEmpty()
                 DetalleRutinaScreen(
                     rutinaId = rutinaId,
@@ -315,7 +323,13 @@ fun AppNavigation(
                         navController.popBackStack()
                     },
                     onEdit = {
+                        rutinasViewModel.resetEditForm()
                         navController.navigate(Routes.editarRutina(rutinaId))
+                    },
+                    onTaskClick = { taskId ->
+                        // La rutina queda en el back stack para que la flecha de la tarea
+                        // regrese a este mismo detalle.
+                        navController.navigate(Routes.detalleTarea(taskId))
                     },
                     innerPadding = innerPadding
                 )
@@ -325,6 +339,8 @@ fun AppNavigation(
                 route = Routes.EDITAR_RUTINA_ROUTE,
                 arguments = listOf(navArgument(Routes.ARG_RUTINA_ID) { type = NavType.StringType })
             ) { entry ->
+                val rutinasViewModel = mainRutinasViewModel(navController)
+                val tareasViewModel = mainTareasViewModel(navController)
                 val rutinaId = entry.arguments?.getString(Routes.ARG_RUTINA_ID).orEmpty()
                 EditarRutinaScreen(
                     rutinaId = rutinaId,
@@ -341,7 +357,22 @@ fun AppNavigation(
                 )
             }
 
+            navigation(
+                route = Routes.PROFILE_GRAPH,
+                startDestination = Routes.PROFILE
+            ) {
+
             composable(Routes.PROFILE) {
+                val profileViewModel = profileGraphViewModel(navController)
+                val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
+
+                LaunchedEffect(profileState.sessionEnded) {
+                    if (profileState.sessionEnded) {
+                        profileViewModel.onSessionEndedConsumed()
+                        sessionViewModel.onSessionEnded()
+                    }
+                }
+
                 ProfileScreen(
                     viewModel = profileViewModel,
                     userName = userName,
@@ -358,6 +389,8 @@ fun AppNavigation(
             }
 
             composable(Routes.PROFILE_PASSWORD) {
+                val profileViewModel = profileGraphViewModel(navController)
+
                 ChangePasswordScreen(
                     viewModel = profileViewModel,
                     onBack = { navController.popBackStack() },
@@ -370,8 +403,11 @@ fun AppNavigation(
                     innerPadding = innerPadding
                 )
             }
+            }
 
             composable(Routes.CREAR_RUTINA) {
+                val rutinasViewModel = mainRutinasViewModel(navController)
+
                 CrearRutinaScreen(
                     viewModel = rutinasViewModel,
                     onBack = { navController.popBackStack() }
@@ -379,9 +415,11 @@ fun AppNavigation(
             }
 
             composable(Routes.CREAR_TAREA) { backStackEntry ->
+                val tareasViewModel = mainTareasViewModel(navController)
+
                 val capturedPhotoPath by backStackEntry.savedStateHandle
                     .getStateFlow(CAPTURED_PHOTO_PATH_KEY, "")
-                    .collectAsState()
+                    .collectAsStateWithLifecycle()
 
                 LaunchedEffect(capturedPhotoPath) {
                     if (capturedPhotoPath.isNotBlank()) {
@@ -404,11 +442,13 @@ fun AppNavigation(
             }
 
             composable(Routes.DETALLE_TAREA) { backStackEntry ->
+                val tareasViewModel = mainTareasViewModel(navController)
+
                 val taskId = backStackEntry.arguments?.getString("taskId").orEmpty()
                 val taskEdited by currentBackStack
                     ?.savedStateHandle
                     ?.getStateFlow("task_edited", false)
-                    ?.collectAsState()
+                    ?.collectAsStateWithLifecycle()
                     ?: remember { mutableStateOf(false) }
 
                 DetalleTareaScreen(
@@ -434,10 +474,12 @@ fun AppNavigation(
             }
 
             composable(Routes.EDITAR_TAREA) { backStackEntry ->
+                val tareasViewModel = mainTareasViewModel(navController)
+
                 val taskId = backStackEntry.arguments?.getString("taskId").orEmpty()
                 val capturedPhotoPath by backStackEntry.savedStateHandle
                     .getStateFlow(CAPTURED_PHOTO_PATH_KEY, "")
-                    .collectAsState()
+                    .collectAsStateWithLifecycle()
 
                 LaunchedEffect(capturedPhotoPath) {
                     if (capturedPhotoPath.isNotBlank()) {
@@ -471,6 +513,7 @@ fun AppNavigation(
                     }
                 )
             }
+            }
         }
     }
     }
@@ -478,11 +521,40 @@ fun AppNavigation(
 
 // ── Bottom bar ────────────────────────────────────────────────────────────────
 @Composable
+private fun mainRutinasViewModel(navController: NavController): RutinasViewModel {
+    val mainGraphEntry = remember(navController) {
+        navController.getBackStackEntry(Routes.MAIN_GRAPH)
+    }
+    return hiltViewModel(mainGraphEntry)
+}
+
+@Composable
+private fun mainTareasViewModel(navController: NavController): TareasViewModel {
+    val mainGraphEntry = remember(navController) {
+        navController.getBackStackEntry(Routes.MAIN_GRAPH)
+    }
+    return hiltViewModel(mainGraphEntry)
+}
+
+@Composable
+private fun profileGraphViewModel(navController: NavController): ProfileViewModel {
+    val profileGraphEntry = remember(navController) {
+        navController.getBackStackEntry(Routes.PROFILE_GRAPH)
+    }
+    return hiltViewModel(profileGraphEntry)
+}
+
+@Composable
 private fun AppBottomBar(navController: NavController, currentRoute: String?) {
     val colors = TaskPointTheme.colors
     val selectedRoute = when (currentRoute) {
         in profileRoutes -> Routes.HOME
         Routes.RUTINA_DETALLE_ROUTE -> Routes.RUTINAS
+        Routes.DETALLE_TAREA -> when (navController.previousBackStackEntry?.destination?.route) {
+            Routes.RUTINA_DETALLE_ROUTE -> Routes.RUTINAS
+            Routes.HOME -> Routes.HOME
+            else -> Routes.TAREAS
+        }
         else -> currentRoute
     }
 
@@ -502,7 +574,6 @@ private fun AppBottomBar(navController: NavController, currentRoute: String?) {
     ) {
         bottomNavItems.forEach { item ->
             val selected = selectedRoute == item.route
-                || (currentRoute == Routes.DETALLE_TAREA && item.route == Routes.TAREAS)
             BottomNavButton(
                 item = item,
                 selected = selected,

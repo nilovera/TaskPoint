@@ -1,13 +1,16 @@
 package com.example.apk_mock.ui.rutinas
 
+import android.app.TimePickerDialog
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,14 +21,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -39,8 +48,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.RutinaIcono
-import com.example.apk_mock.ui.components.appTextFieldColors
 import com.example.apk_mock.ui.theme.TaskPointTheme
+import java.util.Locale
 
 internal enum class RutinaIconosLayout {
     Horizontal,
@@ -141,21 +150,22 @@ private fun RutinaIconoOption(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun RutinaDiasSelector(
     seleccionados: Set<DiaSemana>,
     onToggle: (DiaSemana) -> Unit,
     spacing: Dp = 6.dp,
     horizontalPadding: Dp = 10.dp,
-    selectedFontWeight: FontWeight = FontWeight.SemiBold,
-    scrollable: Boolean = false
+    selectedFontWeight: FontWeight = FontWeight.SemiBold
 ) {
-    val scrollState = rememberScrollState()
     val colors = TaskPointTheme.colors
 
-    Row(
+    FlowRow(
         horizontalArrangement = Arrangement.spacedBy(spacing),
-        modifier = if (scrollable) Modifier.horizontalScroll(scrollState) else Modifier
+        verticalArrangement = Arrangement.spacedBy(spacing),
+        maxItemsInEachRow = 4,
+        modifier = Modifier.fillMaxWidth()
     ) {
         DiaSemana.values().forEach { dia ->
             val selected = dia in seleccionados
@@ -165,6 +175,7 @@ internal fun RutinaDiasSelector(
                 color = if (selected) colors.primary else colors.surface,
                 border = if (selected) null else BorderStroke(1.dp, colors.border),
                 modifier = Modifier
+                    .width(64.dp)
                     .heightIn(min = 48.dp)
                     .semantics {
                         contentDescription = "Día ${dia.label}"
@@ -197,15 +208,56 @@ internal fun RutinaHorarioField(
     cornerRadius: Dp = 12.dp
 ) {
     val colors = TaskPointTheme.colors
+    val context = LocalContext.current
+    val onTimeSelected by rememberUpdatedState(onValueChange)
+    val (initialHour, initialMinute) = remember(value) { value.toTimeParts() }
+    val timePickerDialog = remember(context, initialHour, initialMinute) {
+        TimePickerDialog(
+            context,
+            { _, hour, minute ->
+                onTimeSelected(String.format(Locale.US, "%02d:%02d", hour, minute))
+            },
+            initialHour,
+            initialMinute,
+            true
+        )
+    }
 
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text(placeholder, color = colors.placeholder) },
-        singleLine = true,
-        isError = isError,
+    Surface(
+        onClick = timePickerDialog::show,
         shape = RoundedCornerShape(cornerRadius),
-        colors = appTextFieldColors()
-    )
+        color = colors.surface,
+        border = BorderStroke(1.dp, if (isError) colors.destructive else colors.border),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .semantics {
+                contentDescription = "${if (value.isBlank()) placeholder else value}. Abrir selector de hora"
+                role = Role.Button
+            }
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = value.ifBlank { placeholder },
+                color = if (value.isBlank()) colors.placeholder else colors.textPrimary,
+                fontSize = 16.sp
+            )
+            Spacer(Modifier.weight(1f))
+            Icon(
+                imageVector = Icons.Default.AccessTime,
+                contentDescription = null,
+                tint = colors.textSecondary
+            )
+        }
+    }
+}
+
+private fun String.toTimeParts(): Pair<Int, Int> {
+    val pieces = split(":")
+    val hour = pieces.getOrNull(0)?.toIntOrNull()?.takeIf { it in 0..23 } ?: 9
+    val minute = pieces.getOrNull(1)?.toIntOrNull()?.takeIf { it in 0..59 } ?: 0
+    return hour to minute
 }

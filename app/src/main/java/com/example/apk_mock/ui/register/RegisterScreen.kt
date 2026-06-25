@@ -16,7 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,7 +37,7 @@ fun RegisterScreen(
     onRegisterSuccess: (User) -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val colors = TaskPointTheme.colors
 
     LaunchedEffect(state.isSuccess) {
@@ -79,7 +79,7 @@ fun RegisterScreen(
                 label = "Correo electrónico",
                 value = state.email,
                 onValueChange = viewModel::onEmailChange,
-                placeholder = "nico@ejemplo.com",
+                placeholder = "usuario@ejemplo.com",
                 keyboardType = KeyboardType.Email,
                 isError = state.emailError != null
             )

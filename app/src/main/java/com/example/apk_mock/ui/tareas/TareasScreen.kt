@@ -13,16 +13,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,11 +43,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.model.diasOrdenados
 import com.example.apk_mock.ui.components.AppEmptyStateCard
 import com.example.apk_mock.ui.components.BottomStatusMessage
 import com.example.apk_mock.ui.components.CreateActionPill
+import com.example.apk_mock.ui.components.FiltrosDias
 import com.example.apk_mock.ui.components.MainScreenHeader
-import com.example.apk_mock.ui.rutinas.FiltrosDias
 import com.example.apk_mock.ui.theme.TaskPointTheme
 import com.example.apk_mock.ui.theme.categoryChipColors
 import com.example.apk_mock.ui.utils.daysFrom
@@ -67,14 +72,13 @@ fun TareasScreen(
     onTaskDeletedMessageShown: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    val listState by viewModel.listState.collectAsState()
+    val listState by viewModel.listState.collectAsStateWithLifecycle()
     val tareas = viewModel.tareasFiltradas()
     val canCreateTask = listState.rutinasDisponibles > 0
     val today = LocalDate.now()
     val colors = TaskPointTheme.colors
     var overlayMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) { viewModel.refreshTareas() }
     LaunchedEffect(showTaskCreatedMessage) {
         if (showTaskCreatedMessage) {
             overlayMessage = "Tarea creada correctamente."
@@ -97,7 +101,7 @@ fun TareasScreen(
         floatingActionButton = {
             if (overlayMessage == null) {
                 CreateActionPill(
-                    text = "Nueva tarea +",
+                    text = "Nueva tarea",
                     onClick = onNavigateToCrear,
                     enabled = canCreateTask,
                     modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
@@ -105,14 +109,13 @@ fun TareasScreen(
             }
         },
         floatingActionButtonPosition = FabPosition.End
-    ) { selfPadding ->
+    ) { _ ->
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(
                         top = innerPadding.calculateTopPadding() + 8.dp,
-                        bottom = innerPadding.calculateBottomPadding() + selfPadding.calculateBottomPadding(),
                         start = 20.dp,
                         end = 20.dp
                     )
@@ -137,7 +140,8 @@ fun TareasScreen(
                     )
                 } else {
                     val agrupadas = tareas
-                        .groupBy { it.dia }
+                        .asTaskDayPairs(listState.filtroDia)
+                        .groupBy({ it.first }, { it.second })
                         .toList()
                         .sortedWith(
                             compareBy<Pair<DiaSemana?, List<Tarea>>> { (dia, _) ->
@@ -145,7 +149,13 @@ fun TareasScreen(
                             }.thenBy { (dia, _) -> dia?.ordinal ?: Int.MAX_VALUE }
                         )
 
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        contentPadding = PaddingValues(
+                            bottom = innerPadding.calculateBottomPadding() + 48.dp
+                        )
+                    ) {
                         agrupadas.forEach { (dia, tareasDelDia) ->
                             item {
                                 Text(
@@ -166,7 +176,6 @@ fun TareasScreen(
                                 Spacer(Modifier.height(8.dp))
                             }
                         }
-                        item { Spacer(Modifier.height(80.dp)) }
                     }
                 }
             }
@@ -177,6 +186,19 @@ fun TareasScreen(
                     bottomPadding = innerPadding.calculateBottomPadding() + 16.dp
                 )
             }
+        }
+    }
+}
+
+private fun List<Tarea>.asTaskDayPairs(filtroDia: DiaSemana?): List<Pair<DiaSemana?, Tarea>> {
+    if (filtroDia != null) return map { tarea -> filtroDia to tarea }
+
+    return flatMap { tarea ->
+        val dias = tarea.diasOrdenados
+        if (dias.isEmpty()) {
+            listOf(null to tarea)
+        } else {
+            dias.map { dia -> dia to tarea }
         }
     }
 }
@@ -204,6 +226,9 @@ fun TareaCard(
     val accessibilityDescription = buildString {
         append("Tarea ${tarea.titulo}.")
         append(if (tarea.completada) " Completada." else " Pendiente.")
+        if (tarea.requiereRevisionHorario) {
+            append(" Deshabilitada hasta revisar su día y horario.")
+        }
         tarea.horario?.let { append(" Horario $it.") }
         tarea.rutinaNombre?.let { append(" Rutina $it.") }
         append(" Categoría ${tarea.categoria.label}.")
@@ -211,8 +236,11 @@ fun TareaCard(
 
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = colors.taskCard,
-        border = BorderStroke(1.dp, colors.border),
+        color = if (tarea.requiereRevisionHorario) colors.warningBackground else colors.taskCard,
+        border = BorderStroke(
+            1.dp,
+            if (tarea.requiereRevisionHorario) colors.warningText else colors.border
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 62.dp)
@@ -252,16 +280,35 @@ fun TareaCard(
                     )
                 }
             }
-            Surface(shape = RoundedCornerShape(5.dp), color = categoryColors.container) {
-                Text(
-                    tarea.categoria.label,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                    fontSize = 12.sp,
-                    color = categoryColors.content,
-                    fontWeight = FontWeight.ExtraBold
-                )
+            Column(horizontalAlignment = Alignment.End) {
+                if (tarea.requiereRevisionHorario) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.WarningAmber,
+                            contentDescription = null,
+                            tint = colors.warningText,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text(
+                            "REVISAR",
+                            color = colors.warningText,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                    Spacer(Modifier.height(5.dp))
+                }
+                Surface(shape = RoundedCornerShape(5.dp), color = categoryColors.container) {
+                    Text(
+                        tarea.categoria.label,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        fontSize = 12.sp,
+                        color = categoryColors.content,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
             }
         }
     }
 }
-

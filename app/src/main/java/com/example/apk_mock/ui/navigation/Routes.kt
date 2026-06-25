@@ -1,6 +1,10 @@
 package com.example.apk_mock.ui.navigation
 
 object Routes {
+    // Graphs
+    const val MAIN_GRAPH     = "main_graph"
+    const val PROFILE_GRAPH  = "profile_graph"
+
     // Onboarding
     const val ONBOARDING      = "onboarding"
 
@@ -30,9 +34,6 @@ object Routes {
 
     fun detalleTarea(taskId: String): String = "detalle_tarea/$taskId"
     fun editarTarea(taskId: String): String = "editar_tarea/$taskId"
-
-    // Arg para pasar el nombre del usuario a las tabs
-    const val ARG_NAME        = "name"
 
     fun rutinaDetalle(rutinaId: String) = "$RUTINA_DETALLE/$rutinaId"
     fun editarRutina(rutinaId: String) = "$EDITAR_RUTINA/$rutinaId"

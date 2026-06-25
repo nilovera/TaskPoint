@@ -3,6 +3,7 @@ package com.example.apk_mock.ui.rutinas
 import android.widget.Space
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -34,7 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,12 +44,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.model.perteneceARutina
 import com.example.apk_mock.ui.components.AppDeleteConfirmDialog
 import com.example.apk_mock.ui.components.DetailActionTopBar
 import com.example.apk_mock.ui.tareas.TareasViewModel
@@ -62,10 +68,11 @@ fun DetalleRutinaScreen(
     onBack: () -> Unit,
     onDeleted: () -> Unit,
     onEdit: () -> Unit,
+    onTaskClick: (String) -> Unit,
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    val detalleState by rutinasViewModel.detalleState.collectAsState()
-    val tareasState by tareasViewModel.listState.collectAsState()
+    val detalleState by rutinasViewModel.detalleState.collectAsStateWithLifecycle()
+    val tareasState by tareasViewModel.listState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val colors = TaskPointTheme.colors
@@ -100,7 +107,7 @@ fun DetalleRutinaScreen(
     val tareasAsociadas = remember(rutina, tareasState.tareas) {
         if (rutina == null) emptyList()
         else tareasState.tareas
-            .filter { it.rutinaId == rutina.id || it.rutinaNombre == rutina.nombre }
+            .filter { it.perteneceARutina(rutina) }
             .sortedBy { it.horario ?: "" }
     }
 
@@ -148,7 +155,12 @@ fun DetalleRutinaScreen(
                 item { DaysSection(rutina = rutina) }
                 item { TimeSection(rutina = rutina) }
                 item { DescriptionSection(rutina = rutina) }
-                item { TasksSection(tareas = tareasAsociadas) }
+                item {
+                    TasksSection(
+                        tareas = tareasAsociadas,
+                        onTaskClick = { tarea -> onTaskClick(tarea.id) }
+                    )
+                }
             }
         }
     }
@@ -341,7 +353,10 @@ private fun DescriptionSection(rutina: Rutina) {
 }
 
 @Composable
-private fun TasksSection(tareas: List<Tarea>) {
+private fun TasksSection(
+    tareas: List<Tarea>,
+    onTaskClick: (Tarea) -> Unit
+) {
     val colors = TaskPointTheme.colors
 
     DetailSection(title = "Tareas asociadas", contentPadding = PaddingValues(0.dp)) {
@@ -355,7 +370,10 @@ private fun TasksSection(tareas: List<Tarea>) {
         } else {
             Column {
                 tareas.forEachIndexed { index, tarea ->
-                    AssociatedTaskRow(tarea = tarea)
+                    AssociatedTaskRow(
+                        tarea = tarea,
+                        onClick = { onTaskClick(tarea) }
+                    )
                     if (index < tareas.lastIndex) {
                         HorizontalDivider(color = colors.border)
                     }
@@ -366,18 +384,38 @@ private fun TasksSection(tareas: List<Tarea>) {
 }
 
 @Composable
-private fun AssociatedTaskRow(tarea: Tarea) {
+private fun AssociatedTaskRow(
+    tarea: Tarea,
+    onClick: () -> Unit
+) {
     val categoryColors = tarea.categoria.categoryChipColors()
     val colors = TaskPointTheme.colors
 
     Row(
-        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = if (tarea.requiereRevisionHorario) {
+                    "Abrir tarea ${tarea.titulo}. Deshabilitada hasta revisar su dia y horario."
+                } else {
+                    "Abrir tarea ${tarea.titulo}"
+                }
+            }
+            .clickable(role = Role.Button, onClick = onClick)
+            .background(
+                if (tarea.requiereRevisionHorario) {
+                    colors.warningBackground
+                } else {
+                    Color.Transparent
+                }
+            )
+            .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            Icons.Default.DateRange,
+            if (tarea.requiereRevisionHorario) Icons.Default.WarningAmber else Icons.Default.DateRange,
             contentDescription = null,
-            tint = colors.textSecondary,
+            tint = if (tarea.requiereRevisionHorario) colors.warningText else colors.textSecondary,
             modifier = Modifier.size(18.dp)
         )
         Spacer(Modifier.width(8.dp))
@@ -388,12 +426,20 @@ private fun AssociatedTaskRow(tarea: Tarea) {
         ) {
             Text(
                 tarea.titulo,
-                color = colors.textPrimary,
+                color = if (tarea.requiereRevisionHorario) colors.warningText else colors.textPrimary,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            if (tarea.requiereRevisionHorario) {
+                Text(
+                    "Revisar dia y horario",
+                    color = colors.warningText,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
         Surface(shape = RoundedCornerShape(5.dp), color = categoryColors.container) {
             Text(
@@ -444,4 +490,3 @@ private fun MissingRoutineState(onBack: () -> Unit) {
         }
     }
 }
-

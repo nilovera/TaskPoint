@@ -19,13 +19,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,10 +39,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.StoreOffer
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.model.diasOrdenados
 import com.example.apk_mock.ui.components.AppDeleteConfirmDialog
 import com.example.apk_mock.ui.components.DetailActionTopBar
 import com.example.apk_mock.ui.theme.TaskPointTheme
@@ -60,7 +61,7 @@ fun DetalleTareaScreen(
     onTaskEditedMessageShown: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    val detailState by viewModel.detailState.collectAsState()
+    val detailState by viewModel.detailState.collectAsStateWithLifecycle()
     LaunchedEffect(taskId) { viewModel.loadTaskDetail(taskId) }
 
     val tarea = detailState.tarea
@@ -131,6 +132,10 @@ fun DetalleTareaScreen(
             onDeleteClick = { showDeleteDialog = true }
         )
         Spacer(Modifier.height(22.dp))
+        if (tarea.requiereRevisionHorario) {
+            ScheduleReviewWarning()
+            Spacer(Modifier.height(18.dp))
+        }
         DetailTitle(tarea = tarea)
         Spacer(Modifier.height(18.dp))
         TaskInfoCard(tarea = tarea, rutina = rutina)
@@ -202,6 +207,44 @@ fun DetalleTareaScreen(
 }
 
 @Composable
+private fun ScheduleReviewWarning() {
+    val colors = TaskPointTheme.colors
+
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = colors.warningBackground,
+        border = BorderStroke(1.dp, colors.warningText),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.WarningAmber,
+                contentDescription = null,
+                tint = colors.warningText,
+                modifier = Modifier.size(22.dp)
+            )
+            Spacer(Modifier.size(10.dp))
+            Column {
+                Text(
+                    "Tarea deshabilitada",
+                    color = colors.warningText,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    "Edita su dia y horario para volver a habilitarla.",
+                    color = colors.warningText,
+                    fontSize = 13.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun DetailHeader(
     taskId: String,
     onBack: () -> Unit,
@@ -259,7 +302,7 @@ private fun TaskInfoCard(tarea: Tarea, rutina: Rutina?) {
             DividerLine()
             InfoRow(Icons.Default.LocationOn, "Dirección", rutina?.direccion ?: "Sin dirección")
             DividerLine()
-            InfoRow(Icons.Default.DateRange, "Día", tarea.dia?.displayName() ?: "Sin día")
+            InfoRow(Icons.Default.DateRange, "Días", tarea.diasDisplayName())
             DividerLine()
             InfoRow(Icons.Default.AccessTime, "Horario", tarea.horario ?: "Sin horario")
         }
@@ -314,13 +357,25 @@ private fun DetailSectionTitle(text: String) {
 
 @Composable
 private fun PhotoBlock(photoPath: String?) {
+    var isPhotoExpanded by remember(photoPath) { mutableStateOf(false) }
+
     TaskPhotoImage(
         photoPath = photoPath,
         contentDescription = "Foto de la tarea",
         modifier = Modifier
             .fillMaxWidth()
-            .height(140.dp)
+            .height(140.dp),
+        onClick = photoPath?.takeIf { it.isNotBlank() }?.let {
+            { isPhotoExpanded = true }
+        }
     )
+
+    if (isPhotoExpanded && !photoPath.isNullOrBlank()) {
+        ExpandedTaskPhotoDialog(
+            photoPath = photoPath,
+            onDismiss = { isPhotoExpanded = false }
+        )
+    }
 }
 
 @Composable
@@ -387,3 +442,8 @@ private fun String.shortAddress(): String {
     return substringBefore(",")
 }
 
+private fun Tarea.diasDisplayName(): String {
+    return diasOrdenados
+        .joinToString(separator = ", ") { it.displayName() }
+        .ifBlank { "Sin día" }
+}

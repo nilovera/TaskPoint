@@ -12,6 +12,8 @@ import com.example.apk_mock.data.mapper.toEntity
 import com.example.apk_mock.data.mapper.toTareaDomainList
 import com.example.apk_mock.data.source.TaskPhotoStorage
 import com.example.apk_mock.data.sync.SyncScheduler
+import com.example.apk_mock.data.sync.deleteSyncPayloadJson
+import com.example.apk_mock.data.sync.toSyncPayloadJson
 import com.example.apk_mock.domain.model.CategoriaTarea
 import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Tarea
@@ -25,7 +27,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 
 class RoomTareaRepository(
     private val database: TaskPointDatabase,
@@ -51,37 +52,6 @@ class RoomTareaRepository(
             .flowOn(Dispatchers.IO)
     }
 
-    override suspend fun actualizarNombreRutina(rutinaId: String, nuevoNombre: String): Int {
-        val userId = sessionProvider.currentUserId() ?: return 0
-        return withContext(Dispatchers.IO) {
-            val updatedCount = database.withTransaction {
-                val tareas = tareaDao.getTareasByRutina(rutinaId, userId)
-                val updated = tareas.map { entity ->
-                    entity.copy(
-                        rutinaNombre = nuevoNombre,
-                        syncStatus = SyncStatus.PENDING_UPDATE,
-                        updatedAt = System.currentTimeMillis()
-                    )
-                }
-
-                tareaDao.upsertTareas(updated)
-                syncOperationDao.upsertOperations(
-                    updated.map { entity ->
-                        syncOperation(
-                            userId = userId,
-                            entityId = entity.id,
-                            operationType = SyncOperationType.UPDATE,
-                            payloadJson = entity.toPayloadJson()
-                        )
-                    }
-                )
-                updated.size
-            }
-            if (updatedCount > 0) syncScheduler.schedulePendingSync()
-            updatedCount
-        }
-    }
-
     override suspend fun eliminarTareasDeRutina(rutinaId: String): Int {
         val userId = sessionProvider.currentUserId() ?: return 0
         return withContext(Dispatchers.IO) {
@@ -97,7 +67,7 @@ class RoomTareaRepository(
                             userId = userId,
                             entityId = entity.id,
                             operationType = SyncOperationType.DELETE,
-                            payloadJson = deletePayloadJson(deletedAt)
+                            payloadJson = deleteSyncPayloadJson(deletedAt)
                         )
                     )
                 }
@@ -118,7 +88,7 @@ class RoomTareaRepository(
         categoria: CategoriaTarea,
         rutinaId: String?,
         rutinaNombre: String?,
-        dia: DiaSemana?,
+        dias: List<DiaSemana>,
         horario: String?,
         notas: String,
         photoPath: String?
@@ -132,7 +102,7 @@ class RoomTareaRepository(
             categoria = categoria,
             rutinaId = rutinaId,
             rutinaNombre = rutinaNombre,
-            dia = dia,
+            dias = dias.normalizedDias(),
             horario = horario,
             notas = notas,
             photoPath = photoPath
@@ -147,7 +117,7 @@ class RoomTareaRepository(
                         userId = userId,
                         entityId = tarea.id,
                         operationType = SyncOperationType.CREATE,
-                        payloadJson = entity.toPayloadJson()
+                        payloadJson = entity.toSyncPayloadJson()
                     )
                 )
             }
@@ -163,7 +133,7 @@ class RoomTareaRepository(
         categoria: CategoriaTarea,
         rutinaId: String?,
         rutinaNombre: String?,
-        dia: DiaSemana?,
+        dias: List<DiaSemana>,
         horario: String?,
         notas: String,
         photoPath: String?
@@ -180,10 +150,11 @@ class RoomTareaRepository(
                 categoria = categoria,
                 rutinaId = rutinaId,
                 rutinaNombre = rutinaNombre,
-                dia = dia,
+                dias = dias.normalizedDias(),
                 horario = horario,
                 notas = notas,
-                photoPath = photoPath
+                photoPath = photoPath,
+                requiereRevisionHorario = false
             )
 
             database.withTransaction {
@@ -194,7 +165,7 @@ class RoomTareaRepository(
                         userId = userId,
                         entityId = updated.id,
                         operationType = SyncOperationType.UPDATE,
-                        payloadJson = entity.toPayloadJson()
+                        payloadJson = entity.toSyncPayloadJson()
                     )
                 )
             }
@@ -225,7 +196,7 @@ class RoomTareaRepository(
                         userId = userId,
                         entityId = taskId,
                         operationType = SyncOperationType.DELETE,
-                        payloadJson = deletePayloadJson(deletedAt)
+                        payloadJson = deleteSyncPayloadJson(deletedAt)
                     )
                 )
             }
@@ -252,26 +223,8 @@ class RoomTareaRepository(
             status = SyncOperationStatus.PENDING
         )
     }
+}
 
-    private fun com.example.apk_mock.data.local.entity.TareaEntity.toPayloadJson(): String {
-        return JSONObject()
-            .put("id", id)
-            .put("titulo", titulo)
-            .put("categoriaCode", categoriaCode)
-            .put("rutinaId", rutinaId)
-            .put("rutinaNombre", rutinaNombre)
-            .put("dia", dia)
-            .put("horario", horario)
-            .put("notas", notas)
-            .put("photoPath", photoPath)
-            .put("completada", completada)
-            .put("updatedAt", updatedAt)
-            .toString()
-    }
-
-    private fun deletePayloadJson(updatedAt: Long): String {
-        return JSONObject()
-            .put("updatedAt", updatedAt)
-            .toString()
-    }
+private fun List<DiaSemana>.normalizedDias(): List<DiaSemana> {
+    return distinct().sortedBy { it.ordinal }
 }

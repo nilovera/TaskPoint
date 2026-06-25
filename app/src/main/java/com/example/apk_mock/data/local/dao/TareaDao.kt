@@ -43,15 +43,6 @@ interface TareaDao {
         syncStatus: SyncStatus
     ): Int
 
-    @Query("UPDATE tareas SET rutinaNombre = :nuevoNombre, syncStatus = :syncStatus, updatedAt = :updatedAt WHERE rutinaId = :rutinaId AND userId = :userId")
-    suspend fun updateRutinaNombre(
-        rutinaId: String,
-        userId: String,
-        nuevoNombre: String,
-        syncStatus: SyncStatus = SyncStatus.PENDING_UPDATE,
-        updatedAt: Long = System.currentTimeMillis()
-    ): Int
-
     @Query("DELETE FROM tareas WHERE id = :id AND userId = :userId")
     suspend fun deleteTarea(id: String, userId: String): Int
 

@@ -9,6 +9,7 @@ import android.os.Looper
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,8 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,13 +47,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.apk_mock.domain.model.DiaSemana
 import com.example.apk_mock.domain.model.Rutina
 import com.example.apk_mock.domain.model.Tarea
+import com.example.apk_mock.domain.model.ocurreEn
+import com.example.apk_mock.domain.model.perteneceARutina
 import com.example.apk_mock.ui.components.AppEmptyStateCard
 import com.example.apk_mock.ui.components.CreateActionPill
 import com.example.apk_mock.ui.components.MainScreenHeader
@@ -82,34 +87,30 @@ fun HomeScreen(
     isInitialDataSyncInProgress: Boolean = false,
     onCrearRutina: () -> Unit,
     onCrearTarea: () -> Unit = {},
+    onTaskClick: (String) -> Unit = {},
     onProfile: () -> Unit = {},
     onLogout: () -> Unit = {},
     innerPadding: PaddingValues = PaddingValues()
 ) {
-    val rutinasState by rutinasViewModel.listState.collectAsState()
-    val tareasState by tareasViewModel.listState.collectAsState()
+    val rutinasState by rutinasViewModel.listState.collectAsStateWithLifecycle()
+    val tareasState by tareasViewModel.listState.collectAsStateWithLifecycle()
     val isOnline = rememberIsOnline()
     val today = LocalDate.now()
     val todayDia = today.toDiaSemana()
     val displayName = userName.ifBlank { "Usuario" }
     val rutinas = rutinasState.rutinas
-    val todayTasks = tareasState.tareas.filter { it.dia == todayDia || it.dia == null }
+    val todayTasks = tareasState.tareas.filter { it.dias.isEmpty() || it.ocurreEn(todayDia) }
     val canCreateTask = rutinas.isNotEmpty()
     val colors = TaskPointTheme.colors
     val sections = remember(rutinas, todayTasks, colors.primary) {
         buildHomeSections(rutinas, todayTasks, colors.primary)
     }
 
-    LaunchedEffect(Unit) {
-        rutinasViewModel.refreshRutinas()
-        tareasViewModel.refreshTareas()
-    }
-
     Scaffold(
         containerColor = colors.background,
         floatingActionButton = {
             CreateActionPill(
-                text = "Nueva tarea +",
+                text = "Nueva tarea",
                 onClick = onCrearTarea,
                 enabled = canCreateTask,
                 modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
@@ -124,7 +125,9 @@ fun HomeScreen(
                 .padding(horizontal = 20.dp),
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding() + 8.dp,
-                bottom = innerPadding.calculateBottomPadding() + selfPadding.calculateBottomPadding() + 86.dp
+                // Deja lugar para que la última tarjeta pueda desplazarse por encima
+                // del botón de crear y de la navegación inferior.
+                bottom = innerPadding.calculateBottomPadding() + selfPadding.calculateBottomPadding() + 112.dp
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -168,7 +171,10 @@ fun HomeScreen(
 
                 else -> {
                     items(sections, key = { it.rutina?.id ?: it.title }) { section ->
-                        HomeRoutineCard(section = section)
+                        HomeRoutineCard(
+                            section = section,
+                            onTaskClick = { tarea -> onTaskClick(tarea.id) }
+                        )
                     }
                 }
             }
@@ -225,7 +231,10 @@ private fun OfflineBanner() {
 }
 
 @Composable
-private fun HomeRoutineCard(section: HomeRoutineSection) {
+private fun HomeRoutineCard(
+    section: HomeRoutineSection,
+    onTaskClick: (Tarea) -> Unit
+) {
     val colors = TaskPointTheme.colors
 
     Surface(
@@ -272,7 +281,10 @@ private fun HomeRoutineCard(section: HomeRoutineSection) {
             HorizontalDivider(color = colors.border)
 
             section.tareas.forEachIndexed { index, tarea ->
-                HomeTaskRow(tarea = tarea)
+                HomeTaskRow(
+                    tarea = tarea,
+                    onClick = { onTaskClick(tarea) }
+                )
                 if (index < section.tareas.lastIndex) {
                     HorizontalDivider(color = colors.border.copy(alpha = 0.7f))
                 }
@@ -301,14 +313,31 @@ private fun CountChip(count: Int) {
 }
 
 @Composable
-private fun HomeTaskRow(tarea: Tarea) {
+private fun HomeTaskRow(
+    tarea: Tarea,
+    onClick: () -> Unit
+) {
     val categoryColors = tarea.categoria.categoryChipColors()
     val colors = TaskPointTheme.colors
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = colors.subTaskCard)
+            .semantics(mergeDescendants = true) {
+                contentDescription = if (tarea.requiereRevisionHorario) {
+                    "Abrir tarea ${tarea.titulo}. Deshabilitada hasta revisar su dia y horario."
+                } else {
+                    "Abrir tarea ${tarea.titulo}"
+                }
+            }
+            .clickable(role = Role.Button, onClick = onClick)
+            .background(
+                color = if (tarea.requiereRevisionHorario) {
+                    colors.warningBackground
+                } else {
+                    colors.subTaskCard
+                }
+            )
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -316,7 +345,9 @@ private fun HomeTaskRow(tarea: Tarea) {
             text = tarea.horario ?: "--:--",
             color = colors.textSecondary,
             fontSize = 15.sp,
-            modifier = Modifier.width(42.dp)
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Clip
         )
         Spacer(Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -345,7 +376,22 @@ private fun HomeTaskRow(tarea: Tarea) {
             }
         }
 
-        if (tarea.categoria.code == "SUPERMERCADO") {
+        if (tarea.requiereRevisionHorario) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(colors.warningText.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.WarningAmber,
+                    contentDescription = "Requiere revision",
+                    tint = colors.warningText,
+                    modifier = Modifier.size(19.dp)
+                )
+            }
+        } else if (tarea.categoria.code == "SUPERMERCADO") {
             Box(
                 modifier = Modifier
                     .size(34.dp)
@@ -370,7 +416,7 @@ private fun buildHomeSections(
     fallbackIconColor: Color
 ): List<HomeRoutineSection> {
     val routineSections = rutinas.mapNotNull { rutina ->
-        val routineTasks = tareas.filter { it.rutinaId == rutina.id || it.rutinaNombre == rutina.nombre }
+        val routineTasks = tareas.filter { it.perteneceARutina(rutina) }
         if (routineTasks.isEmpty()) return@mapNotNull null
 
         HomeRoutineSection(
@@ -446,4 +492,3 @@ private fun Context.hasValidatedConnection(): Boolean {
     return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
         capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 }
-
